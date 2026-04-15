@@ -1,117 +1,122 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>My Orders — GameHub Online Store</title>
-<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/orders.css">
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Orders — GameHub Online Store</title>
+    <link rel="stylesheet" href="css/navbar.css">
+    <link rel="stylesheet" href="css/orders.css">
 </head>
 <body>
 
-<nav>
-  <a href="index.html" class="logo"><div class="logo-mark">G2</div><span class="logo-text">GameHub Online Store</span></a>
-  <div class="nav-right">
-    <a href="index.html" class="nav-link">Store</a>
-    <a href="orders.html" class="nav-link nav-active">My Orders</a>
-    <a href="logout.html" class="nav-link">Logout</a>
-    <a href="cart.html" class="nav-link">🛒</a>
-  </div>
-</nav>
-
-<div class="success-bar">✅ Purchase successful! Your keys are ready below.</div>
-
-<div class="page">
-  <h1 class="page-title">My Orders</h1>
-
-  <!-- Order 1 -->
-  <div class="order-card">
-    <div class="order-top">
-      <div class="order-left">
-        <div class="order-thumb ot1">⚔️</div>
-        <div>
-          <div class="order-name">Elden Ring</div>
-          <div class="order-meta">Order Date: 3/30/2026<br>Order #8</div>
+    <!-- NAVIGATION -->
+    <nav class="navbar">
+        <a href="index.html" class="navbar-logo">
+            <div class="logo-box">Ghos</div>
+            <span class="logo-name">GameHub Online Store</span>
+        </a>
+        <div class="navbar-links" style="margin-left: auto;">
+            <a href="index.html">Store</a>
+            <a href="orders.html" style="color: #2563eb; font-weight: bold;">My Orders</a>
+            <a href="login.html">Logout</a>
+            <a href="cart.html" class="cart-link">🛒 Cart <span class="cart-badge">0</span></a>
         </div>
-      </div>
-      <div class="order-right">
-        <div class="order-price">$39.99</div>
-        <span class="status-badge">✅ Delivered</span>
-      </div>
-    </div>
-    <!-- Key reveal (shown state) -->
-    <div class="key-box">
-      <div class="key-box-header">
-        <div class="key-box-title"><span>📦</span> Your CD Key / Activation Code</div>
-        <button class="reveal-btn">🙈 Hide Key</button>
-      </div>
-      <div class="key-box-body">
-        <div class="key-value">ELDR-A1B2-C3D4-E5F6</div>
-        <div class="key-hint">Copy this key to activate your game</div>
-        <button class="copy-btn">📋 Copy Key</button>
-      </div>
-      <div class="key-box-footer">🔒 Keep this key safe. You'll need it to activate your game.</div>
-    </div>
-  </div>
+    </nav>
 
-  <!-- Order 2 -->
-  <div class="order-card">
-    <div class="order-top">
-      <div class="order-left">
-        <div class="order-thumb ot2">🧱</div>
-        <div>
-          <div class="order-name">Minecraft</div>
-          <div class="order-meta">Order Date: 3/15/2026<br>Order #5</div>
+    <div class="success-bar">✅ Purchase successful! Your keys are ready below.</div>
+
+    <div class="page-wrapper">
+        <h1 class="page-title">My Orders</h1>
+
+        <!-- Order 1 - Key Revealed -->
+        <div class="order-card">
+            <div class="order-top">
+                <div class="order-left">
+                    <div class="order-thumb thumb-purple">⚔️</div>
+                    <div>
+                        <div class="order-game-name">Elden Ring</div>
+                        <div class="order-meta">Order Date: 3/30/2026<br>Order #8</div>
+                    </div>
+                </div>
+                <div class="order-right">
+                    <div class="order-price">$39.99</div>
+                    <span class="badge-green">✅ Delivered</span>
+                </div>
+            </div>
+            <div class="key-box">
+                <div class="key-box-header">
+                    <div class="key-box-title">📦 Your CD Key / Activation Code</div>
+                    <button class="reveal-btn">🙈 Hide Key</button>
+                </div>
+                <div class="key-box-body">
+                    <div class="key-value">ELDR-A1B2-C3D4-E5F6</div>
+                    <div class="key-hint">Copy this key to activate your game</div>
+                    <br>
+                    <button class="copy-btn">📋 Copy Key</button>
+                </div>
+                <div class="key-box-footer">🔒 Keep this key safe. You'll need it to activate your game.</div>
+            </div>
         </div>
-      </div>
-      <div class="order-right">
-        <div class="order-price">$26.95</div>
-        <span class="status-badge">✅ Delivered</span>
-      </div>
-    </div>
-    <!-- Key reveal (hidden state) -->
-    <div class="key-box">
-      <div class="key-box-header">
-        <div class="key-box-title"><span>📦</span> Your CD Key / Activation Code</div>
-        <button class="reveal-btn">👁️ Reveal Key</button>
-      </div>
-      <div class="key-box-body">
-        <div class="key-value key-hidden">MINE-G7H8-I9J0-K1L2</div>
-        <div class="key-hint">Click "Reveal Key" to view your activation code</div>
-      </div>
-      <div class="key-box-footer">🔒 Keep this key safe. You'll need it to activate your game.</div>
-    </div>
-  </div>
 
-  <!-- Order 3 -->
-  <div class="order-card">
-    <div class="order-top">
-      <div class="order-left">
-        <div class="order-thumb ot3">🏙️</div>
-        <div>
-          <div class="order-name">Grand Theft Auto V</div>
-          <div class="order-meta">Order Date: 2/28/2026<br>Order #3</div>
+        <!-- Order 2 - Key Hidden -->
+        <div class="order-card">
+            <div class="order-top">
+                <div class="order-left">
+                    <div class="order-thumb thumb-green">🧱</div>
+                    <div>
+                        <div class="order-game-name">Minecraft</div>
+                        <div class="order-meta">Order Date: 3/15/2026<br>Order #5</div>
+                    </div>
+                </div>
+                <div class="order-right">
+                    <div class="order-price">$26.95</div>
+                    <span class="badge-green">✅ Delivered</span>
+                </div>
+            </div>
+            <div class="key-box">
+                <div class="key-box-header">
+                    <div class="key-box-title">📦 Your CD Key / Activation Code</div>
+                    <button class="reveal-btn">👁️ Reveal Key</button>
+                </div>
+                <div class="key-box-body">
+                    <div class="key-value key-hidden">MINE-G7H8-I9J0-K1L2</div>
+                    <div class="key-hint">Click "Reveal Key" to view your activation code</div>
+                </div>
+                <div class="key-box-footer">🔒 Keep this key safe. You'll need it to activate your game.</div>
+            </div>
         </div>
-      </div>
-      <div class="order-right">
-        <div class="order-price">$29.99</div>
-        <span class="status-badge">✅ Delivered</span>
-      </div>
-    </div>
-    <div class="key-box">
-      <div class="key-box-header">
-        <div class="key-box-title"><span>📦</span> Your CD Key / Activation Code</div>
-        <button class="reveal-btn">👁️ Reveal Key</button>
-      </div>
-      <div class="key-box-body">
-        <div class="key-value key-hidden">GTAV-S9T0-U1V2-W3X4</div>
-        <div class="key-hint">Click "Reveal Key" to view your activation code</div>
-      </div>
-      <div class="key-box-footer">🔒 Keep this key safe. You'll need it to activate your game.</div>
-    </div>
-  </div>
 
-</div>
+        <!-- Order 3 - Key Hidden -->
+        <div class="order-card">
+            <div class="order-top">
+                <div class="order-left">
+                    <div class="order-thumb thumb-blue">🏙️</div>
+                    <div>
+                        <div class="order-game-name">Grand Theft Auto V</div>
+                        <div class="order-meta">Order Date: 2/28/2026<br>Order #3</div>
+                    </div>
+                </div>
+                <div class="order-right">
+                    <div class="order-price">$29.99</div>
+                    <span class="badge-green">✅ Delivered</span>
+                </div>
+            </div>
+            <div class="key-box">
+                <div class="key-box-header">
+                    <div class="key-box-title">📦 Your CD Key / Activation Code</div>
+                    <button class="reveal-btn">👁️ Reveal Key</button>
+                </div>
+                <div class="key-box-body">
+                    <div class="key-value key-hidden">GTAV-S9T0-U1V2-W3X4</div>
+                    <div class="key-hint">Click "Reveal Key" to view your activation code</div>
+                </div>
+                <div class="key-box-footer">🔒 Keep this key safe. You'll need it to activate your game.</div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="footer">© 2026 GameHub Online Store. All rights reserved.</div>
+
 </body>
 </html>

@@ -1,85 +1,213 @@
-*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-:root {
-  --bg: #0a0a0f; --surface: #111118; --surface2: #1a1a24;
-  --border: rgba(255,255,255,.07); --border2: rgba(255,255,255,.12);
-  --accent: #00e5ff; --green: #00e676; --red: #ff1744;
-  --text: #e8e8f0; --muted: #6b6b80;
+/* =============================================
+   cart.css — Shopping Cart Page Styles
+   ============================================= */
+
+/* Two columns: cart table left, summary right */
+.cart-layout {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 24px;
+    align-items: start;
 }
-body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
 
-nav { position: sticky; top: 0; z-index: 100; background: rgba(10,10,15,.85); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); padding: 0 2rem; height: 60px; display: flex; align-items: center; gap: 1.5rem; }
-.logo { display: flex; align-items: center; gap: .6rem; text-decoration: none; }
-.logo-mark { width: 34px; height: 34px; background: linear-gradient(135deg, #7c3aed, #00e5ff); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: .85rem; color: #fff; }
-.logo-text { font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 1.2rem; letter-spacing: .5px; }
-.nav-right { display: flex; align-items: center; gap: 1rem; margin-left: auto; }
-.nav-link { color: var(--muted); text-decoration: none; font-size: .875rem; font-weight: 500; }
-.active-link { color: var(--accent); font-weight: 600; }
+/* ---- CART TABLE ---- */
+.cart-table-wrap {
+    background-color: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    overflow: hidden;
+}
 
-.page { max-width: 1100px; margin: 0 auto; padding: 2rem; }
-.page-title { font-family: 'Rajdhani', sans-serif; font-size: 1.8rem; font-weight: 700; margin-bottom: 1.75rem; letter-spacing: .5px; }
+.cart-table {
+    width: 100%;
+    border-collapse: collapse;
+}
 
-.layout { display: grid; grid-template-columns: 1fr 320px; gap: 1.5rem; align-items: start; }
-
-/* Cart table */
-.cart-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
-.cart-table { width: 100%; border-collapse: collapse; }
 .cart-table th {
-  padding: .85rem 1.25rem;
-  text-align: left;
-  font-size: .72rem;
-  font-weight: 600;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: .07em;
-  border-bottom: 1px solid var(--border);
-  background: rgba(255,255,255,.02);
+    background-color: #f9f9f9;
+    padding: 12px 16px;
+    text-align: left;
+    font-size: 12px;
+    font-weight: bold;
+    color: #888888;
+    text-transform: uppercase;
+    border-bottom: 1px solid #e0e0e0;
 }
-.cart-table td { padding: 1.1rem 1.25rem; border-bottom: 1px solid var(--border); vertical-align: middle; font-size: .9rem; }
-.cart-table tr:last-child td { border-bottom: none; }
 
-.game-cell { display: flex; align-items: center; gap: 1rem; }
+.cart-table td {
+    padding: 16px;
+    border-bottom: 1px solid #f0f0f0;
+    vertical-align: middle;
+    font-size: 14px;
+}
+
+.cart-table tr:last-child td {
+    border-bottom: none;
+}
+
+/* Game name + thumbnail together */
+.game-cell {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
 .game-thumb {
-  width: 64px; height: 48px; border-radius: 7px; overflow: hidden;
-  flex-shrink: 0; display: flex; align-items: center; justify-content: center;
-  font-size: 1.5rem;
+    width: 60px;
+    height: 44px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
 }
-.thumb-1 { background: linear-gradient(135deg,#1a0530,#2d0d5e); }
-.thumb-2 { background: linear-gradient(135deg,#0a1a0a,#0f3d15); }
-.thumb-3 { background: linear-gradient(135deg,#0d1b0d,#0a3d1f); }
-.game-name { font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 1rem; letter-spacing: .3px; }
-.game-sub { font-size: .75rem; color: var(--muted); margin-top: .1rem; }
 
-.price-cell { font-family: 'Rajdhani', sans-serif; font-weight: 600; font-size: 1rem; }
-.total-cell { font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 1.05rem; color: var(--accent); }
+.thumb-purple { background-color: #1e1b4b; }
+.thumb-green  { background-color: #14532d; }
 
-.qty-wrap { display: flex; align-items: center; }
-.qty-btn { width: 28px; height: 28px; background: var(--surface2); border: 1px solid var(--border2); color: var(--text); font-size: .95rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: .15s; }
-.qty-btn:first-child { border-radius: 5px 0 0 5px; }
-.qty-btn:last-child { border-radius: 0 5px 5px 0; }
-.qty-btn:hover { background: var(--accent); color: #000; border-color: var(--accent); }
-.qty-num { width: 36px; height: 28px; background: var(--surface); border: 1px solid var(--border2); border-left: none; border-right: none; color: var(--text); text-align: center; font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: .9rem; outline: none; }
+.game-thumb-name { font-weight: bold; font-size: 14px; }
+.game-thumb-sub  { font-size: 12px; color: #888888; margin-top: 2px; }
 
-.remove-btn { background: none; border: none; color: var(--muted); font-size: 1.1rem; cursor: pointer; padding: .25rem; opacity: .7; transition: .15s; }
-.remove-btn:hover { color: var(--red); opacity: 1; }
+/* Quantity control inside the table */
+.qty-wrap {
+    display: flex;
+    align-items: center;
+}
 
-/* Trust badges */
-.trust-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: .85rem; margin-top: 1.25rem; }
-.trust-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: .85rem 1rem; display: flex; align-items: center; gap: .65rem; }
-.trust-icon { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1rem; flex-shrink: 0; }
-.ti-blue { background: rgba(0,229,255,.1); }
-.ti-green { background: rgba(0,230,118,.1); }
-.ti-purple { background: rgba(124,58,237,.1); }
-.trust-name { font-size: .82rem; font-weight: 600; }
-.trust-sub { font-size: .72rem; color: var(--muted); }
+.qty-btn-sm {
+    width: 28px;
+    height: 28px;
+    background-color: #f0f0f0;
+    border: 1px solid #cccccc;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
 
-/* Summary box */
-.summary { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; }
-.summary-title { font-family: 'Rajdhani', sans-serif; font-size: 1.1rem; font-weight: 700; margin-bottom: 1.25rem; letter-spacing: .3px; }
-.summary-row { display: flex; justify-content: space-between; font-size: .875rem; margin-bottom: .75rem; color: var(--muted); }
-.summary-row span:last-child { color: var(--text); }
-.summary-divider { border: none; border-top: 1px solid var(--border); margin: 1rem 0; }
-.summary-total { display: flex; justify-content: space-between; font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 1.2rem; }
-.summary-total span:last-child { color: var(--accent); }
-.checkout-btn { width: 100%; background: var(--accent); color: #000; font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 1.05rem; padding: .9rem; border-radius: 8px; border: none; cursor: pointer; margin-top: 1.25rem; letter-spacing: .5px; transition: .2s; }
-.checkout-btn:hover { background: #33eaff; transform: translateY(-1px); box-shadow: 0 8px 24px rgba(0,229,255,.25); }
-.checkout-note { text-align: center; font-size: .72rem; color: var(--muted); margin-top: .6rem; }
+.qty-btn-sm:first-child { border-radius: 5px 0 0 5px; }
+.qty-btn-sm:last-child  { border-radius: 0 5px 5px 0; }
+.qty-btn-sm:hover       { background-color: #dddddd; }
+
+.qty-num {
+    width: 36px;
+    height: 28px;
+    border: 1px solid #cccccc;
+    border-left: none;
+    border-right: none;
+    text-align: center;
+    font-size: 14px;
+    font-weight: bold;
+    outline: none;
+}
+
+.total-price {
+    font-size: 15px;
+    font-weight: bold;
+    color: #2563eb;
+}
+
+/* Trash icon to remove item */
+.remove-btn {
+    background: none;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+    color: #cccccc;
+    padding: 4px;
+}
+
+.remove-btn:hover {
+    color: #ef4444;
+}
+
+/* ---- TRUST BADGES ---- */
+.trust-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-top: 16px;
+}
+
+.trust-card {
+    background-color: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.trust-icon { font-size: 20px; }
+.trust-name { font-size: 13px; font-weight: bold; color: #333333; }
+.trust-sub  { font-size: 11px; color: #888888; margin-top: 2px; }
+
+/* ---- ORDER SUMMARY BOX ---- */
+.summary-box {
+    background-color: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    padding: 20px;
+}
+
+.summary-title {
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 16px;
+    color: #1a1a1a;
+}
+
+.summary-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+    margin-bottom: 10px;
+    color: #555555;
+}
+
+.summary-divider {
+    border: none;
+    border-top: 1px solid #e0e0e0;
+    margin: 14px 0;
+}
+
+.summary-total {
+    display: flex;
+    justify-content: space-between;
+    font-size: 17px;
+    font-weight: bold;
+}
+
+.summary-total-price {
+    color: #2563eb;
+}
+
+.checkout-btn {
+    width: 100%;
+    background-color: #2563eb;
+    color: white;
+    border: none;
+    padding: 13px;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 16px;
+    text-align: center;
+    display: block;
+    text-decoration: none;
+}
+
+.checkout-btn:hover {
+    background-color: #1d4ed8;
+}
+
+.checkout-note {
+    text-align: center;
+    font-size: 12px;
+    color: #888888;
+    margin-top: 8px;
+}

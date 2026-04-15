@@ -1,188 +1,182 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>GameHub Online Store — Game Keys Marketplace</title>
-<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/index.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GameHub Online Store - Home</title>
+    <!-- Shared navbar styles -->
+    <link rel="stylesheet" href="css/navbar.css">
+    <!-- This page's own styles -->
+    <link rel="stylesheet" href="css/index.css">
 </head>
 <body>
 
-<nav>
-  <a href="index.html" class="logo">
-    <div class="logo-mark">Ghos</div>
-    <span class="logo-text">GameHub Online Store</span>
-  </a>
-  <div class="search-wrap">
-    <span class="search-icon">⌕</span>
-    <input type="text" placeholder="Search for games...">
-  </div>
-  <div class="nav-right">
-    <a href="login.html" class="nav-link">Login</a>
-    <a href="cart.html" class="cart-btn">🛒 Cart <span class="cart-count">2</span></a>
-  </div>
-</nav>
+    <!-- NAVIGATION -->
+    <nav class="navbar">
+        <a href="index.html" class="navbar-logo">
+            <div class="logo-box">Ghos</div>
+            <span class="logo-name">GameHub Online Store</span>
+        </a>
+        <div class="navbar-search">
+            <input type="text" placeholder="Search for games...">
+        </div>
+        <div class="navbar-links">
+            <a href="business.html">Business</a>
+            <a href="login.html">Login</a>
+            <a href="cart.html" class="cart-link">
+                🛒 Cart
+                <span class="cart-badge">2</span>
+            </a>
+        </div>
+    </nav>
 
-<!-- Hero -->
-<div class="hero">
-  <div class="hero-bg"></div>
-  <div class="hero-glow"></div>
-  <div class="hero-grid"></div>
-  <div class="hero-game-img">⚔️</div>
-  <div class="hero-content">
-    <div class="hero-badge">⚡ Featured Deal — Instant Delivery</div>
-    <h1 class="hero-title">Elden<br><span>Ring</span></h1>
-    <div class="hero-meta">
-      <span class="hero-tag">Steam</span>
-      <span class="hero-tag">🌐 Global</span>
+
+    <!-- HERO SECTION -->
+    <div class="hero">
+        <div class="hero-inner">
+            <div class="hero-badge">⚡ Featured Deal — Instant Delivery</div>
+            <h1>Elden Ring</h1>
+            <p class="hero-promo">20% OFF — Limited Time Only!</p>
+            <div class="hero-price">
+                $39.99
+                <s>$49.99</s>
+            </div>
+            <a href="product.html" class="btn-blue">⚡ Get Instant Key</a>
+        </div>
     </div>
-    <div class="hero-price">
-      $39.99
-      <s>$49.99</s>
-      <span class="hero-discount">−20%</span>
+
+
+    <!-- GAMES GRID -->
+    <div class="games-section">
+        <h2 class="section-title">Browse Games</h2>
+
+        <div class="games-grid">
+
+            <!-- Game 1 -->
+            <a href="product.html" class="game-card">
+                <div class="game-image color-1">⚔️</div>
+                <div class="game-info">
+                    <div class="game-name">Elden Ring</div>
+                    <div class="game-platform">Steam · Global</div>
+                    <div class="game-delivery">⚡ Instant Delivery</div>
+                    <div class="game-footer">
+                        <span class="game-price">$39.99</span>
+                        <span class="btn-dark">View</span>
+                    </div>
+                </div>
+            </a>
+
+            <!-- Game 2 -->
+            <a href="product.html" class="game-card">
+                <div class="game-image color-2">🧱</div>
+                <div class="game-info">
+                    <div class="game-name">Minecraft</div>
+                    <div class="game-platform">Minecraft Launcher · Global</div>
+                    <div class="game-delivery">⚡ Instant Delivery</div>
+                    <div class="game-footer">
+                        <span class="game-price">$26.95</span>
+                        <span class="btn-dark">View</span>
+                    </div>
+                </div>
+            </a>
+
+            <!-- Game 3 - Out of Stock -->
+            <a href="#" class="game-card">
+                <div class="game-image color-3" style="position: relative;">
+                    🤖
+                    <div class="out-of-stock-overlay">
+                        <span class="out-of-stock-label">Out of Stock</span>
+                    </div>
+                </div>
+                <div class="game-info">
+                    <div class="game-name">Cyberpunk 2077</div>
+                    <div class="game-platform">Steam · Global</div>
+                    <div class="game-delivery">⚡ Instant Delivery</div>
+                    <div class="game-footer">
+                        <span class="game-price">$59.99</span>
+                        <span class="btn-gray">Unavailable</span>
+                    </div>
+                </div>
+            </a>
+
+            <!-- Game 4 -->
+            <a href="product.html" class="game-card">
+                <div class="game-image color-4">🏙️</div>
+                <div class="game-info">
+                    <div class="game-name">Grand Theft Auto V</div>
+                    <div class="game-platform">Rockstar · Global</div>
+                    <div class="game-delivery">⚡ Instant Delivery</div>
+                    <div class="game-footer">
+                        <span class="game-price">$29.99</span>
+                        <span class="btn-dark">View</span>
+                    </div>
+                </div>
+            </a>
+
+            <!-- Game 5 -->
+            <a href="product.html" class="game-card">
+                <div class="game-image color-5">🤠</div>
+                <div class="game-info">
+                    <div class="game-name">Red Dead Redemption 2</div>
+                    <div class="game-platform">Rockstar · Global</div>
+                    <div class="game-delivery">⚡ Instant Delivery</div>
+                    <div class="game-footer">
+                        <span class="game-price">$49.99</span>
+                        <span class="btn-dark">View</span>
+                    </div>
+                </div>
+            </a>
+
+            <!-- Game 6 -->
+            <a href="product.html" class="game-card">
+                <div class="game-image color-6">🔫</div>
+                <div class="game-info">
+                    <div class="game-name">Call of Duty: MW</div>
+                    <div class="game-platform">Battle.net · Global</div>
+                    <div class="game-delivery">⚡ Instant Delivery</div>
+                    <div class="game-footer">
+                        <span class="game-price">$59.99</span>
+                        <span class="btn-dark">View</span>
+                    </div>
+                </div>
+            </a>
+
+            <!-- Game 7 -->
+            <a href="product.html" class="game-card">
+                <div class="game-image color-7">💀</div>
+                <div class="game-info">
+                    <div class="game-name">Dark Souls Remastered</div>
+                    <div class="game-platform">Steam · Global</div>
+                    <div class="game-delivery">⚡ Instant Delivery</div>
+                    <div class="game-footer">
+                        <span class="game-price">$19.99</span>
+                        <span class="btn-dark">View</span>
+                    </div>
+                </div>
+            </a>
+
+            <!-- Game 8 -->
+            <a href="product.html" class="game-card">
+                <div class="game-image color-8">🏎️</div>
+                <div class="game-info">
+                    <div class="game-name">Need for Speed: Heat</div>
+                    <div class="game-platform">Origin · Global</div>
+                    <div class="game-delivery">⚡ Instant Delivery</div>
+                    <div class="game-footer">
+                        <span class="game-price">$34.99</span>
+                        <span class="btn-dark">View</span>
+                    </div>
+                </div>
+            </a>
+
+        </div>
     </div>
-    <a href="product.html" class="btn-primary">⚡ Get Instant Key</a>
-  </div>
-</div>
 
-<!-- Games Grid -->
-<div class="section">
-  <div class="section-header">
-    <h2 class="section-title">Browse <span>Games</span></h2>
-    <div class="filter-tabs">
-      <div class="filter-tab active">All</div>
-      <div class="filter-tab">Steam</div>
-      <div class="filter-tab">On Sale</div>
+
+    <!-- FOOTER -->
+    <div class="footer">
+        © 2026 GameHub Online Store. All rights reserved.
     </div>
-  </div>
-  <div class="games-grid">
-
-    <!-- Card 1 -->
-    <a href="product.html" class="game-card">
-      <div class="card-img game1"><div class="card-img-placeholder">⚔️</div></div>
-      <div class="card-body">
-        <div class="card-name">Elden Ring</div>
-        <div class="card-platform"><span class="platform-dot"></span>Steam · Global</div>
-        <div class="delivery-tag">⚡ Instant Delivery</div>
-        <div class="card-footer">
-          <span class="card-price">$39.99</span>
-          <button class="btn-view">View</button>
-        </div>
-      </div>
-    </a>
-
-    <!-- Card 2 -->
-    <a href="product.html" class="game-card">
-      <div class="card-img game2"><div class="card-img-placeholder">🧱</div></div>
-      <div class="card-body">
-        <div class="card-name">Minecraft</div>
-        <div class="card-platform"><span class="platform-dot"></span>Minecraft Launcher · Global</div>
-        <div class="delivery-tag">⚡ Instant Delivery</div>
-        <div class="card-footer">
-          <span class="card-price">$26.95</span>
-          <button class="btn-view">View</button>
-        </div>
-      </div>
-    </a>
-
-    <!-- Card 3 - Out of Stock -->
-    <a href="#" class="game-card">
-      <div class="card-img game3">
-        <div class="card-img-placeholder">🤖</div>
-        <div class="oos-overlay"><span class="oos-label">Out of Stock</span></div>
-      </div>
-      <div class="card-body">
-        <div class="card-name">Cyberpunk 2077</div>
-        <div class="card-platform"><span class="platform-dot"></span>Steam · Global</div>
-        <div class="delivery-tag">⚡ Instant Delivery</div>
-        <div class="card-footer">
-          <span class="card-price">$59.99</span>
-          <span class="btn-unavail">Unavailable</span>
-        </div>
-      </div>
-    </a>
-
-    <!-- Card 4 -->
-    <a href="product.html" class="game-card">
-      <div class="card-img game4"><div class="card-img-placeholder">🏙️</div></div>
-      <div class="card-body">
-        <div class="card-name">Grand Theft Auto V</div>
-        <div class="card-platform"><span class="platform-dot"></span>Rockstar · Global</div>
-        <div class="delivery-tag">⚡ Instant Delivery</div>
-        <div class="card-footer">
-          <span class="card-price">$29.99</span>
-          <button class="btn-view">View</button>
-        </div>
-      </div>
-    </a>
-
-    <!-- Card 5 -->
-    <a href="product.html" class="game-card">
-      <div class="card-img game5"><div class="card-img-placeholder">🤠</div></div>
-      <div class="card-body">
-        <div class="card-name">Red Dead Redemption 2</div>
-        <div class="card-platform"><span class="platform-dot"></span>Rockstar · Global</div>
-        <div class="delivery-tag">⚡ Instant Delivery</div>
-        <div class="card-footer">
-          <span class="card-price">$49.99</span>
-          <button class="btn-view">View</button>
-        </div>
-      </div>
-    </a>
-
-    <!-- Card 6 -->
-    <a href="product.html" class="game-card">
-      <div class="card-img game6"><div class="card-img-placeholder">🔫</div></div>
-      <div class="card-body">
-        <div class="card-name">Call of Duty: MW</div>
-        <div class="card-platform"><span class="platform-dot"></span>Battle.net · Global</div>
-        <div class="delivery-tag">⚡ Instant Delivery</div>
-        <div class="card-footer">
-          <span class="card-price">$59.99</span>
-          <button class="btn-view">View</button>
-        </div>
-      </div>
-    </a>
-
-    <!-- Card 7 -->
-    <a href="product.html" class="game-card">
-      <div class="card-img game7"><div class="card-img-placeholder">💀</div></div>
-      <div class="card-body">
-        <div class="card-name">Dark Souls Remastered</div>
-        <div class="card-platform"><span class="platform-dot"></span>Steam · Global</div>
-        <div class="delivery-tag">⚡ Instant Delivery</div>
-        <div class="card-footer">
-          <span class="card-price">$19.99</span>
-          <button class="btn-view">View</button>
-        </div>
-      </div>
-    </a>
-
-    <!-- Card 8 -->
-    <a href="product.html" class="game-card">
-      <div class="card-img game8"><div class="card-img-placeholder">🏎️</div></div>
-      <div class="card-body">
-        <div class="card-name">Need for Speed: Heat</div>
-        <div class="card-platform"><span class="platform-dot"></span>Origin · Global</div>
-        <div class="delivery-tag">⚡ Instant Delivery</div>
-        <div class="card-footer">
-          <span class="card-price">$34.99</span>
-          <button class="btn-view">View</button>
-        </div>
-      </div>
-    </a>
-
-  </div>
-</div>
-
-<footer>
-  <div class="logo">
-    <div class="logo-mark">Ghos</div>
-    <span class="logo-text">GameHub Online Store</span>
-  </div>
-  <span>© 2026 GameHub Online Store. All rights reserved.</span>
-</footer>
 
 </body>
 </html>

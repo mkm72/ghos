@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shopping Cart — GameHub Online Store</title>
+    <link rel="stylesheet" href="css/navbar.css">
+    <link rel="stylesheet" href="css/cart.css">
+</head>
+<body>
+
+    <!-- NAVIGATION -->
+    <nav class="navbar">
+        <a href="index.html" class="navbar-logo">
+            <div class="logo-box">Ghos</div>
+            <span class="logo-name">GameHub Online Store</span>
+        </a>
+        <div class="navbar-links" style="margin-left: auto;">
+            <a href="index.html">Store</a>
+            <a href="orders.html">My Orders</a>
+            <a href="cart.html" class="cart-link">🛒 Cart <span class="cart-badge">2</span></a>
+        </div>
+    </nav>
+
+
+    <!-- PAGE CONTENT -->
+    <div class="page-wrapper">
+        <h1 class="page-title">Shopping Cart</h1>
+
+        <div class="cart-layout">
+
+            <!-- LEFT: Cart Table + Trust -->
+            <div>
+                <div class="cart-table-wrap">
+                    <table class="cart-table">
+                        <thead>
+                            <tr>
+                                <th>Game</th>
+                                <th>Price</th>
+                                <th>Quantity</th>
+                                <th>Total</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+
+                            <tr>
+                                <td>
+                                    <div class="game-cell">
+                                        <div class="game-thumb thumb-purple">⚔️</div>
+                                        <div>
+                                            <div class="game-thumb-name">Elden Ring</div>
+                                            <div class="game-thumb-sub">Steam · Global</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>$39.99</td>
+                                <td>
+                                    <div class="qty-wrap">
+                                        <button class="qty-btn-sm">−</button>
+                                        <input type="number" class="qty-num" value="1" min="1">
+                                        <button class="qty-btn-sm">+</button>
+                                    </div>
+                                </td>
+                                <td class="total-price">$39.99</td>
+                                <td><button class="remove-btn">🗑</button></td>
+                            </tr>
+
+                            <tr>
+                                <td>
+                                    <div class="game-cell">
+                                        <div class="game-thumb thumb-green">🧱</div>
+                                        <div>
+                                            <div class="game-thumb-name">Minecraft</div>
+                                            <div class="game-thumb-sub">Minecraft Launcher · Global</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>$26.95</td>
+                                <td>
+                                    <div class="qty-wrap">
+                                        <button class="qty-btn-sm">−</button>
+                                        <input type="number" class="qty-num" value="1" min="1">
+                                        <button class="qty-btn-sm">+</button>
+                                    </div>
+                                </td>
+                                <td class="total-price">$26.95</td>
+                                <td><button class="remove-btn">🗑</button></td>
+                            </tr>
+
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="trust-grid">
+                    <div class="trust-card">
+                        <div class="trust-icon">⚡</div>
+                        <div>
+                            <div class="trust-name">Instant Delivery</div>
+                            <div class="trust-sub">Keys sent immediately</div>
+                        </div>
+                    </div>
+                    <div class="trust-card">
+                        <div class="trust-icon">🛡️</div>
+                        <div>
+                            <div class="trust-name">Secure Payment</div>
+                            <div class="trust-sub">100% safe checkout</div>
+                        </div>
+                    </div>
+                    <div class="trust-card">
+                        <div class="trust-icon">🔑</div>
+                        <div>
+                            <div class="trust-name">Official Keys</div>
+                            <div class="trust-sub">Verified sellers only</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT: Summary -->
+            <div class="summary-box">
+                <div class="summary-title">Order Summary</div>
+                <div class="summary-row"><span>Subtotal:</span><span>$66.94</span></div>
+                <div class="summary-row"><span>Tax:</span><span>$0.00</span></div>
+                <hr class="summary-divider">
+                <div class="summary-total">
+                    <span>Total:</span>
+                    <span class="summary-total-price">$66.94</span>
+                </div>
+                <a href="orders.html" class="checkout-btn">Proceed to Payment ⚡</a>
+                <p class="checkout-note">🔒 Digital keys delivered instantly</p>
+            </div>
+
+        </div>
+    </div>
+
+
+    <div class="footer">© 2026 GameHub Online Store. All rights reserved.</div>
+
+</body>
+</html>

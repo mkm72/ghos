@@ -1,41 +1,45 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Login — GameHub Online Store</title>
-<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/login.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login — GameHub Online Store</title>
+    <!-- No navbar.css needed here — login page has no navbar -->
+    <link rel="stylesheet" href="css/login.css">
 </head>
 <body>
 
-<div class="logo-wrap">
-  <div class="logo-mark">G2</div>
-  <div class="logo-title">Welcome Back</div>
-  <div class="logo-sub">Sign in to your GameHub Online Store account</div>
-</div>
+    <div class="auth-logo">
+        <div class="logo-box">Ghos</div>
+        <h1>Welcome Back</h1>
+        <p>Sign in to your GameHub Online Store account</p>
+    </div>
 
-<div class="card">
-  <label>Email</label>
-  <input type="email" placeholder="your.email@example.com">
+    <div class="auth-card">
 
-  <label>Password</label>
-  <input type="password" placeholder="••••••••">
+        <label>Email</label>
+        <input type="email" placeholder="your.email@example.com">
 
-  <a href="index.html"><button class="btn-login">Sign In</button></a>
+        <label>Password</label>
+        <input type="password" placeholder="••••••••">
 
-  <div class="link-row">
-    Don't have an account? <a href="register.html">Register here</a>
-  </div>
+        <a href="index.html"><button class="auth-btn">Login</button></a>
 
-  <div class="demo-box">
-    <strong>Demo Credentials</strong>
-    <p>Admin: <code>admin@gamestore.com</code> / <code>admin123</code><br>
-    User: Register a new account</p>
-  </div>
-</div>
+        <div class="auth-link">
+            Don't have an account? <a href="register.html">Register here</a>
+        </div>
 
-<a href="index.html" class="back-link">← Back to Store</a>
+        <div class="demo-box">
+            <strong>Demo Credentials</strong>
+            <p>
+                Admin: <code>admin@gamestore.com</code> / <code>admin123</code><br>
+                User: Register a new account
+            </p>
+        </div>
+
+    </div>
+
+    <a href="index.html" class="back-link">← Back to Store</a>
 
 </body>
 </html>

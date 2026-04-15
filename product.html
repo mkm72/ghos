@@ -1,101 +1,127 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Elden Ring — GameHub Online Store</title>
-<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/product.css">
-
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elden Ring — GameHub Online Store</title>
+    <link rel="stylesheet" href="css/navbar.css">
+    <link rel="stylesheet" href="css/product.css">
 </head>
 <body>
 
-<nav>
-  <a href="index.html" class="logo"><div class="logo-mark">G2</div><span class="logo-text">GameHub Online Store</span></a>
-  <div class="search-wrap"><span class="si">⌕</span><input type="text" placeholder="Search for games..."></div>
-  <div class="nav-right">
-    <a href="login.html" class="nav-link">Login</a>
-    <a href="cart.html" class="cart-btn">🛒 Cart <span class="cart-count">2</span></a>
-  </div>
-</nav>
+    <!-- NAVIGATION -->
+    <nav class="navbar">
+        <a href="index.html" class="navbar-logo">
+            <div class="logo-box">Ghos</div>
+            <span class="logo-name">GameHub Online Store</span>
+        </a>
+        <div class="navbar-search">
+            <input type="text" placeholder="Search for games...">
+        </div>
+        <div class="navbar-links">
+            <a href="business.html">Business</a>
+            <a href="login.html">Login</a>
+            <a href="cart.html" class="cart-link">
+                🛒 Cart
+                <span class="cart-badge">2</span>
+            </a>
+        </div>
+    </nav>
 
-<div class="breadcrumb">
-  <a href="index.html">Home</a>
-  <span class="bc-sep">›</span>
-  <span>Elden Ring</span>
-</div>
 
-<div class="product-wrap">
-  <!-- Left: Images -->
-  <div>
-    <div class="img-main">⚔️</div>
-    <div class="img-thumbs">
-      <div class="img-thumb t1">⚔️</div>
-      <div class="img-thumb t2">🌿</div>
-      <div class="img-thumb t3">🏯</div>
-    </div>
-  </div>
-
-  <!-- Right: Details -->
-  <div class="product-details">
-    <h1 class="product-title">Elden Ring</h1>
-
-    <div class="product-tags">
-      <span class="tag accent">Steam</span>
-      <span class="tag">🌐 Global</span>
-      <span class="tag">Action RPG</span>
+    <!-- BACK LINK -->
+    <div class="breadcrumb">
+        <a href="index.html">← Back to Store</a>
     </div>
 
-    <div class="product-price">
-      $39.99
-      <s>$49.99</s>
-      <span class="disc">−20%</span>
+
+    <!-- PRODUCT LAYOUT -->
+    <div class="product-layout">
+
+        <!-- LEFT: Images -->
+        <div>
+            <div class="product-main-image">⚔️</div>
+            <div class="thumbnail-row">
+                <div class="thumbnail thumbnail-1">⚔️</div>
+                <div class="thumbnail thumbnail-2">🌿</div>
+                <div class="thumbnail thumbnail-3">🏯</div>
+            </div>
+        </div>
+
+        <!-- RIGHT: Details -->
+        <div class="product-details">
+
+            <h1 class="product-title">Elden Ring</h1>
+
+            <div class="product-tags">
+                <span class="product-tag">Steam</span>
+                <span class="product-tag">🌐 Global</span>
+                <span class="product-tag">Action RPG</span>
+            </div>
+
+            <div class="product-price">
+                $39.99
+                <s>$49.99</s>
+                <span class="discount">−20%</span>
+            </div>
+
+            <span class="stock-status stock-available">✅ Available — 500 in stock</span>
+
+            <div>
+                <div class="quantity-label">Quantity</div>
+                <div class="quantity-control">
+                    <button class="qty-btn">−</button>
+                    <input type="number" class="qty-input" value="1" min="1" max="500">
+                    <button class="qty-btn">+</button>
+                </div>
+            </div>
+
+            <div class="delivery-box">
+                <div class="delivery-icon">⚡</div>
+                <div>
+                    <div class="delivery-title">Instant Digital Delivery</div>
+                    <div class="delivery-text">Receive your game key immediately after purchase</div>
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                <a href="cart.html" class="btn-blue">🛒 Buy Now</a>
+                <a href="cart.html" class="btn-white">+ Add to Cart</a>
+            </div>
+
+            <div class="trust-row">
+                <div class="trust-item">✅ Verified Seller</div>
+                <div class="trust-item">🔑 Official Keys</div>
+                <div class="trust-item">🛡️ Secure Payment</div>
+            </div>
+
+            <hr class="divider">
+
+            <div>
+                <div class="description-title">Description</div>
+                <p class="description-text">
+                    Journey through the Lands Between, a new fantasy world created by Hidetaka Miyazaki
+                    and George R.R. Martin. Unravel the mysteries of the Elden Ring's destruction and
+                    become the Elden Lord.
+                </p>
+            </div>
+
+            <div>
+                <div class="description-title">System Requirements</div>
+                <p class="description-text">
+                    OS: Windows 10/11 · Processor: Intel Core i5-8600K ·
+                    Memory: 12 GB RAM · Graphics: NVIDIA GeForce GTX 1070 8GB
+                </p>
+            </div>
+
+        </div>
     </div>
 
-    <span class="stock-badge available">✅ Available — 500 in stock</span>
 
-    <div class="qty-section">
-      <div class="qty-label">Quantity</div>
-      <div class="qty-controls">
-        <button class="qty-btn">−</button>
-        <input type="number" class="qty-input" value="1" min="1" max="500">
-        <button class="qty-btn">+</button>
-      </div>
+    <!-- FOOTER -->
+    <div class="footer">
+        © 2026 GameHub Online Store. All rights reserved.
     </div>
-
-    <div class="delivery-box">
-      <div class="di">⚡</div>
-      <div>
-        <strong>Instant Digital Delivery</strong>
-        <p>Receive your game key immediately after purchase</p>
-      </div>
-    </div>
-
-    <div class="action-row">
-      <button class="btn-primary">🛒 Buy Now</button>
-      <button class="btn-secondary">+ Add to Cart</button>
-    </div>
-
-    <div class="trust-row">
-      <div class="trust-item"><span>✅</span><span>Verified Seller</span></div>
-      <div class="trust-item"><span>🔑</span><span>Official Keys</span></div>
-      <div class="trust-item"><span>🛡️</span><span>Secure Payment</span></div>
-    </div>
-
-    <hr class="divider">
-
-    <div class="desc-section">
-      <h3>Description</h3>
-      <p>Journey through the Lands Between, a new fantasy world created by Hidetaka Miyazaki and George R.R. Martin. Unravel the mysteries of the Elden Ring's destruction and become the Elden Lord.</p>
-    </div>
-
-    <div class="desc-section">
-      <h3>System Requirements</h3>
-      <p>OS: Windows 10/11 64-bit · Processor: Intel Core i5-8600K · Memory: 12 GB RAM · Graphics: NVIDIA GeForce GTX 1070 8GB</p>
-    </div>
-  </div>
-</div>
 
 </body>
 </html>
