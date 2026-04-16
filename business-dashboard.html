@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Business Dashboard — KeyStore</title>
+
+    <!-- Only the page's own CSS file is needed here -->
+    <link rel="stylesheet" href="css/business-dashboard.css">
+</head>
+<body>
+
+    <!-- =============================================
+         SIDEBAR
+         ============================================= -->
+    <aside class="sidebar">
+
+        <!-- Logo -->
+        <div class="sidebar-logo">
+            <div class="logo-box">G2</div>
+            <span class="logo-name">Seller Panel</span>
+        </div>
+        <div class="sidebar-subtitle">GameKeys Pro</div>
+
+        <!-- Navigation links -->
+        <a href="business-dashboard.html" class="sidebar-link active">
+            📊 Dashboard
+        </a>
+
+        <a href="#" class="sidebar-link">
+            ➕ Add New Game
+        </a>
+
+        <a href="#" class="sidebar-link">
+            🎮 My Listings
+        </a>
+
+        <a href="#" class="sidebar-link">
+            📈 Sales Reports
+        </a>
+
+        <!-- Divider line -->
+        <hr class="sidebar-divider">
+
+        <!-- Back to store link -->
+        <a href="index.html" class="sidebar-back">
+            ← Back to Store
+        </a>
+
+    </aside>
+
+
+    <!-- =============================================
+         MAIN CONTENT
+         ============================================= -->
+    <main class="main-content">
+
+        <h1 class="page-title">Business Dashboard</h1>
+
+
+        <!-- ---- STATS CARDS ---- -->
+        <div class="stats-row">
+
+            <!-- Total Revenue -->
+            <div class="stat-card">
+                <div>
+                    <div class="stat-label">Total Revenue</div>
+                    <div class="stat-value green">$0.00</div>
+                </div>
+                <div class="stat-icon icon-green">💵</div>
+            </div>
+
+            <!-- Active Listings -->
+            <div class="stat-card">
+                <div>
+                    <div class="stat-label">Active Listings</div>
+                    <div class="stat-value blue">3</div>
+                </div>
+                <div class="stat-icon icon-blue">📦</div>
+            </div>
+
+            <!-- Total Sales -->
+            <div class="stat-card">
+                <div>
+                    <div class="stat-label">Total Sales</div>
+                    <div class="stat-value purple">0</div>
+                </div>
+                <div class="stat-icon icon-purple">📈</div>
+            </div>
+
+        </div>
+
+
+        <!-- ---- MY GAME LISTINGS TABLE ---- -->
+        <div class="panel">
+
+            <div class="panel-header">
+                <span class="panel-title">My Game Listings</span>
+                <a href="#" class="btn-add">+ Add New Game</a>
+            </div>
+
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Game</th>
+                        <th>Price</th>
+                        <th>Stock</th>
+                        <th>Platform</th>
+                        <th>Region</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+
+                    <!-- Row 1 -->
+                    <tr>
+                        <td>
+                            <div class="game-cell">
+                                <div class="game-mini-img img-dark">💀</div>
+                                <span class="game-mini-name">Dark Souls Remastered</span>
+                            </div>
+                        </td>
+                        <td>$39.99</td>
+                        <td>150</td>
+                        <td>Steam</td>
+                        <td>Global</td>
+                        <td><span class="badge-active">Active</span></td>
+                        <td>
+                            <button class="btn-edit">Edit</button>
+                            <button class="btn-delete">Delete</button>
+                        </td>
+                    </tr>
+
+                    <!-- Row 2 - Out of Stock -->
+                    <tr>
+                        <td>
+                            <div class="game-cell">
+                                <div class="game-mini-img img-cyber">🤖</div>
+                                <span class="game-mini-name">Cyberpunk 2077</span>
+                            </div>
+                        </td>
+                        <td>$59.99</td>
+                        <td>0</td>
+                        <td>Steam</td>
+                        <td>Global</td>
+                        <td><span class="badge-oos">Out of Stock</span></td>
+                        <td>
+                            <button class="btn-edit">Edit</button>
+                            <button class="btn-delete">Delete</button>
+                        </td>
+                    </tr>
+
+                    <!-- Row 3 -->
+                    <tr>
+                        <td>
+                            <div class="game-cell">
+                                <div class="game-mini-img img-cod">🔫</div>
+                                <span class="game-mini-name">Call of Duty: Modern Warfare</span>
+                            </div>
+                        </td>
+                        <td>$59.99</td>
+                        <td>120</td>
+                        <td>Battle.net</td>
+                        <td>Global</td>
+                        <td><span class="badge-active">Active</span></td>
+                        <td>
+                            <button class="btn-edit">Edit</button>
+                            <button class="btn-delete">Delete</button>
+                        </td>
+                    </tr>
+
+                </tbody>
+            </table>
+        </div>
+
+
+        <!-- ---- RECENT SALES TABLE ---- -->
+        <div class="panel">
+
+            <div class="panel-header">
+                <span class="panel-title">Recent Sales</span>
+            </div>
+
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Sale ID</th>
+                        <th>Game</th>
+                        <th>Amount</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+
+                    <!-- Empty state — no sales yet -->
+                    <tr>
+                        <td colspan="4" class="empty-row">
+                            No sales yet
+                        </td>
+                    </tr>
+
+                </tbody>
+            </table>
+        </div>
+
+
+    </main>
+
+</body>
+</html>
