@@ -5,7 +5,11 @@
 /* ---- HERO SECTION ---- */
 .hero {
     background-color: #1a1a2e;
-    padding: 60px 30px;
+    background-image: linear-gradient(rgba(26, 26, 46, 0.7), rgba(26, 26, 46, 0.8)), url('../images/Elden Ring/cover.jpg');
+    background-size: cover;
+    background-position: center;
+    
+    padding: 100px 30px;
 }
 
 .hero-inner {
@@ -97,7 +101,6 @@
     font-size: 48px;
     position: relative;
 }
-/* Make real images fit perfectly without stretching */
 .game-image img {
     width: 100%;
     height: 100%;
