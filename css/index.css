@@ -98,15 +98,6 @@
     position: relative;
 }
 
-/* Background colors for each game */
-.color-1 { background-color: #1e1b4b; }
-.color-2 { background-color: #14532d; }
-.color-3 { background-color: #1c1917; }
-.color-4 { background-color: #1e3a5f; }
-.color-5 { background-color: #450a0a; }
-.color-6 { background-color: #0c1a35; }
-.color-7 { background-color: #1a1a1a; }
-.color-8 { background-color: #0f2318; }
 
 /* Out of stock dark overlay */
 .out-of-stock-overlay {

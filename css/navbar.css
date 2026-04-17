@@ -206,3 +206,15 @@ body {
     margin-bottom: 24px;
     color: #1a1a1a;
 }
+
+
+
+/* ---- SHARED THUMBNAIL COLORS ---- */
+.bg-purple { background-color: #1e1b4b; }
+.bg-green  { background-color: #14532d; }
+.bg-dark   { background-color: #1c1917; }
+.bg-blue   { background-color: #1e3a5f; }
+.bg-red    { background-color: #450a0a; }
+.bg-navy   { background-color: #0c1a35; }
+.bg-black  { background-color: #1a1a1a; }
+.bg-forest { background-color: #0f2318; }
