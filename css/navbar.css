@@ -218,3 +218,45 @@ body {
 .bg-navy   { background-color: #0c1a35; }
 .bg-black  { background-color: #1a1a1a; }
 .bg-forest { background-color: #0f2318; }
+
+/* ---- SHARED QUANTITY CONTROLS ---- */
+.qty-wrap, .quantity-control {
+    display: flex;
+    align-items: center;
+}
+
+.qty-btn {
+    width: 34px;
+    height: 34px;
+    background-color: #f0f0f0;
+    border: 1px solid #cccccc;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s;
+}
+
+.qty-btn:first-child { border-radius: 6px 0 0 6px; }
+.qty-btn:last-child  { border-radius: 0 6px 6px 0; }
+.qty-btn:hover       { background-color: #dddddd; }
+
+.qty-input {
+    width: 46px;
+    height: 34px;
+    border: 1px solid #cccccc;
+    border-left: none;
+    border-right: none;
+    text-align: center;
+    font-size: 14px;
+    font-weight: bold;
+    outline: none;
+}
+
+/* Hides the default up/down arrows inside the number input */
+.qty-input::-webkit-outer-spin-button,
+.qty-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
