@@ -266,6 +266,15 @@ body {
     font-size: 16px;
     flex-shrink: 0;
 }
+/* Force the images to shrink and fit perfectly inside their tiny containers */
+.mini-img img, 
+.game-mini-img img, 
+.game-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 5px;
+}
 
 .mini-name, .game-mini-name {
     font-size: 14px;
