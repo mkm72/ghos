@@ -1,9 +1,3 @@
-/* =============================================
-   navbar.css — Shared Navigation Bar Styles
-   Link this in every page alongside the
-   page-specific CSS file.
-   ============================================= */
-
 /* Remove default browser spacing */
 * {
     margin: 0;
@@ -28,6 +22,7 @@ body {
     justify-content: space-between;
     position: sticky;
     top: 0;
+    z-index: 1000;
 }
 
 /* Logo (icon + text) */
