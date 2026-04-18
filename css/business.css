@@ -1,25 +1,18 @@
-/* =============================================
-   business.css — Business Customer Page Styles
-   This page is for companies that want to buy
-   game keys in bulk for their employees or
-   customers.
-   ============================================= */
-
-/* ---- HERO BANNER ---- */
-.business-hero {
+/* ---- product BANNER ---- */
+.business-product {
     background-color: #1e3a5f;
     padding: 70px 30px;
     text-align: center;
 }
 
-.business-hero h1 {
+.business-product h1 {
     font-size: 40px;
     font-weight: bold;
     color: white;
     margin-bottom: 14px;
 }
 
-.business-hero p {
+.business-product p {
     font-size: 17px;
     color: #93c5fd;
     max-width: 580px;
@@ -27,7 +20,7 @@
     line-height: 1.6;
 }
 
-.hero-buttons {
+.product-buttons {
     display: flex;
     gap: 14px;
     justify-content: center;

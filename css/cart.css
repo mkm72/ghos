@@ -1,7 +1,3 @@
-/* =============================================
-   cart.css — Shopping Cart Page Styles
-   ============================================= */
-
 /* Two columns: cart table left, summary right */
 .cart-layout {
     display: grid;
