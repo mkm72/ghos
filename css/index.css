@@ -1,18 +1,35 @@
-/* ---- FEATURED PRODUCT SECTION ---- */
-.featured-product {
-    background-color: #1a1a2e;
-    background-image: linear-gradient(rgba(26, 26, 46, 0.7), rgba(26, 26, 46, 0.8)), url('../images/Elden Ring/cover.jpg');
+/* ---- HERO CAROUSEL ---- */
+.hero-carousel {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+}
+.hero-slides-container {
+    display: flex;
+    transition: transform 0.5s ease-in-out;
+    width: 100%;
+}
+.hero-slide {
+    min-width: 100%;
+    box-sizing: border-box;
+    
+    min-height: 550px; 
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 40px 30px; 
+    
+    text-align: left;
     background-size: cover;
     background-position: center;
-    
-    padding: 100px 30px;
+    background-repeat: no-repeat;
 }
 
 .featured-product-inner {
     max-width: 1100px;
     margin: 0 auto;
+    width: 100%; 
 }
-
 .featured-product-badge {
     background-color: #ef4444;
     color: white;
@@ -24,33 +41,46 @@
     margin-bottom: 16px;
     text-transform: uppercase;
 }
-
-.featured-product h1 {
+.hero-slide h1 {
     font-size: 48px;
     font-weight: bold;
     color: white;
     margin-bottom: 12px;
 }
-
 .featured-product-promo {
-    color: #aaaaaa;
-    font-size: 15px;
-    margin-bottom: 8px;
+    color: #dddddd;
+    font-size: 18px;
+    margin-bottom: 12px;
 }
-
 .featured-product-price {
-    font-size: 32px;
+    font-size: 36px;
     font-weight: bold;
-    color: #2563eb;
+    color: #3b82f6;
     margin-bottom: 24px;
 }
-
-.featured-product-price s {
-    font-size: 18px;
-    color: #777777;
-    font-weight: normal;
-    margin-left: 8px;
+.carousel-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(0, 0, 0, 0.5);
+    color: white;
+    border: none;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    font-size: 24px;
+    cursor: pointer;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
 }
+.carousel-btn:hover {
+    background: rgba(37, 99, 235, 0.8);
+}
+.prev-btn { left: 20px; }
+.next-btn { right: 20px; }
 
 /* ---- GAMES SECTION ---- */
 .games-section {
@@ -58,12 +88,35 @@
     margin: 0 auto;
     padding: 40px 20px;
 }
-
 .section-title {
     font-size: 22px;
     font-weight: bold;
     margin-bottom: 24px;
     color: #1a1a1a;
+}
+
+/* ---- CATEGORY BAR ---- */
+.category-bar {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 24px;
+}
+.category-pill {
+    background-color: white;
+    border: 1px solid #e0e0e0;
+    padding: 8px 18px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: bold;
+    color: #555;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+.category-pill:hover, .category-pill.active {
+    background-color: #2563eb;
+    color: white;
+    border-color: #2563eb;
 }
 
 /* ---- GAME CARDS GRID ---- */
@@ -72,7 +125,6 @@
     grid-template-columns: repeat(4, 1fr);
     gap: 20px;
 }
-
 .game-card {
     background-color: white;
     border: 1px solid #e0e0e0;
@@ -81,14 +133,18 @@
     text-decoration: none;
     color: #333333;
     display: block;
+    transition: all 0.2s ease;
 }
-
 .game-card:hover {
     border-color: #2563eb;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-/* Game image placeholder area */
+/* Javascript Load More Class */
+.hidden-game {
+    display: none !important;
+}
+
 .game-image {
     height: 150px;
     display: flex;
@@ -102,8 +158,6 @@
     height: 100%;
     object-fit: cover;
 }
-
-/* Out of stock dark overlay */
 .out-of-stock-overlay {
     position: absolute;
     top: 0;
@@ -115,7 +169,6 @@
     align-items: center;
     justify-content: center;
 }
-
 .out-of-stock-label {
     background-color: #ef4444;
     color: white;
@@ -125,39 +178,38 @@
     border-radius: 4px;
     text-transform: uppercase;
 }
-
-/* Card text area */
 .game-info {
     padding: 14px;
 }
-
 .game-name {
     font-size: 15px;
     font-weight: bold;
     margin-bottom: 4px;
 }
-
+.game-genre {
+    font-size: 11px;
+    color: #888;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    font-weight: bold;
+}
 .game-platform {
     font-size: 12px;
     color: #888888;
     margin-bottom: 10px;
 }
-
 .game-delivery {
     font-size: 12px;
     color: #16a34a;
     margin-bottom: 10px;
 }
-
 .game-footer {
     display: flex;
     align-items: center;
     justify-content: space-between;
 }
-
 .game-price {
     font-size: 16px;
     font-weight: bold;
     color: #2563eb;
 }
-

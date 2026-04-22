@@ -1,9 +1,9 @@
 <?php
 
 define('DB_HOST', 'localhost');
-define('DB_NAME', 'Ghos_db'); // change this
-define('DB_USER', 'root'); // change this
-define('DB_PASS', ''); // change this
+define('DB_NAME', 'ghos'); // change this
+define('DB_USER', 'mkm7'); // change this
+define('DB_PASS', '1234'); // change this
 define('DB_CHARSET', 'utf8mb4'); // utf8mb4 is full UTF-8 handles Arabic, emojis, special characters.
 
 $dsn = "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=" . DB_CHARSET;
