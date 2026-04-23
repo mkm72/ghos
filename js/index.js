@@ -55,3 +55,31 @@ window.updateCurrency = function() {
         }
     });
 };
+// --- Contact Modal Logic ---
+document.addEventListener('DOMContentLoaded', () => {
+    const modal = document.getElementById("contactModal");
+    const contactBtn = document.querySelector(".contact-link");
+    const closeBtn = document.querySelector(".close-btn");
+
+    // Open Modal
+    if (contactBtn && modal) {
+        contactBtn.addEventListener("click", (e) => {
+            e.preventDefault(); // Prevent jumping to top of page
+            modal.style.display = "flex";
+        });
+    }
+
+    // Close Modal via 'X' Button
+    if (closeBtn && modal) {
+        closeBtn.addEventListener("click", () => {
+            modal.style.display = "none";
+        });
+    }
+
+    // Close Modal by clicking outside of the modal content
+    window.addEventListener("click", (e) => {
+        if (e.target === modal) {
+            modal.style.display = "none";
+        }
+    });
+});

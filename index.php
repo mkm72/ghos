@@ -84,7 +84,10 @@ $bg_colors = ['bg-purple', 'bg-green', 'bg-dark', 'bg-blue', 'bg-red', 'bg-navy'
             <input type="text" placeholder="Search for games...">
         </div>
         
-        <div class="navbar-links">
+       
+<div class="navbar-links">
+            <a href="#contactModal" class="contact-link">📞 Contact Us</a>
+
             <select id="currencySelector" class="currency-select" onchange="updateCurrency()">
                 <option value="USD">USD ($)</option>
                 <option value="SAR">SAR (ر.س)</option>
@@ -116,8 +119,8 @@ $bg_colors = ['bg-purple', 'bg-green', 'bg-dark', 'bg-blue', 'bg-red', 'bg-navy'
                 🛒 Cart
                 <span class="cart-badge">3</span>
             </a>
-            <a href="#contactModal" class="contact-link">Contact Us</a>
         </div>
+
     </nav>
 
 
@@ -235,7 +238,17 @@ $bg_colors = ['bg-purple', 'bg-green', 'bg-dark', 'bg-blue', 'bg-red', 'bg-navy'
     <div class="footer">
         © 2026 GameHub Online Store. All rights reserved.
     </div>
-
+<div id="contactModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h2>Contact Us</h2>
+            <p><strong>Email:</strong> support@gamehubstore.sa</p>
+            <p><strong>Location:</strong> Riyadh, Saudi Arabia</p>
+            <div class="map-container">
+                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d230184.22557421867!2d46.54234033324632!3d24.725455365518294!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3e2f03890d489399%3A0xba974d1c98e79fd5!2sRiyadh%20Saudi%20Arabia!5e0!3m2!1sen!2sus!4v1713500000000!5m2!1sen!2sus" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+            </div>
+        </div>
+    </div>
     <script src="js/index.js"></script>
 
 </body>
