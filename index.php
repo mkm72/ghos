@@ -85,6 +85,11 @@ $bg_colors = ['bg-purple', 'bg-green', 'bg-dark', 'bg-blue', 'bg-red', 'bg-navy'
         </div>
         
         <div class="navbar-links">
+            <select id="currencySelector" class="currency-select" onchange="updateCurrency()">
+                <option value="USD">USD ($)</option>
+                <option value="SAR">SAR (ر.س)</option>
+            </select>
+
             <?php if ($user_role === 'admin'): ?>
                 <a href="admin.html">Admin dashboard</a>
             <?php endif; ?>
@@ -96,7 +101,13 @@ $bg_colors = ['bg-purple', 'bg-green', 'bg-dark', 'bg-blue', 'bg-red', 'bg-navy'
             <a href="business.html">Business Service</a>
 
             <?php if ($is_logged_in): ?>
-                <a href="logout.php">Logout</a>
+                <div class="profile-dropdown">
+                    <button class="profile-btn">👤 Profile ▼</button>
+                    <div class="dropdown-content">
+                        <a href="settings.php">⚙️ Settings</a>
+                        <a href="logout.php">🚪 Logout</a>
+                    </div>
+                </div>
             <?php else: ?>
                 <a href="login.html">Login</a>
             <?php endif; ?>
@@ -123,7 +134,7 @@ $bg_colors = ['bg-purple', 'bg-green', 'bg-dark', 'bg-blue', 'bg-red', 'bg-navy'
                     </div>
                     <h1><?php echo htmlspecialchars($hero['name']); ?></h1>
                     <p class="featured-product-promo">Epic adventures await. Buy now and play instantly!</p>
-                    <div class="featured-product-price">
+                    <div class="featured-product-price price-display" data-usd="<?php echo $hero['price']; ?>">
                         $<?php echo number_format($hero['price'], 2); ?>
                     </div>
                     <a href="product.php?id=<?php echo $hero['id']; ?>" class="btn-blue">Get Key</a>
@@ -195,7 +206,7 @@ $bg_colors = ['bg-purple', 'bg-green', 'bg-dark', 'bg-blue', 'bg-red', 'bg-navy'
 
                     <div class="game-platform"><?php echo htmlspecialchars($game['platform']); ?></div>
                     <div class="game-footer" style="margin-top: 10px;">
-                        <span class="game-price">$<?php echo number_format($game['price'], 2); ?></span>
+                        <span class="game-price price-display" data-usd="<?php echo $game['price']; ?>">$<?php echo number_format($game['price'], 2); ?></span>
                         
                         <?php if ($in_stock): ?>
                             <span class="btn-dark">View</span>
