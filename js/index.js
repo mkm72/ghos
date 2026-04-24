@@ -35,26 +35,6 @@ window.loadMoreGames = function() {
     }
 };
 
-// --- Currency Switcher Logic ---
-const exchangeRateToSAR = 3.75; // Set the exchange rate: 1 USD = 3.75 SAR
-
-window.updateCurrency = function() {
-    const currency = document.getElementById('currencySelector').value;
-    const priceElements = document.querySelectorAll('.price-display');
-
-    priceElements.forEach(el => {
-        // Read the original USD base price we saved in the data-usd attribute
-        const usdPrice = parseFloat(el.getAttribute('data-usd'));
-
-        if (currency === 'SAR') {
-            const sarPrice = (usdPrice * exchangeRateToSAR).toFixed(2);
-            el.innerText = `SAR ${sarPrice}`;
-        } else {
-            // Default back to USD
-            el.innerText = `$${usdPrice.toFixed(2)}`;
-        }
-    });
-};
 // --- Contact Modal Logic ---
 document.addEventListener('DOMContentLoaded', () => {
     const modal = document.getElementById("contactModal");

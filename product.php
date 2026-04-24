@@ -59,39 +59,7 @@ $genres = array_filter(array_map('trim', explode(',', $game['genres'])));
 </head>
 <body>
 
-    <nav class="navbar">
-        <a href="index.php" class="navbar-logo">
-            <div class="logo-box">Ghos</div>
-            <span class="logo-name">GameHub Online Store</span>
-        </a>
-        <div class="navbar-search">
-            <input type="text" placeholder="Search for games...">
-        </div>
-        <div class="navbar-links">
-            <?php if ($user_role === 'admin'): ?>
-                <a href="admin.html">Admin dashboard</a>
-            <?php endif; ?>
-
-            <?php if ($user_role === 'business'): ?>
-                <a href="business-dashboard.html">Your Business</a>
-            <?php endif; ?>
-
-            <a href="business.html">Business Service</a>
-
-            <?php if ($is_logged_in): ?>
-                <a href="logout.php">Logout</a>
-            <?php else: ?>
-                <a href="login.html">Login</a>
-            <?php endif; ?>
-
-            <a href="cart.html" class="cart-link">
-                🛒 Cart
-                <span class="cart-badge">3</span>
-            </a>
-            <a href="#contactModal" class="contact-link">Contact Us</a>
-        </div>
-    </nav>
-
+    <?php include 'navbar.php'; ?>
 
     <div class="breadcrumb">
         <a href="index.php">← Back to Store</a>
@@ -132,8 +100,10 @@ $genres = array_filter(array_map('trim', explode(',', $game['genres'])));
             </div>
 
             <div class="product-price">
-                $<?php echo number_format($game['price'], 2); ?>
-                <s>$<?php echo number_format($old_price, 2); ?></s>
+                <span class="price-display" data-usd="<?php echo $game['price']; ?>">$<?php echo number_format($game['price'], 2); ?></span>
+                
+                <s><span class="price-display" style="font-size: 0.6em; color: #888;" data-usd="<?php echo $old_price; ?>">$<?php echo number_format($old_price, 2); ?></span></s>
+                
                 <span class="discount">−20%</span>
             </div>
 
