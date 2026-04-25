@@ -34,7 +34,7 @@
                 </div>
             </div>
         <?php else: ?>
-            <a href="login.html">Login</a>
+            <a href="auth.php">Login</a>
         <?php endif; ?>
 
         <a href="cart.html" class="cart-link">
