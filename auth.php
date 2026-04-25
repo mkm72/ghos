@@ -23,13 +23,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } elseif ($pass !== $repeat) {
             $error = 'Passwords do not match.';
         } else {
-            $stmt = $pdo->prepare('SELECT id FROM users WHERE email = ?');
+            $stmt = $pdo->prepare('SELECT id FROM Users WHERE email = ?');
             $stmt->execute([$email]);
             if ($stmt->fetch()) {
                 $error = 'An account with that email already exists.';
             } else {
                 $hash = password_hash($pass, PASSWORD_BCRYPT);
-                $ins  = $pdo->prepare('INSERT INTO users (email, password, role, created_at) VALUES (?, ?, ?, NOW())');
+                $ins  = $pdo->prepare('INSERT INTO Users (email, password, role) VALUES (?, ?, ?)');
                 $ins->execute([$email, $hash, 'user']);
                 $success = 'Account created! You can now log in.';
                 $mode    = 'login';
@@ -40,7 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (empty($email) || empty($pass)) {
             $error = 'Email and password are required.';
         } else {
-            $stmt = $pdo->prepare('SELECT id, email, password, role FROM users WHERE email = ?');
+            $stmt = $pdo->prepare('SELECT id, email, password, role FROM Users WHERE email = ?');
             $stmt->execute([$email]);
             $user = $stmt->fetch();
             if ($user && password_verify($pass, $user['password'])) {
