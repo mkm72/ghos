@@ -8,22 +8,28 @@ require_once 'php/db_connect.php';
 //$_SESSION['role'] = 'customer'; 
 // ------------------------------
 
-$user_role = isset($_SESSION['role']) ? $_SESSION['role'] : 'guest';
+$user_role = isset($_SESSION['user_role']) ? $_SESSION['user_role'] : 'guest';
 $is_logged_in = isset($_SESSION['user_id']);
 
 $current_category = isset($_GET['category']) ? trim($_GET['category']) : 'All Games';
 
+$random_order_by = "ORDER BY RAND()"; // NOTE: Can be slow on large tables; centralized for easier replacement.
 
 // 1. Fetch Multiple Featured Games for the Hero Carousel (Randomized)
 $stmt_featured = $pdo->prepare("
     SELECT g.id, g.name, g.price, i.filename AS cover_image
     FROM Games g
     JOIN Game_Images i ON g.id = i.game_id AND i.is_cover = 1
-    ORDER BY RAND() 
+    $random_order_by
     LIMIT 3
 ");
 $stmt_featured->execute();
 $featured_games = $stmt_featured->fetchAll();
+
+foreach ($featured_games as &$g) {
+    $g['price'] = (float)($g['price'] ?? 0);
+}
+unset($g);
 
 
 // 2. Fetch Popular Categories/Genres
@@ -49,7 +55,7 @@ if ($current_category !== 'All Games') {
     $grid_query .= " WHERE g.genres LIKE :category ";
 }
 
-$grid_query .= " ORDER BY RAND()"; // Shuffles the entire grid
+$grid_query .= " $random_order_by"; // Shuffles the entire grid
 
 $stmt_games = $pdo->prepare($grid_query);
 
@@ -59,6 +65,11 @@ if ($current_category !== 'All Games') {
 
 $stmt_games->execute();
 $games = $stmt_games->fetchAll();
+
+foreach ($games as &$g) {
+    $g['price'] = (float)($g['price'] ?? 0);
+}
+unset($g);
 
 // Array of background colors
 $bg_colors = ['bg-purple', 'bg-green', 'bg-dark', 'bg-blue', 'bg-red', 'bg-navy', 'bg-black', 'bg-forest'];

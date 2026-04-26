@@ -4,7 +4,7 @@ session_start();
 require_once 'php/db_connect.php';
 
 // Determine the current user's role
-$user_role = isset($_SESSION['role']) ? $_SESSION['role'] : 'guest';
+$user_role = isset($_SESSION['user_role']) ? $_SESSION['user_role'] : 'guest';
 $is_logged_in = isset($_SESSION['user_id']);
 
 // 1. Get the Game ID from the URL
