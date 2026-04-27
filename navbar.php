@@ -29,8 +29,8 @@
             <div class="profile-dropdown">
                 <button class="profile-btn">👤 Profile ▼</button>
                 <div class="dropdown-content">
-                    <a href="settings.php">⚙️ Settings</a>
-                    <a href="logout.php">🚪 Logout</a>
+                    <a href="settings.php">Settings</a>
+                    <a href="logout.php">Logout</a>
                 </div>
             </div>
         <?php else: ?>
