@@ -1,3 +1,12 @@
+<?php
+if (isset($_GET['logout'])) {
+    session_unset();
+    session_destroy();
+    header('Location: index.php');
+    exit;
+}
+?>
+
 <nav class="navbar">
     <a href="index.php" class="navbar-logo">
         <div class="logo-box">Ghos</div>
@@ -30,7 +39,7 @@
                 <button class="profile-btn">👤 Profile ▼</button>
                 <div class="dropdown-content">
                     <a href="settings.php">Settings</a>
-                    <a href="logout.php">Logout</a>
+                    <a href="?logout=1">Logout</a>
                 </div>
             </div>
         <?php else: ?>
