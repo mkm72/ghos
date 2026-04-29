@@ -324,7 +324,7 @@ CREATE TABLE `Users` (
 --
 
 INSERT INTO `Users` (`id`, `email`, `password`, `role`, `is_active`) VALUES
-(1, 'admin@ghos.com', '$2y$10$TKh8H1.PfbuNt0WFEItvW.4oBaKMOTSTXkjPNnN1T/Z/oCGq3RHLi', 'admin', 1),
+(1, 'admin@gamestore.com', 'admin123', 'admin', 1),
 (2, 'seller@ghos.com', '123456', 'business', 1),
 (3, 'gamer@ghos.com', '123456', 'customer', 1);
 
