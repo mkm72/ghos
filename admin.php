@@ -29,7 +29,7 @@ if (!isset($_SESSION['user_id']) || ($_SESSION['user_role'] ?? '') !== 'admin') 
     </head>
     <body>
         <div class="denied-wrap">
-            <div class="denied-icon">🚫 tessssst </div>
+            <div class="denied-icon">🚫</div>
             <div class="denied-title">Access Denied</div>
             <div class="denied-sub">You don't have permission to view this page. Admin access only.</div>
             <a href="index.php" class="btn-blue" style="margin-top:8px;">← Back to Store</a>
