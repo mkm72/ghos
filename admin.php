@@ -1,6 +1,14 @@
 <?php
 session_start();
 
+// ── LOGOUT (must be before any output) ───────────────────────────────────────
+if (isset($_GET['logout'])) {
+    session_unset();
+    session_destroy();
+    header('Location: index.php');
+    exit;
+}
+
 // ── PROTECTION: Admin only ───────────────────────────────────────────────────
 if (!isset($_SESSION['user_id']) || ($_SESSION['user_role'] ?? '') !== 'admin') {
     http_response_code(403);
@@ -297,15 +305,7 @@ function statusBadge(string $s): string {
 
     </main>
 
-    <!-- Logout handler (inline — no extra file needed) -->
-    <?php
-    if (isset($_GET['logout'])) {
-        session_unset();
-        session_destroy();
-        header('Location: index.php');
-        exit;
-    }
-    ?>
+
 
 </body>
 </html>
