@@ -1,7 +1,7 @@
 <?php
 session_start();
 
-// ── LOGOUT (must be before any output) ───────────────────────────────────────
+// ── LOGOUT ───────────────────────────────────────
 if (isset($_GET['logout'])) {
     session_unset();
     session_destroy();
