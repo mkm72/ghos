@@ -32,7 +32,7 @@ $user_role = $_SESSION['role'] ?? '';
         </select>
 
         <?php if ($user_role === 'admin'): ?>
-            <a href="admin.html">Admin dashboard</a>
+            <a href="admin.php">Admin dashboard</a>
         <?php endif; ?>
 
         <?php if ($user_role === 'business'): ?>
