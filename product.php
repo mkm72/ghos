@@ -134,8 +134,8 @@ $genres = array_filter(array_map('trim', explode(',', $game['genres'])));
 
             <div class="action-buttons">
                 <?php if ($in_stock): ?>
-                    <a href="cart.html?add=<?php echo $game['id']; ?>" class="btn-blue">🛒 Buy Now</a>
-                    <a href="cart.html?add=<?php echo $game['id']; ?>" class="btn-white">+ Add to Cart</a>
+                    <a href="cart.php?add=<?php echo $game['id']; ?>" class="btn-blue">🛒 Buy Now</a>
+                    <a href="cart.php?add=<?php echo $game['id']; ?>" class="btn-white">+ Add to Cart</a>
                 <?php else: ?>
                     <a href="#" class="btn-gray" style="grid-column: 1 / -1; text-align: center;">Currently Unavailable</a>
                 <?php endif; ?>

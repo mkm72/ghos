@@ -4,7 +4,7 @@ if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");
     exit();
 }
-require_once 'db.php';
+require_once 'php/db_connect.php';
 
 $stmt = $pdo->prepare("
     SELECT Orders.id, Orders.order_date, Games.name, Games.price, Game_Keys.key_code
