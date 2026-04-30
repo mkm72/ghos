@@ -10,11 +10,6 @@ body {
     font-family: Arial, sans-serif, "Noto Color Emoji", "Apple Color Emoji", "Segoe UI Emoji";
     background-color: #f5f5f5;
     color: #333333;
-    
-    /*try to fix footer*/
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
 }
 
 /* The navigation bar */
@@ -198,7 +193,6 @@ body {
     max-width: 1100px;
     margin: 0 auto;
     padding: 30px 20px;
-    flex: 1; /*try to fix footer*/
 }
 
 .page-title {
