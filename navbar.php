@@ -53,7 +53,7 @@ $user_role = $_SESSION['role'] ?? '';
             <a href="auth.php">Login</a>
         <?php endif; ?>
 
-        <a href="cart.html" class="cart-link">
+        <a href="cart.php" class="cart-link">
             🛒 Cart
             <span class="cart-badge">3</span>
         </a>
