@@ -10,7 +10,7 @@ if (isset($_GET['logout'])) {
 }
 
 // ── PROTECTION: Admin only ───────────────────────────────────────────────────
-if (!isset($_SESSION['user_id']) || ($_SESSION['user_role'] ?? '') !== 'admin') {
+if (!isset($_SESSION['user_id']) || ($_SESSION['role'] ?? '') !== 'admin') {
     http_response_code(403);
     ?>
     <!DOCTYPE html>
@@ -52,8 +52,11 @@ if (!isset($_SESSION['user_id']) || ($_SESSION['user_role'] ?? '') !== 'admin') 
 // ── DB ───────────────────────────────────────────────────────────────────────
 require_once 'php/db_connect.php';
 
-$user_role    = $_SESSION['user_role'];
+// CHANGED: $_SESSION['user_role'] to $_SESSION['role']
+$user_role    = $_SESSION['role'];
 $is_logged_in = true;
+
+
 
 // ── STATS ────────────────────────────────────────────────────────────────────
 
