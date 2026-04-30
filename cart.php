@@ -7,7 +7,7 @@ if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");
     exit();
 }
-require_once 'db.php';
+require_once 'database/ghos.php';
 
 $stmt = $pdo->prepare("
     SELECT Cart.id AS cart_id, Cart.quantity,
