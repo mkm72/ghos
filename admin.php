@@ -63,8 +63,13 @@ $is_logged_in = true;
 
 // ── STATS ────────────────────────────────────────────────────────────────────
 
-// Total revenue from delivered orders
-$stmt = $pdo->query("SELECT COALESCE(SUM(total_price), 0) AS revenue FROM Orders WHERE status = 'delivered'");
+// Total revenue from delivered orders (Pulls price from the Games table)
+$stmt = $pdo->query("
+    SELECT COALESCE(SUM(g.price), 0) AS revenue 
+    FROM Orders o 
+    JOIN Games g ON o.game_id = g.id 
+    WHERE o.status = 'delivered'
+");
 $total_revenue = (float) $stmt->fetchColumn();
 
 // Total users
@@ -95,20 +100,19 @@ $stmt = $pdo->query("
         g.name  AS game_name,
         g.id    AS game_id,
         i.filename AS cover_image,
-        k.key_value,
-        o.total_price,
-        o.created_at,
+        k.key_code AS key_value,     -- Fixed to match DB: key_code
+        g.price AS total_price,      -- Fixed to match DB: pulled from Games
+        o.order_date AS created_at,  -- Fixed to match DB: order_date
         o.status
     FROM Orders o
     JOIN Users      u ON o.user_id  = u.id
     JOIN Game_Keys  k ON o.key_id   = k.id
-    JOIN Games      g ON k.game_id  = g.id
+    JOIN Games      g ON o.game_id  = g.id
     LEFT JOIN Game_Images i ON g.id = i.game_id AND i.is_cover = 1
-    ORDER BY o.created_at DESC
+    ORDER BY o.order_date DESC       -- Fixed to match DB: order_date
     LIMIT 10
 ");
 $recent_orders = $stmt->fetchAll();
-
 // ── GAMES LIST ───────────────────────────────────────────────────────────────
 $stmt = $pdo->query("
     SELECT
