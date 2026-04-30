@@ -1,10 +1,17 @@
 <?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 if (isset($_GET['logout'])) {
     session_unset();
     session_destroy();
     header('Location: index.php');
     exit;
 }
+
+$is_logged_in = isset($_SESSION['user_email']);
+$user_role = $_SESSION['role'] ?? '';
 ?>
 
 <nav class="navbar">
@@ -24,17 +31,17 @@ if (isset($_GET['logout'])) {
             <option value="SAR">SAR (ر.س)</option>
         </select>
 
-        <?php if (isset($user_role) && $user_role === 'admin'): ?>
+        <?php if ($user_role === 'admin'): ?>
             <a href="admin.html">Admin dashboard</a>
         <?php endif; ?>
 
-        <?php if (isset($user_role) && $user_role === 'business'): ?>
+        <?php if ($user_role === 'business'): ?>
             <a href="business-dashboard.html">Your Business</a>
         <?php endif; ?>
 
         <a href="business.html">Business Service</a>
 
-        <?php if (isset($is_logged_in) && $is_logged_in): ?>
+        <?php if ($is_logged_in): ?>
             <div class="profile-dropdown">
                 <button class="profile-btn">👤 Profile ▼</button>
                 <div class="dropdown-content">
