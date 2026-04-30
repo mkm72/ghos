@@ -44,8 +44,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->execute([$email]);
             $user = $stmt->fetch();
             if ($user && password_verify($pass, $user['password'])) {
-                $_SESSION['user_id']    = $user['id'];
-                $_SESSION['user_email'] = $user['email'];
+                $_SESSION['uid']    = $user['id'];
+                $_SESSION['email'] = $user['email'];
                 $_SESSION['role']  = $user['role'];
                 header('Location: index.php');
                 exit;
