@@ -3,12 +3,49 @@ ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
 session_start();
+
+// 1. Ensure user is logged in
 if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");
     exit();
 }
+
 require_once 'php/db_connect.php';
 
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['game_id'], $_POST['quantity'])) {
+    $user_id = (int)$_SESSION['user_id'];
+    $game_id = (int)$_POST['game_id'];
+    $quantity = (int)$_POST['quantity'];
+
+    // Check if the game is already in this user's cart
+    $stmt_check = $pdo->prepare("SELECT id, quantity FROM Cart WHERE user_id = ? AND game_id = ?");
+    $stmt_check->execute([$user_id, $game_id]);
+    $existing_item = $stmt_check->fetch();
+
+    if ($existing_item) {
+        // Game exists in cart, update the quantity
+        $new_qty = $existing_item['quantity'] + $quantity;
+        $stmt_update = $pdo->prepare("UPDATE Cart SET quantity = ? WHERE id = ?");
+        $stmt_update->execute([$new_qty, $existing_item['id']]);
+    } else {
+        // New game, insert into cart
+        $stmt_insert = $pdo->prepare("INSERT INTO Cart (user_id, game_id, quantity) VALUES (?, ?, ?)");
+        $stmt_insert->execute([$user_id, $game_id, $quantity]);
+    }
+
+    if (isset($_POST['action']) && $_POST['action'] === 'buy_now') {
+        // If they clicked "Buy Now", send them straight to payment/orders
+        header("Location: orders.php"); 
+        exit();
+    } else {
+        header("Location: cart.php");
+        exit();
+    }
+}
+// ------------------------------------------------------------------
+
+
+// 3. Fetch current cart items for display
 $stmt = $pdo->prepare("
     SELECT Cart.id AS cart_id, Cart.quantity,
            Games.id AS game_id, Games.name, Games.price, Games.platform,
@@ -84,7 +121,7 @@ foreach ($cart_items as $item) {
                                             <td>
                                                 <div class="game-cell">
                                                     <div class="game-thumb bg-purple">
-                                                        <img src="<?= htmlspecialchars($item['cover_image']) ?>"
+                                                        <img src="<?= htmlspecialchars($item['cover_image'] ?? '') ?>"
                                                              alt="<?= htmlspecialchars($item['name']) ?>">
                                                     </div>
                                                     <div>
