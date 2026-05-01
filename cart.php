@@ -45,8 +45,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt_stock->execute([$game_id]);
             $stock = (int)$stmt_stock->fetchColumn();
 
+            $key_text = ($stock === 1) ? "1 key" : "$stock keys";
+
             if ($requested_qty > $stock) {
-                $_SESSION['error'] = "Could not update. Only $stock keys currently available.";
+                $_SESSION['error'] = "Could not update. We only have $key_text currently available in stock.";
                 $final_qty = $stock;
             } else {
                 $_SESSION['success'] = "Cart quantity updated.";
@@ -70,6 +72,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt_stock->execute([$game_id]);
         $stock = (int)$stmt_stock->fetchColumn();
 
+        $key_text = ($stock === 1) ? "1 key" : "$stock keys";
+
         $stmt_check = $pdo->prepare("SELECT id, quantity FROM Cart WHERE user_id = ? AND game_id = ?");
         $stmt_check->execute([$user_id, $game_id]);
         $existing_item = $stmt_check->fetch();
@@ -78,7 +82,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $total_requested = $existing_item['quantity'] + $requested_qty;
             
             if ($total_requested > $stock) {
-                $_SESSION['error'] = "Cannot add more. You have reached the stock limit of $stock keys.";
+                $_SESSION['error'] = "Cannot add more. We only have $key_text in stock.";
                 $new_qty = $stock;
             } else {
                 $_SESSION['success'] = "Game added to your cart!";
@@ -89,7 +93,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt_update->execute([$new_qty, $existing_item['id']]);
         } else {
             if ($requested_qty > $stock) {
-                $_SESSION['error'] = "Only $stock keys available. Added maximum stock to cart.";
+                $_SESSION['error'] = "Only $key_text available. Added maximum stock to cart.";
                 $final_qty = $stock;
             } else {
                 $_SESSION['success'] = "Game added to your cart!";
@@ -99,6 +103,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($final_qty > 0) { 
                 $stmt_insert = $pdo->prepare("INSERT INTO Cart (user_id, game_id, quantity) VALUES (?, ?, ?)");
                 $stmt_insert->execute([$user_id, $game_id, $final_qty]);
+            } else {
+                 $_SESSION['error'] = "Sorry, this game is currently out of stock.";
             }
         }
 
@@ -149,16 +155,16 @@ foreach ($cart_items as $item) {
             <!-- NOTIFICATION MESSAGES START -->
             <?php if (isset($_SESSION['success'])): ?>
                 <div style="background-color: #d1fae5; color: #065f46; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #10b981; font-weight: bold;">
-                    ✅ <?= htmlspecialchars($_SESSION['success']) ?>
+                    <?= htmlspecialchars($_SESSION['success']) ?>
                 </div>
-                <?php unset($_SESSION['success']); // Clear message after displaying ?>
+                <?php unset($_SESSION['success']); ?>
             <?php endif; ?>
 
             <?php if (isset($_SESSION['error'])): ?>
                 <div style="background-color: #fee2e2; color: #991b1b; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #ef4444; font-weight: bold;">
-                    ⚠️ <?= htmlspecialchars($_SESSION['error']) ?>
+                    <?= htmlspecialchars($_SESSION['error']) ?>
                 </div>
-                <?php unset($_SESSION['error']); // Clear message after displaying ?>
+                <?php unset($_SESSION['error']); ?>
             <?php endif; ?>
             <!-- NOTIFICATION MESSAGES END -->
 
