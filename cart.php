@@ -12,38 +12,56 @@ if (!isset($_SESSION['user_id'])) {
 
 require_once 'php/db_connect.php';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['game_id'], $_POST['quantity'])) {
+// ------------------------------------------------------------------
+// 2. HANDLE ALL FORM SUBMISSIONS (Add, Update, Delete)
+// ------------------------------------------------------------------
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $user_id = (int)$_SESSION['user_id'];
-    $game_id = (int)$_POST['game_id'];
-    $quantity = (int)$_POST['quantity'];
 
-    // Check if the game is already in this user's cart
-    $stmt_check = $pdo->prepare("SELECT id, quantity FROM Cart WHERE user_id = ? AND game_id = ?");
-    $stmt_check->execute([$user_id, $game_id]);
-    $existing_item = $stmt_check->fetch();
-
-    if ($existing_item) {
-        // Game exists in cart, update the quantity
-        $new_qty = $existing_item['quantity'] + $quantity;
-        $stmt_update = $pdo->prepare("UPDATE Cart SET quantity = ? WHERE id = ?");
-        $stmt_update->execute([$new_qty, $existing_item['id']]);
-    } else {
-        // New game, insert into cart
-        $stmt_insert = $pdo->prepare("INSERT INTO Cart (user_id, game_id, quantity) VALUES (?, ?, ?)");
-        $stmt_insert->execute([$user_id, $game_id, $quantity]);
-    }
-
-    if (isset($_POST['action']) && $_POST['action'] === 'buy_now') {
-        // If they clicked "Buy Now", send them straight to payment/orders
-        header("Location: orders.php"); 
-        exit();
-    } else {
+    // Action: DELETE ITEM
+    if (isset($_POST['action']) && $_POST['action'] === 'delete' && isset($_POST['cart_id'])) {
+        $stmt_delete = $pdo->prepare("DELETE FROM Cart WHERE id = ? AND user_id = ?");
+        $stmt_delete->execute([(int)$_POST['cart_id'], $user_id]);
         header("Location: cart.php");
         exit();
     }
+
+    // Action: UPDATE QUANTITY (+ / -)
+    if (isset($_POST['action']) && $_POST['action'] === 'update_qty' && isset($_POST['cart_id'], $_POST['quantity'])) {
+        $new_qty = max(1, (int)$_POST['quantity']); // Prevents setting quantity below 1
+        $stmt_update = $pdo->prepare("UPDATE Cart SET quantity = ? WHERE id = ? AND user_id = ?");
+        $stmt_update->execute([$new_qty, (int)$_POST['cart_id'], $user_id]);
+        header("Location: cart.php");
+        exit();
+    }
+
+    // Action: ADD TO CART (From product.php)
+    if (isset($_POST['game_id'], $_POST['quantity']) && (!isset($_POST['action']) || in_array($_POST['action'], ['add_cart', 'buy_now']))) {
+        $game_id = (int)$_POST['game_id'];
+        $quantity = (int)$_POST['quantity'];
+
+        $stmt_check = $pdo->prepare("SELECT id, quantity FROM Cart WHERE user_id = ? AND game_id = ?");
+        $stmt_check->execute([$user_id, $game_id]);
+        $existing_item = $stmt_check->fetch();
+
+        if ($existing_item) {
+            $stmt_update = $pdo->prepare("UPDATE Cart SET quantity = ? WHERE id = ?");
+            $stmt_update->execute([$existing_item['quantity'] + $quantity, $existing_item['id']]);
+        } else {
+            $stmt_insert = $pdo->prepare("INSERT INTO Cart (user_id, game_id, quantity) VALUES (?, ?, ?)");
+            $stmt_insert->execute([$user_id, $game_id, $quantity]);
+        }
+
+        if (isset($_POST['action']) && $_POST['action'] === 'buy_now') {
+            header("Location: orders.php"); 
+            exit();
+        } else {
+            header("Location: cart.php");
+            exit();
+        }
+    }
 }
 // ------------------------------------------------------------------
-
 
 // 3. Fetch current cart items for display
 $stmt = $pdo->prepare("
@@ -74,14 +92,13 @@ foreach ($cart_items as $item) {
     </head>
     <body>
 
-<?php include 'navbar.php'; ?>
-        <!-- PAGE CONTENT -->
+        <?php include 'navbar.php'; ?>
+
         <div class="page-wrapper">
             <h1 class="page-title">Shopping Cart</h1>
 
             <div class="cart-layout">
 
-                <!-- LEFT: Cart Table + Trust -->
                 <div>
                     <div class="cart-table-wrap">
                         <table class="cart-table">
@@ -117,19 +134,42 @@ foreach ($cart_items as $item) {
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td>$<?= number_format($item['price'], 2) ?></td>
+                                            
+                                            <!-- Added span for Currency Script -->
                                             <td>
-                                                <div class="qty-wrap">
-                                                    <button class="qty-btn">−</button>
-                                                    <input type="number" class="qty-input"
-                                                           value="<?= $item['quantity'] ?>" min="1">
-                                                    <button class="qty-btn">+</button>
-                                                </div>
+                                                <span class="price-display" data-usd="<?= $item['price'] ?>">
+                                                    $<?= number_format($item['price'], 2) ?>
+                                                </span>
                                             </td>
+                                            
+                                            <td>
+                                                <!-- Wrapped Quantity in a form that auto-submits on click -->
+                                                <form action="cart.php" method="POST" style="margin:0;">
+                                                    <input type="hidden" name="action" value="update_qty">
+                                                    <input type="hidden" name="cart_id" value="<?= $item['cart_id'] ?>">
+                                                    <div class="qty-wrap">
+                                                        <button type="button" class="qty-btn" onclick="this.nextElementSibling.stepDown(); this.form.submit();">−</button>
+                                                        <input type="number" name="quantity" class="qty-input" value="<?= $item['quantity'] ?>" min="1" onchange="this.form.submit();">
+                                                        <button type="button" class="qty-btn" onclick="this.previousElementSibling.stepUp(); this.form.submit();">+</button>
+                                                    </div>
+                                                </form>
+                                            </td>
+                                            
                                             <td class="total-price">
-                                                $<?= number_format($item['price'] * $item['quantity'], 2) ?>
+                                                <!-- Added span for Currency Script -->
+                                                <span class="price-display" data-usd="<?= $item['price'] * $item['quantity'] ?>">
+                                                    $<?= number_format($item['price'] * $item['quantity'], 2) ?>
+                                                </span>
                                             </td>
-                                            <td><button class="btn-remove">Delete</button></td>
+                                            
+                                            <td>
+                                                <!-- Wrapped Delete in a form -->
+                                                <form action="cart.php" method="POST" style="margin:0;">
+                                                    <input type="hidden" name="action" value="delete">
+                                                    <input type="hidden" name="cart_id" value="<?= $item['cart_id'] ?>">
+                                                    <button type="submit" class="btn-remove" style="cursor: pointer;">Delete</button>
+                                                </form>
+                                            </td>
                                         </tr>
                                     <?php endforeach; ?>
                                 <?php endif; ?>
@@ -163,15 +203,20 @@ foreach ($cart_items as $item) {
                     </div>
                 </div>
 
-                <!-- RIGHT: Summary -->
                 <div class="summary-box">
                     <div class="summary-title">Order Summary</div>
-                    <div class="summary-row"><span>Subtotal:</span><span>$<?= number_format($subtotal, 2) ?></span></div>
-                    <div class="summary-row"><span>Tax:</span><span>$0.00</span></div>
+                    <div class="summary-row">
+                        <span>Subtotal:</span>
+                        <span class="price-display" data-usd="<?= $subtotal ?>">$<?= number_format($subtotal, 2) ?></span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Tax:</span>
+                        <span class="price-display" data-usd="0">0.00</span>
+                    </div>
                     <hr class="summary-divider">
                     <div class="summary-total">
                         <span>Total:</span>
-                        <span class="summary-total-price">$<?= number_format($subtotal, 2) ?></span>
+                        <span class="summary-total-price price-display" data-usd="<?= $subtotal ?>">$<?= number_format($subtotal, 2) ?></span>
                     </div>
                     <a href="orders.php" class="checkout-btn">Proceed to Payment ⚡</a>
                     <p class="checkout-note">🔒 Digital keys delivered instantly</p>
