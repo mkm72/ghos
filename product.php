@@ -113,34 +113,41 @@ $genres = array_filter(array_map('trim', explode(',', $game['genres'])));
                 <span class="stock-status stock-out">Not Available</span>
             <?php endif; ?>
 
-            <div>
-                <div class="quantity-label">Quantity</div>
-                <div class="quantity-control">
-                    <button class="qty-btn" type="button" onclick="document.getElementById('qtyInput').stepDown()" <?php echo !$in_stock ? 'disabled style="opacity: 0.5; cursor: not-allowed;"' : ''; ?>>−</button>
-                    
-                    <input type="number" id="qtyInput" class="qty-input" value="1" min="1" max="<?php echo $game['stock_count'] > 0 ? $game['stock_count'] : 1; ?>" <?php echo !$in_stock ? 'disabled' : ''; ?>>
-                    
-                    <button class="qty-btn" type="button" onclick="document.getElementById('qtyInput').stepUp()" <?php echo !$in_stock ? 'disabled style="opacity: 0.5; cursor: not-allowed;"' : ''; ?>>+</button>
-                </div>
-            </div>
+            <!-- Wrap the inputs and buttons in a form targeting cart.php -->
+            <form action="cart.php" method="POST">
+                <!-- Hidden input to send the game_id -->
+                <input type="hidden" name="game_id" value="<?php echo $game['id']; ?>">
 
-            <div class="delivery-box">
-                <div class="delivery-icon">⚡</div>
                 <div>
-                    <div class="delivery-title">Instant Digital Delivery</div>
-                    <div class="delivery-text">Receive your game key immediately after purchase</div>
+                    <div class="quantity-label">Quantity</div>
+                    <div class="quantity-control">
+                        <button class="qty-btn" type="button" onclick="document.getElementById('qtyInput').stepDown()" <?php echo !$in_stock ? 'disabled style="opacity: 0.5; cursor: not-allowed;"' : ''; ?>>−</button>
+                        
+                        <!-- Added name="quantity" so PHP can grab this value -->
+                        <input type="number" name="quantity" id="qtyInput" class="qty-input" value="1" min="1" max="<?php echo $game['stock_count'] > 0 ? $game['stock_count'] : 1; ?>" <?php echo !$in_stock ? 'disabled' : ''; ?>>
+                        
+                        <button class="qty-btn" type="button" onclick="document.getElementById('qtyInput').stepUp()" <?php echo !$in_stock ? 'disabled style="opacity: 0.5; cursor: not-allowed;"' : ''; ?>>+</button>
+                    </div>
                 </div>
-            </div>
 
-            <div class="action-buttons">
-                <?php if ($in_stock): ?>
-                    <a href="cart.php?add=<?php echo $game['id']; ?>" class="btn-blue">🛒 Buy Now</a>
-                    <a href="cart.php?add=<?php echo $game['id']; ?>" class="btn-white">+ Add to Cart</a>
-                <?php else: ?>
-                    <a href="#" class="btn-gray" style="grid-column: 1 / -1; text-align: center;">Currently Unavailable</a>
-                <?php endif; ?>
-            </div>
+                <div class="delivery-box">
+                    <div class="delivery-icon">⚡</div>
+                    <div>
+                        <div class="delivery-title">Instant Digital Delivery</div>
+                        <div class="delivery-text">Receive your game key immediately after purchase</div>
+                    </div>
+                </div>
 
+                <div class="action-buttons">
+                    <?php if ($in_stock): ?>
+                        <!-- Changed <a> tags to <button> tags -->
+                        <button type="submit" name="action" value="buy_now" class="btn-blue" style="border: none; cursor: pointer; font-family: inherit; font-size: inherit;">🛒 Buy Now</button>
+                        <button type="submit" name="action" value="add_cart" class="btn-white" style="border: 1px solid #ccc; cursor: pointer; font-family: inherit; font-size: inherit;">+ Add to Cart</button>
+                    <?php else: ?>
+                        <a href="#" class="btn-gray" style="grid-column: 1 / -1; text-align: center;">Currently Unavailable</a>
+                    <?php endif; ?>
+                </div>
+            </form>
             <div class="trust-row">
                 <div class="trust-item">✅ Verified Seller</div>
                 <div class="trust-item">🔑 Official Keys</div>
