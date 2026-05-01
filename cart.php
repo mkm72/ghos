@@ -74,20 +74,7 @@ foreach ($cart_items as $item) {
     </head>
     <body>
 
-        <!-- NAVIGATION -->
-        <nav class="navbar">
-            <a href="index.php" class="navbar-logo">
-                <div class="logo-box">Ghos</div>
-                <span class="logo-name">GameHub Online Store</span>
-            </a>
-            <div class="navbar-links" style="margin-left: auto;">
-                <a href="index.php">Store</a>
-                <a href="orders.php">My Orders</a>
-                <a href="logout.php">Logout</a>
-                <a href="cart.php" class="cart-link">🛒 Cart <span class="cart-badge"><?= count($cart_items) ?></span></a>
-            </div>
-        </nav>
-
+<?php include 'navbar.php'; ?>
         <!-- PAGE CONTENT -->
         <div class="page-wrapper">
             <h1 class="page-title">Shopping Cart</h1>

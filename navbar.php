@@ -10,8 +10,16 @@ if (isset($_GET['logout'])) {
     exit;
 }
 
-$is_logged_in = isset($_SESSION['user_email']);
+$is_logged_in = isset($_SESSION['user_id']); 
 $user_role = $_SESSION['role'] ?? '';
+
+$cart_count = 0;
+if ($is_logged_in) {
+    require_once 'php/db_connect.php';
+    $stmt_cart = $pdo->prepare("SELECT SUM(quantity) FROM Cart WHERE user_id = ?");
+    $stmt_cart->execute([$_SESSION['user_id']]);
+    $cart_count = (int)$stmt_cart->fetchColumn(); 
+}
 ?>
 
 <nav class="navbar">
@@ -55,7 +63,7 @@ $user_role = $_SESSION['role'] ?? '';
 
         <a href="cart.php" class="cart-link">
             🛒 Cart
-            <span class="cart-badge">3</span>
+            <span class="cart-badge"><?php echo $cart_count; ?></span>
         </a>
     </div>
 </nav>
