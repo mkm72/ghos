@@ -28,9 +28,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Action: UPDATE QUANTITY (+ / -)
     if (isset($_POST['action']) && $_POST['action'] === 'update_qty' && isset($_POST['cart_id'], $_POST['quantity'])) {
-        $new_qty = max(1, (int)$_POST['quantity']); // Prevents setting quantity below 1
-        $stmt_update = $pdo->prepare("UPDATE Cart SET quantity = ? WHERE id = ? AND user_id = ?");
-        $stmt_update->execute([$new_qty, (int)$_POST['cart_id'], $user_id]);
+        $cart_id = (int)$_POST['cart_id'];
+        $requested_qty = max(1, (int)$_POST['quantity']);
+
+        // First, get the game_id for this cart item
+        $stmt_game = $pdo->prepare("SELECT game_id FROM Cart WHERE id = ? AND user_id = ?");
+        $stmt_game->execute([$cart_id, $user_id]);
+        $cart_row = $stmt_game->fetch();
+
+        if ($cart_row) {
+            $game_id = $cart_row['game_id'];
+
+            // Check actual stock in the database
+            $stmt_stock = $pdo->prepare("SELECT COUNT(*) FROM Game_Keys WHERE game_id = ? AND is_sold = 0");
+            $stmt_stock->execute([$game_id]);
+            $stock = (int)$stmt_stock->fetchColumn();
+
+            // Cap the quantity at available stock
+            $final_qty = min($requested_qty, $stock);
+
+            $stmt_update = $pdo->prepare("UPDATE Cart SET quantity = ? WHERE id = ?");
+            $stmt_update->execute([$final_qty, $cart_id]);
+        }
         header("Location: cart.php");
         exit();
     }
@@ -38,18 +57,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Action: ADD TO CART (From product.php)
     if (isset($_POST['game_id'], $_POST['quantity']) && (!isset($_POST['action']) || in_array($_POST['action'], ['add_cart', 'buy_now']))) {
         $game_id = (int)$_POST['game_id'];
-        $quantity = (int)$_POST['quantity'];
+        $requested_qty = max(1, (int)$_POST['quantity']);
+
+        // Check actual stock in the database
+        $stmt_stock = $pdo->prepare("SELECT COUNT(*) FROM Game_Keys WHERE game_id = ? AND is_sold = 0");
+        $stmt_stock->execute([$game_id]);
+        $stock = (int)$stmt_stock->fetchColumn();
 
         $stmt_check = $pdo->prepare("SELECT id, quantity FROM Cart WHERE user_id = ? AND game_id = ?");
         $stmt_check->execute([$user_id, $game_id]);
         $existing_item = $stmt_check->fetch();
 
         if ($existing_item) {
+            // Combine existing qty with requested qty, capped at max stock
+            $new_qty = min($existing_item['quantity'] + $requested_qty, $stock);
             $stmt_update = $pdo->prepare("UPDATE Cart SET quantity = ? WHERE id = ?");
-            $stmt_update->execute([$existing_item['quantity'] + $quantity, $existing_item['id']]);
+            $stmt_update->execute([$new_qty, $existing_item['id']]);
         } else {
-            $stmt_insert = $pdo->prepare("INSERT INTO Cart (user_id, game_id, quantity) VALUES (?, ?, ?)");
-            $stmt_insert->execute([$user_id, $game_id, $quantity]);
+            // Cap initial request at max stock
+            $final_qty = min($requested_qty, $stock);
+            if ($final_qty > 0) { // Only insert if we actually have stock
+                $stmt_insert = $pdo->prepare("INSERT INTO Cart (user_id, game_id, quantity) VALUES (?, ?, ?)");
+                $stmt_insert->execute([$user_id, $game_id, $final_qty]);
+            }
         }
 
         if (isset($_POST['action']) && $_POST['action'] === 'buy_now') {
@@ -62,12 +92,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 // ------------------------------------------------------------------
+// ------------------------------------------------------------------
 
-// 3. Fetch current cart items for display
+$// 3. Fetch current cart items for display
 $stmt = $pdo->prepare("
     SELECT Cart.id AS cart_id, Cart.quantity,
            Games.id AS game_id, Games.name, Games.price, Games.platform,
-           Game_Images.filename AS cover_image
+           Game_Images.filename AS cover_image,
+           (SELECT COUNT(*) FROM Game_Keys k WHERE k.game_id = Games.id AND k.is_sold = 0) AS stock_count
     FROM Cart
     JOIN Games ON Cart.game_id = Games.id
     LEFT JOIN Game_Images ON Game_Images.game_id = Games.id AND Game_Images.is_cover = 1
@@ -75,8 +107,7 @@ $stmt = $pdo->prepare("
 ");
 $stmt->execute([$_SESSION['user_id']]);
 $cart_items = $stmt->fetchAll();
-
-$subtotal = 0;
+subtotal = 0;
 foreach ($cart_items as $item) {
     $subtotal += $item['price'] * $item['quantity'];
 }
