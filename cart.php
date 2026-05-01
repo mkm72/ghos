@@ -31,14 +31,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Action: UPDATE QUANTITY (+ / -)
     if (isset($_POST['action']) && $_POST['action'] === 'update_qty' && isset($_POST['cart_id'], $_POST['quantity'])) {
         $cart_id = (int)$_POST['cart_id'];
-        $requested_qty = max(1, (int)$_POST['quantity']);
+        $requested_qty = (int)$_POST['quantity'];
 
-        $stmt_game = $pdo->prepare("SELECT game_id FROM Cart WHERE id = ? AND user_id = ?");
+        // Fetch BOTH game_id and current quantity from the cart
+        $stmt_game = $pdo->prepare("SELECT game_id, quantity FROM Cart WHERE id = ? AND user_id = ?");
         $stmt_game->execute([$cart_id, $user_id]);
         $cart_row = $stmt_game->fetch();
 
         if ($cart_row) {
             $game_id = $cart_row['game_id'];
+            $current_qty = (int)$cart_row['quantity'];
 
             // Check actual stock
             $stmt_stock = $pdo->prepare("SELECT COUNT(*) FROM Game_Keys WHERE game_id = ? AND is_sold = 0");
@@ -47,16 +49,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             $key_text = ($stock === 1) ? "1 key" : "$stock keys";
 
+            // SMART LOGIC: Check why the update was triggered
             if ($requested_qty > $stock) {
-                $_SESSION['error'] = "Could not update. We only have $key_text currently available in stock.";
+                $_SESSION['error'] = "Could not update. We only have $key_text currently available.";
                 $final_qty = $stock;
+            } elseif ($requested_qty < 1) {
+                $_SESSION['error'] = "Minimum quantity is 1. Use the 'Delete' button to remove the item.";
+                $final_qty = 1;
+            } elseif ($requested_qty === $current_qty) {
+                // The frontend stopped the number from changing, meaning they hit the limit
+                if ($current_qty === $stock) {
+                    $_SESSION['error'] = "You have reached the maximum stock limit ($key_text).";
+                } elseif ($current_qty === 1) {
+                    $_SESSION['error'] = "Minimum quantity is 1. Use the 'Delete' button to remove the item.";
+                }
+                $final_qty = $current_qty; 
             } else {
                 $_SESSION['success'] = "Cart quantity updated.";
                 $final_qty = $requested_qty;
             }
 
-            $stmt_update = $pdo->prepare("UPDATE Cart SET quantity = ? WHERE id = ?");
-            $stmt_update->execute([$final_qty, $cart_id]);
+            // Only run the database update if the quantity actually changed
+            if ($final_qty !== $current_qty) {
+                $stmt_update = $pdo->prepare("UPDATE Cart SET quantity = ? WHERE id = ?");
+                $stmt_update->execute([$final_qty, $cart_id]);
+            }
         }
         header("Location: cart.php");
         exit();
