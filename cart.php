@@ -22,6 +22,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['action']) && $_POST['action'] === 'delete' && isset($_POST['cart_id'])) {
         $stmt_delete = $pdo->prepare("DELETE FROM Cart WHERE id = ? AND user_id = ?");
         $stmt_delete->execute([(int)$_POST['cart_id'], $user_id]);
+        
+        $_SESSION['success'] = "Item successfully removed from your cart.";
         header("Location: cart.php");
         exit();
     }
@@ -31,7 +33,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $cart_id = (int)$_POST['cart_id'];
         $requested_qty = max(1, (int)$_POST['quantity']);
 
-        // First, get the game_id for this cart item
         $stmt_game = $pdo->prepare("SELECT game_id FROM Cart WHERE id = ? AND user_id = ?");
         $stmt_game->execute([$cart_id, $user_id]);
         $cart_row = $stmt_game->fetch();
@@ -39,13 +40,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($cart_row) {
             $game_id = $cart_row['game_id'];
 
-            // Check actual stock in the database
+            // Check actual stock
             $stmt_stock = $pdo->prepare("SELECT COUNT(*) FROM Game_Keys WHERE game_id = ? AND is_sold = 0");
             $stmt_stock->execute([$game_id]);
             $stock = (int)$stmt_stock->fetchColumn();
 
-            // Cap the quantity at available stock
-            $final_qty = min($requested_qty, $stock);
+            if ($requested_qty > $stock) {
+                $_SESSION['error'] = "Could not update. Only $stock keys currently available.";
+                $final_qty = $stock;
+            } else {
+                $_SESSION['success'] = "Cart quantity updated.";
+                $final_qty = $requested_qty;
+            }
 
             $stmt_update = $pdo->prepare("UPDATE Cart SET quantity = ? WHERE id = ?");
             $stmt_update->execute([$final_qty, $cart_id]);
@@ -59,7 +65,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $game_id = (int)$_POST['game_id'];
         $requested_qty = max(1, (int)$_POST['quantity']);
 
-        // Check actual stock in the database
+        // Check actual stock
         $stmt_stock = $pdo->prepare("SELECT COUNT(*) FROM Game_Keys WHERE game_id = ? AND is_sold = 0");
         $stmt_stock->execute([$game_id]);
         $stock = (int)$stmt_stock->fetchColumn();
@@ -69,31 +75,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $existing_item = $stmt_check->fetch();
 
         if ($existing_item) {
-            // Combine existing qty with requested qty, capped at max stock
-            $new_qty = min($existing_item['quantity'] + $requested_qty, $stock);
+            $total_requested = $existing_item['quantity'] + $requested_qty;
+            
+            if ($total_requested > $stock) {
+                $_SESSION['error'] = "Cannot add more. You have reached the stock limit of $stock keys.";
+                $new_qty = $stock;
+            } else {
+                $_SESSION['success'] = "Game added to your cart!";
+                $new_qty = $total_requested;
+            }
+
             $stmt_update = $pdo->prepare("UPDATE Cart SET quantity = ? WHERE id = ?");
             $stmt_update->execute([$new_qty, $existing_item['id']]);
         } else {
-            // Cap initial request at max stock
-            $final_qty = min($requested_qty, $stock);
-            if ($final_qty > 0) { // Only insert if we actually have stock
+            if ($requested_qty > $stock) {
+                $_SESSION['error'] = "Only $stock keys available. Added maximum stock to cart.";
+                $final_qty = $stock;
+            } else {
+                $_SESSION['success'] = "Game added to your cart!";
+                $final_qty = $requested_qty;
+            }
+
+            if ($final_qty > 0) { 
                 $stmt_insert = $pdo->prepare("INSERT INTO Cart (user_id, game_id, quantity) VALUES (?, ?, ?)");
                 $stmt_insert->execute([$user_id, $game_id, $final_qty]);
             }
         }
 
-        if (isset($_POST['action']) && $_POST['action'] === 'buy_now') {
+        if (isset($_POST['action']) && $_POST['action'] === 'buy_now' && !isset($_SESSION['error'])) {
             header("Location: orders.php"); 
-            exit();
         } else {
             header("Location: cart.php");
-            exit();
         }
+        exit();
     }
 }
 // ------------------------------------------------------------------
 
-// 3. Fetch current cart items for display AND check stock count
+// 3. Fetch current cart items for display
 $stmt = $pdo->prepare("
     SELECT Cart.id AS cart_id, Cart.quantity,
            Games.id AS game_id, Games.name, Games.price, Games.platform,
@@ -126,6 +145,23 @@ foreach ($cart_items as $item) {
         <?php include 'navbar.php'; ?>
 
         <div class="page-wrapper">
+            
+            <!-- NOTIFICATION MESSAGES START -->
+            <?php if (isset($_SESSION['success'])): ?>
+                <div style="background-color: #d1fae5; color: #065f46; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #10b981; font-weight: bold;">
+                    ✅ <?= htmlspecialchars($_SESSION['success']) ?>
+                </div>
+                <?php unset($_SESSION['success']); // Clear message after displaying ?>
+            <?php endif; ?>
+
+            <?php if (isset($_SESSION['error'])): ?>
+                <div style="background-color: #fee2e2; color: #991b1b; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #ef4444; font-weight: bold;">
+                    ⚠️ <?= htmlspecialchars($_SESSION['error']) ?>
+                </div>
+                <?php unset($_SESSION['error']); // Clear message after displaying ?>
+            <?php endif; ?>
+            <!-- NOTIFICATION MESSAGES END -->
+
             <h1 class="page-title">Shopping Cart</h1>
 
             <div class="cart-layout">
@@ -166,7 +202,6 @@ foreach ($cart_items as $item) {
                                                 </div>
                                             </td>
                                             
-                                            <!-- Added span for Currency Script -->
                                             <td>
                                                 <span class="price-display" data-usd="<?= $item['price'] ?>">
                                                     $<?= number_format($item['price'], 2) ?>
@@ -174,13 +209,11 @@ foreach ($cart_items as $item) {
                                             </td>
                                             
                                             <td>
-                                                <!-- Wrapped Quantity in a form that auto-submits on click -->
                                                 <form action="cart.php" method="POST" style="margin:0;">
                                                     <input type="hidden" name="action" value="update_qty">
                                                     <input type="hidden" name="cart_id" value="<?= $item['cart_id'] ?>">
                                                     <div class="qty-wrap">
                                                         <button type="button" class="qty-btn" onclick="this.nextElementSibling.stepDown(); this.form.submit();">−</button>
-                                                        <!-- Added max attribute dynamically to prevent frontend overallocation -->
                                                         <input type="number" name="quantity" class="qty-input" value="<?= $item['quantity'] ?>" min="1" max="<?= $item['stock_count'] ?>" onchange="this.form.submit();">
                                                         <button type="button" class="qty-btn" onclick="this.previousElementSibling.stepUp(); this.form.submit();">+</button>
                                                     </div>
@@ -188,14 +221,12 @@ foreach ($cart_items as $item) {
                                             </td>
                                             
                                             <td class="total-price">
-                                                <!-- Added span for Currency Script -->
                                                 <span class="price-display" data-usd="<?= $item['price'] * $item['quantity'] ?>">
                                                     $<?= number_format($item['price'] * $item['quantity'], 2) ?>
                                                 </span>
                                             </td>
                                             
                                             <td>
-                                                <!-- Wrapped Delete in a form -->
                                                 <form action="cart.php" method="POST" style="margin:0;">
                                                     <input type="hidden" name="action" value="delete">
                                                     <input type="hidden" name="cart_id" value="<?= $item['cart_id'] ?>">
@@ -239,7 +270,6 @@ foreach ($cart_items as $item) {
                     <div class="summary-title">Order Summary</div>
                     <div class="summary-row">
                         <span>Subtotal:</span>
-                        <!-- Added span for Currency Script -->
                         <span class="price-display" data-usd="<?= $subtotal ?>">$<?= number_format($subtotal, 2) ?></span>
                     </div>
                     <div class="summary-row">
@@ -249,7 +279,6 @@ foreach ($cart_items as $item) {
                     <hr class="summary-divider">
                     <div class="summary-total">
                         <span>Total:</span>
-                        <!-- Added span for Currency Script -->
                         <span class="summary-total-price price-display" data-usd="<?= $subtotal ?>">$<?= number_format($subtotal, 2) ?></span>
                     </div>
                     <a href="orders.php" class="checkout-btn">Proceed to Payment ⚡</a>
