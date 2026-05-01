@@ -92,9 +92,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 // ------------------------------------------------------------------
-// ------------------------------------------------------------------
 
-$// 3. Fetch current cart items for display
+// 3. Fetch current cart items for display AND check stock count
 $stmt = $pdo->prepare("
     SELECT Cart.id AS cart_id, Cart.quantity,
            Games.id AS game_id, Games.name, Games.price, Games.platform,
@@ -107,7 +106,8 @@ $stmt = $pdo->prepare("
 ");
 $stmt->execute([$_SESSION['user_id']]);
 $cart_items = $stmt->fetchAll();
-subtotal = 0;
+
+$subtotal = 0;
 foreach ($cart_items as $item) {
     $subtotal += $item['price'] * $item['quantity'];
 }
@@ -180,7 +180,8 @@ foreach ($cart_items as $item) {
                                                     <input type="hidden" name="cart_id" value="<?= $item['cart_id'] ?>">
                                                     <div class="qty-wrap">
                                                         <button type="button" class="qty-btn" onclick="this.nextElementSibling.stepDown(); this.form.submit();">−</button>
-                                                        <input type="number" name="quantity" class="qty-input" value="<?= $item['quantity'] ?>" min="1" onchange="this.form.submit();">
+                                                        <!-- Added max attribute dynamically to prevent frontend overallocation -->
+                                                        <input type="number" name="quantity" class="qty-input" value="<?= $item['quantity'] ?>" min="1" max="<?= $item['stock_count'] ?>" onchange="this.form.submit();">
                                                         <button type="button" class="qty-btn" onclick="this.previousElementSibling.stepUp(); this.form.submit();">+</button>
                                                     </div>
                                                 </form>
@@ -238,6 +239,7 @@ foreach ($cart_items as $item) {
                     <div class="summary-title">Order Summary</div>
                     <div class="summary-row">
                         <span>Subtotal:</span>
+                        <!-- Added span for Currency Script -->
                         <span class="price-display" data-usd="<?= $subtotal ?>">$<?= number_format($subtotal, 2) ?></span>
                     </div>
                     <div class="summary-row">
@@ -247,6 +249,7 @@ foreach ($cart_items as $item) {
                     <hr class="summary-divider">
                     <div class="summary-total">
                         <span>Total:</span>
+                        <!-- Added span for Currency Script -->
                         <span class="summary-total-price price-display" data-usd="<?= $subtotal ?>">$<?= number_format($subtotal, 2) ?></span>
                     </div>
                     <a href="orders.php" class="checkout-btn">Proceed to Payment ⚡</a>
