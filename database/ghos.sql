@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: May 02, 2026 at 07:56 AM
+-- Generation Time: May 02, 2026 at 09:14 AM
 -- Server version: 8.0.45-0ubuntu0.24.04.1
 -- PHP Version: 8.3.6
 
@@ -41,8 +41,8 @@ CREATE TABLE `Cart` (
 --
 
 INSERT INTO `Cart` (`id`, `user_id`, `game_id`, `quantity`) VALUES
-(2, 4, 28154, 1),
-(5, 5, 28154, 1);
+(5, 5, 28154, 1),
+(8, 4, 591, 1);
 
 -- --------------------------------------------------------
 
@@ -427,9 +427,24 @@ CREATE TABLE `Orders` (
   `id` int NOT NULL,
   `order_date` datetime DEFAULT CURRENT_TIMESTAMP,
   `user_id` int NOT NULL,
-  `key_id` int NOT NULL,
-  `game_id` int NOT NULL,
+  `total_price` decimal(10,2) NOT NULL,
+  `payment_method` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
   `status` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'pending'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `Order_Items`
+--
+
+CREATE TABLE `Order_Items` (
+  `id` int NOT NULL,
+  `order_id` int NOT NULL,
+  `game_id` int NOT NULL,
+  `key_id` int NOT NULL,
+  `quantity` int NOT NULL DEFAULT '1',
+  `unit_price` decimal(10,2) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
@@ -496,9 +511,16 @@ ALTER TABLE `Game_Keys`
 --
 ALTER TABLE `Orders`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `fk_orders_user` (`user_id`),
-  ADD KEY `fk_orders_key` (`key_id`),
-  ADD KEY `fk_orders_game` (`game_id`);
+  ADD KEY `fk_orders_user` (`user_id`);
+
+--
+-- Indexes for table `Order_Items`
+--
+ALTER TABLE `Order_Items`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `order_id` (`order_id`),
+  ADD KEY `game_id` (`game_id`),
+  ADD KEY `key_id` (`key_id`);
 
 --
 -- Indexes for table `Users`
@@ -515,7 +537,7 @@ ALTER TABLE `Users`
 -- AUTO_INCREMENT for table `Cart`
 --
 ALTER TABLE `Cart`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `Games`
@@ -539,6 +561,12 @@ ALTER TABLE `Game_Keys`
 -- AUTO_INCREMENT for table `Orders`
 --
 ALTER TABLE `Orders`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `Order_Items`
+--
+ALTER TABLE `Order_Items`
   MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
@@ -574,9 +602,15 @@ ALTER TABLE `Game_Keys`
 -- Constraints for table `Orders`
 --
 ALTER TABLE `Orders`
-  ADD CONSTRAINT `fk_orders_game` FOREIGN KEY (`game_id`) REFERENCES `Games` (`id`),
-  ADD CONSTRAINT `fk_orders_key` FOREIGN KEY (`key_id`) REFERENCES `Game_Keys` (`id`),
   ADD CONSTRAINT `fk_orders_user` FOREIGN KEY (`user_id`) REFERENCES `Users` (`id`);
+
+--
+-- Constraints for table `Order_Items`
+--
+ALTER TABLE `Order_Items`
+  ADD CONSTRAINT `Order_Items_ibfk_1` FOREIGN KEY (`order_id`) REFERENCES `Orders` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `Order_Items_ibfk_2` FOREIGN KEY (`game_id`) REFERENCES `Games` (`id`),
+  ADD CONSTRAINT `Order_Items_ibfk_3` FOREIGN KEY (`key_id`) REFERENCES `Game_Keys` (`id`);
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
