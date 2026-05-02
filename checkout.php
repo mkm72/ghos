@@ -12,12 +12,11 @@ $cart_stmt = $pdo->prepare('
     SELECT c.id AS cart_id, c.quantity, c.game_id,
            g.name, g.price,
            i.filename AS cover_image
-    FROM "Cart" c
-    JOIN "Games" g ON c.game_id = g.id
-    LEFT JOIN "Game_Images" i ON i.game_id = g.id AND i.is_cover = 1
+    FROM Cart c
+    JOIN Games g ON c.game_id = g.id
+    LEFT JOIN Game_Images i ON i.game_id = g.id AND i.is_cover = 1
     WHERE c.user_id = ?
-');
-$cart_stmt->execute([$user_id]);
+');$cart_stmt->execute([$user_id]);
 $cart_items = $cart_stmt->fetchAll();
 
 if (empty($cart_items)) {
@@ -93,7 +92,7 @@ unset($_SESSION['pay_error']);
                     <span class="ssl-tag">SSL Secured</span>
                 </div>
                 <div class="panel-body">
-                    <form id="payForm" action="php/process_payment.php" method="POST" onsubmit="return handlePay(event)">
+                    <form id="payForm" action="process_payment.php" method="POST" onsubmit="return handlePay(event)">
 
                         <div class="form-group">
                             <label for="cardName">Cardholder Name</label>

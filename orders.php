@@ -7,12 +7,24 @@ if (!isset($_SESSION['user_id'])) {
 require_once 'php/db_connect.php';
 
 $stmt = $pdo->prepare("
-    SELECT Orders.id, Orders.order_date, Games.name, Games.price, Game_Keys.key_code
-    FROM Orders
-    JOIN Games ON Orders.game_id = Games.id
-    JOIN Game_Keys ON Orders.key_id = Game_Keys.id
-    WHERE Orders.user_id = ?
-    ORDER BY Orders.order_date DESC
+    SELECT 
+        o.id AS order_id, 
+        o.order_date, 
+        o.total_price, 
+        o.status,
+        oi.quantity, 
+        oi.unit_price,
+        g.name AS game_name, 
+        g.platform,
+        gk.key_code,
+        img.filename AS cover_image
+    FROM Orders o
+    JOIN Order_Items oi ON o.id = oi.order_id
+    JOIN Games g ON oi.game_id = g.id
+    JOIN Game_Keys gk ON oi.key_id = gk.id
+    LEFT JOIN Game_Images img ON g.id = img.game_id AND img.is_cover = 1
+    WHERE o.user_id = ?
+    ORDER BY o.order_date DESC
 ");
 $stmt->execute([$_SESSION['user_id']]);
 $orders = $stmt->fetchAll();
@@ -42,7 +54,9 @@ $orders = $stmt->fetchAll();
     </div>
 </nav>
 
-<div class="success-bar">✅ Purchase successful! Your keys are ready below.</div>
+<?php if (isset($_GET['new']) && $_GET['new'] == 1): ?>
+    <div class="success-bar">✅ Purchase successful! Your keys are ready below.</div>
+<?php endif; ?>
 
 <div class="page-wrapper">
     <h1 class="page-title">My Orders</h1>
@@ -54,17 +68,23 @@ $orders = $stmt->fetchAll();
             <div class="order-card">
                 <div class="order-top">
                     <div class="order-left">
-                        <div class="order-thumb thumb-purple">⚔️</div>
+                        <div class="order-thumb thumb-purple">
+                            <?php if (!empty($order['cover_image'])): ?>
+                                <img src="<?= htmlspecialchars(ltrim($order['cover_image'], '/')) ?>" alt="cover" style="width:100%; height:100%; object-fit:cover; border-radius:4px;">
+                            <?php else: ?>
+                                ⚔️
+                            <?php endif; ?>
+                        </div>
                         <div>
-                            <div class="order-game-name"><?= htmlspecialchars($order['name']) ?></div>
+                            <div class="order-game-name"><?= htmlspecialchars($order['game_name']) ?></div>
                             <div class="order-meta">
                                 Order Date: <?= date('n/j/Y', strtotime($order['order_date'])) ?><br>
-                                Order #<?= $order['id'] ?>
+                                Order #<?= htmlspecialchars($order['order_id']) ?>
                             </div>
                         </div>
                     </div>
                     <div class="order-right">
-                        <div class="order-price">$<?= number_format($order['price'], 2) ?></div>
+                        <div class="order-price">$<?= number_format($order['unit_price'], 2) ?></div>
                         <span class="badge-green">✅ Delivered</span>
                     </div>
                 </div>
@@ -87,6 +107,34 @@ $orders = $stmt->fetchAll();
 </div>
 
 <div class="footer">© 2026 GameHub Online Store. All rights reserved.</div>
+
+<script>
+    // Reveal and Copy Key logic if you haven't implemented it yet
+    document.querySelectorAll('.reveal-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const body = e.target.closest('.key-box').querySelector('.key-box-body');
+            const keyVal = body.querySelector('.key-value');
+            if (keyVal.classList.contains('key-hidden')) {
+                keyVal.classList.remove('key-hidden');
+                e.target.textContent = '🙈 Hide Key';
+            } else {
+                keyVal.classList.add('key-hidden');
+                e.target.textContent = '👁️ Reveal Key';
+            }
+        });
+    });
+
+    document.querySelectorAll('.copy-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const keyText = e.target.closest('.key-box-body').querySelector('.key-value').textContent;
+            navigator.clipboard.writeText(keyText).then(() => {
+                const originalText = e.target.textContent;
+                e.target.textContent = '✅ Copied!';
+                setTimeout(() => e.target.textContent = originalText, 2000);
+            });
+        });
+    });
+</script>
 
 </body>
 </html>

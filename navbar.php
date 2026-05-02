@@ -53,7 +53,9 @@ if ($is_logged_in) {
             <div class="profile-dropdown">
                 <button class="profile-btn">👤 Profile ▼</button>
                 <div class="dropdown-content">
+                    <a href="orders.php">My Orders</a>
                     <a href="settings.php">Settings</a>
+
                     <a href="?logout=1">Logout</a>
                 </div>
             </div>

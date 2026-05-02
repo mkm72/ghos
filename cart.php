@@ -126,7 +126,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         if (isset($_POST['action']) && $_POST['action'] === 'buy_now' && !isset($_SESSION['error'])) {
-            header("Location: orders.php"); 
+            header("Location: checkout.php"); 
         } else {
             header("Location: cart.php");
         }
@@ -304,7 +304,7 @@ foreach ($cart_items as $item) {
                         <span>Total:</span>
                         <span class="summary-total-price price-display" data-usd="<?= $subtotal ?>">$<?= number_format($subtotal, 2) ?></span>
                     </div>
-                    <a href="orders.php" class="checkout-btn">Proceed to Payment ⚡</a>
+                    <a href="checkout.php" class="checkout-btn">Proceed to Payment ⚡</a>
                     <p class="checkout-note">🔒 Digital keys delivered instantly</p>
                 </div>
 
