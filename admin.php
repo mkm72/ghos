@@ -55,20 +55,16 @@ if (!isset($_SESSION['user_id']) || ($_SESSION['role'] ?? '') !== 'admin') {
 // ── DB ───────────────────────────────────────────────────────────────────────
 require_once 'php/db_connect.php';
 
-// CHANGED: $_SESSION['user_role'] to $_SESSION['role']
 $user_role    = $_SESSION['role'];
 $is_logged_in = true;
 
-
-
 // ── STATS ────────────────────────────────────────────────────────────────────
 
-// Total revenue from delivered orders (Pulls price from the Games table)
+// Total revenue from delivered/completed orders (Updated to use the new total_price column)
 $stmt = $pdo->query("
-    SELECT COALESCE(SUM(g.price), 0) AS revenue 
-    FROM Orders o 
-    JOIN Games g ON o.game_id = g.id 
-    WHERE o.status = 'delivered'
+    SELECT COALESCE(SUM(total_price), 0) AS revenue 
+    FROM Orders 
+    WHERE status IN ('delivered', 'completed')
 ");
 $total_revenue = (float) $stmt->fetchColumn();
 
@@ -93,6 +89,7 @@ $stmt = $pdo->query("SELECT COUNT(*) FROM Orders");
 $total_orders = (int) $stmt->fetchColumn();
 
 // ── RECENT ORDERS ────────────────────────────────────────────────────────────
+// Updated to use Order_Items bridge table
 $stmt = $pdo->query("
     SELECT
         o.id,
@@ -100,19 +97,21 @@ $stmt = $pdo->query("
         g.name  AS game_name,
         g.id    AS game_id,
         i.filename AS cover_image,
-        k.key_code AS key_value,     -- Fixed to match DB: key_code
-        g.price AS total_price,      -- Fixed to match DB: pulled from Games
-        o.order_date AS created_at,  -- Fixed to match DB: order_date
+        k.key_code AS key_value,
+        oi.unit_price AS total_price,
+        o.order_date AS created_at,
         o.status
     FROM Orders o
     JOIN Users      u ON o.user_id  = u.id
-    JOIN Game_Keys  k ON o.key_id   = k.id
-    JOIN Games      g ON o.game_id  = g.id
+    JOIN Order_Items oi ON o.id = oi.order_id
+    JOIN Game_Keys  k ON oi.key_id   = k.id
+    JOIN Games      g ON oi.game_id  = g.id
     LEFT JOIN Game_Images i ON g.id = i.game_id AND i.is_cover = 1
-    ORDER BY o.order_date DESC       -- Fixed to match DB: order_date
+    ORDER BY o.order_date DESC
     LIMIT 10
 ");
 $recent_orders = $stmt->fetchAll();
+
 // ── GAMES LIST ───────────────────────────────────────────────────────────────
 $stmt = $pdo->query("
     SELECT
@@ -141,7 +140,7 @@ function stockBadge(int $n): string {
 
 function statusBadge(string $s): string {
     return match(strtolower($s)) {
-        'delivered' => '<span class="badge-green">Delivered</span>',
+        'delivered', 'completed' => '<span class="badge-green">Delivered</span>',
         'pending'   => '<span class="badge-blue">Pending</span>',
         'cancelled' => '<span class="badge-red">Cancelled</span>',
         default     => '<span class="badge-orange">' . htmlspecialchars(ucfirst($s)) . '</span>',
@@ -314,8 +313,6 @@ function statusBadge(string $s): string {
         </div>
 
     </main>
-
-
 
 </body>
 </html>
