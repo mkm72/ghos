@@ -164,6 +164,364 @@ function statusBadge(string $s): string {
             <div class="logo-box">Ghos</div>
             <span class="logo-name">Admin Panel</span>
         </div>
+        <a href="#" class="sidebar-link" data-section="section-dashboard">Dashboard</a>
+        <a href="#" class="sidebar-link" data-section="section-games">Manage Games</a>
+        <a href="#" class="sidebar-link" data-section="section-orders">Orders</a>
+        <hr class="sidebar-divider">
+        <a href="index.php" class="sidebar-back">← Back to Store</a>
+        <a href="?logout=1" class="sidebar-back" style="color:#ef4444; margin-top:8px;">Logout</a>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+
+        <!-- ── DASHBOARD OVERVIEW ── -->
+        <div id="section-dashboard" class="admin-section">
+            <h1 class="page-title">Dashboard Overview</h1>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div>
+                        <div class="stat-label">Total Revenue</div>
+                        <div class="stat-value green">$<?= number_format($total_revenue, 2) ?></div>
+                    </div>
+                    <div class="stat-icon icon-green">$</div>
+                </div>
+                <div class="stat-card">
+                    <div>
+                        <div class="stat-label">Total Users</div>
+                        <div class="stat-value blue"><?= $total_users ?></div>
+                    </div>
+                    <div class="stat-icon icon-blue">👥</div>
+                </div>
+                <div class="stat-card">
+                    <div>
+                        <div class="stat-label">Total Orders</div>
+                        <div class="stat-value blue"><?= $total_orders ?></div>
+                    </div>
+                    <div class="stat-icon icon-blue">🛒</div>
+                </div>
+                <div class="stat-card">
+                    <div>
+                        <div class="stat-label">Low Stock Alerts</div>
+                        <div class="stat-value orange"><?= $low_stock_count ?></div>
+                    </div>
+                    <div class="stat-icon icon-orange">⚠️</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── ORDERS ── -->
+        <div id="section-orders" class="admin-section panel" style="margin-top: 30px;">
+            <div class="panel-header">
+                <span class="panel-title">Orders (<span id="ordersCount"><?= count($recent_orders) ?></span>)</span>
+                <div style="display:flex; gap:8px;">
+                    <button class="order-filter-tab active" data-filter="all">All</button>
+                    <button class="order-filter-tab" data-filter="pending">Pending</button>
+                    <button class="order-filter-tab" data-filter="delivered">Delivered</button>
+                    <button class="order-filter-tab" data-filter="cancelled">Cancelled</button>
+                </div>
+            </div>
+            <table class="data-table" data-sortable>
+                <thead>
+                    <tr>
+                        <th data-col="id">#</th>
+                        <th>User</th>
+                        <th>Game</th>
+                        <th>CD Key</th>
+                        <th data-col="price">Price</th>
+                        <th data-col="date">Date</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="ordersTableBody">
+                    <?php if (empty($recent_orders)): ?>
+                        <tr>
+                            <td colspan="7" style="text-align:center; color:#888; padding:30px;">No orders yet.</td>
+                        </tr>
+                    <?php else: ?>
+                        <?php foreach ($recent_orders as $order):
+                            $img = ltrim($order['cover_image'] ?? '', '/');
+                            $statusLower = strtolower($order['status']);
+                        ?>
+                        <tr data-status="<?= htmlspecialchars($statusLower) ?>">
+                            <td data-col="id" data-val="<?= $order['id'] ?>"><?= $order['id'] ?></td>
+                            <td><?= htmlspecialchars($order['user_email']) ?></td>
+                            <td>
+                                <div class="game-cell">
+                                    <div class="mini-img bg-dark">
+                                        <?php if ($img): ?>
+                                            <img src="<?= htmlspecialchars($img) ?>" alt="">
+                                        <?php endif; ?>
+                                    </div>
+                                    <span class="mini-name"><?= htmlspecialchars($order['game_name']) ?></span>
+                                </div>
+                            </td>
+                            <td><code><?= htmlspecialchars($order['key_value'] ?? '—') ?></code></td>
+                            <td data-col="price" data-val="<?= (float)$order['total_price'] ?>">$<?= number_format((float)$order['total_price'], 2) ?></td>
+                            <td data-col="date" data-val="<?= strtotime($order['created_at']) ?>"><?= date('M j, Y', strtotime($order['created_at'])) ?></td>
+                            <td><?= statusBadge($order['status']) ?></td>
+                        </tr>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- ── GAMES LIST ── -->
+        <div id="section-games" class="admin-section panel" style="margin-top: 30px;">
+            <div class="panel-header">
+                <span class="panel-title">Games (<span id="gamesCount"><?= count($games) ?></span>)</span>
+                <input id="gamesSearch" type="text" placeholder="Search games..." style="
+                    padding: 6px 12px; border: 1px solid #e0e0e0; border-radius: 6px;
+                    font-size: 13px; outline: none; width: 200px;
+                ">
+            </div>
+            <table class="data-table" data-sortable>
+                <thead>
+                    <tr>
+                        <th data-col="id">ID</th>
+                        <th>Game</th>
+                        <th data-col="price">Price</th>
+                        <th data-col="stock">Stock</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="gamesTableBody">
+                    <?php if (empty($games)): ?>
+                        <tr>
+                            <td colspan="5" style="text-align:center; color:#888; padding:30px;">No games found.</td>
+                        </tr>
+                    <?php else: ?>
+                        <?php
+                        $ci = 0;
+                        foreach ($games as $game):
+                            $img      = ltrim($game['cover_image'] ?? '', '/');
+                            $stock    = (int)$game['stock_count'];
+                            $colorCls = $bg_colors[$ci % count($bg_colors)];
+                            $ci++;
+                        ?>
+                        <tr>
+                            <td data-col="id" data-val="<?= $game['id'] ?>"><?= $game['id'] ?></td>
+                            <td>
+                                <div class="game-cell">
+                                    <div class="mini-img <?= $colorCls ?>">
+                                        <?php if ($img): ?>
+                                            <img src="<?= htmlspecialchars($img) ?>" alt="">
+                                        <?php endif; ?>
+                                    </div>
+                                    <span class="mini-name"><?= htmlspecialchars($game['name']) ?></span>
+                                </div>
+                            </td>
+                            <td data-col="price" data-val="<?= (float)$game['price'] ?>">$<?= number_format((float)$game['price'], 2) ?></td>
+                            <td data-col="stock" data-val="<?= $stock ?>" class="<?= $stock < 5 ? 'stock-low' : '' ?>"><?= $stock ?></td>
+                            <td><?= stockBadge($stock) ?></td>
+                        </tr>
+                        <?php endforeach; ?>
+                        <tr id="gamesEmptySearch" style="display:none;">
+                            <td colspan="5" style="text-align:center; color:#aaa; padding:24px;">No games match your search.</td>
+                        </tr>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
+
+    </main>
+
+    <style>
+        .admin-section { display: none; }
+        .admin-section.active-section { display: block; }
+
+        /* Order filter tabs */
+        .order-filter-tab {
+            padding: 5px 14px; border-radius: 20px; border: 1px solid #e0e0e0;
+            background: white; font-size: 12px; font-weight: bold;
+            color: #888; cursor: pointer; transition: all 0.15s;
+        }
+        .order-filter-tab.active {
+            background: #1a1a1a; color: white; border-color: #1a1a1a;
+        }
+        .order-filter-tab:hover:not(.active) { background: #f5f5f5; }
+
+        /* Sortable headers */
+        th[data-col]:hover { background: #f0f0f0; }
+        th.sort-asc::after  { content: ' ↑'; color: #2563eb; }
+        th.sort-desc::after { content: ' ↓'; color: #2563eb; }
+
+        /* Badge styles */
+        .badge-green  { background:#dcfce7; color:#16a34a; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:bold; }
+        .badge-blue   { background:#dbeafe; color:#2563eb; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:bold; }
+        .badge-red    { background:#fee2e2; color:#dc2626; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:bold; }
+        .badge-orange { background:#ffedd5; color:#ea580c; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:bold; }
+    </style>
+    <script src="js/admin.js"></script>
+</body>
+</html><?php
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+session_start();
+
+// ── LOGOUT ───────────────────────────────────────
+if (isset($_GET['logout'])) {
+    session_unset();
+    session_destroy();
+    header('Location: index.php');
+    exit;
+}
+
+// ── PROTECTION: Admin only ───────────────────────────────────────────────────
+if (!isset($_SESSION['user_id']) || ($_SESSION['role'] ?? '') !== 'admin') {
+    http_response_code(403);
+    ?>
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Access Denied — GameHub</title>
+        <link rel="stylesheet" href="css/navbar.css">
+        <style>
+            .denied-wrap {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                min-height: 80vh;
+                text-align: center;
+                gap: 16px;
+            }
+            .denied-icon { font-size: 64px; }
+            .denied-title { font-size: 28px; font-weight: bold; color: #1a1a1a; }
+            .denied-sub   { font-size: 15px; color: #888; max-width: 360px; }
+        </style>
+    </head>
+    <body>
+        <div class="denied-wrap">
+            <div class="denied-icon">🚫</div>
+            <div class="denied-title">Access Denied</div>
+            <div class="denied-sub">You don't have permission to view this page. Admin access only.</div>
+            <a href="index.php" class="btn-blue" style="margin-top:8px;">← Back to Store</a>
+        </div>
+        <script src="js/navbar.js"></script>
+    </body>
+    </html>
+    <?php
+    exit;
+}
+
+// ── DB ───────────────────────────────────────────────────────────────────────
+require_once 'php/db_connect.php';
+
+$user_role    = $_SESSION['role'];
+$is_logged_in = true;
+
+// ── STATS ────────────────────────────────────────────────────────────────────
+
+// Total revenue from delivered/completed orders (Updated to use the new total_price column)
+$stmt = $pdo->query("
+    SELECT COALESCE(SUM(total_price), 0) AS revenue 
+    FROM Orders 
+    WHERE status IN ('delivered', 'completed')
+");
+$total_revenue = (float) $stmt->fetchColumn();
+
+// Total users
+$stmt = $pdo->query("SELECT COUNT(*) FROM Users");
+$total_users = (int) $stmt->fetchColumn();
+
+// Low stock games (< 5 keys remaining)
+$stmt = $pdo->query("
+    SELECT COUNT(*) FROM (
+        SELECT g.id
+        FROM Games g
+        LEFT JOIN Game_Keys k ON g.id = k.game_id AND k.is_sold = 0
+        GROUP BY g.id
+        HAVING COUNT(k.id) < 5
+    ) AS low
+");
+$low_stock_count = (int) $stmt->fetchColumn();
+
+// Total orders
+$stmt = $pdo->query("SELECT COUNT(*) FROM Orders");
+$total_orders = (int) $stmt->fetchColumn();
+
+// ── RECENT ORDERS ────────────────────────────────────────────────────────────
+// Updated to use Order_Items bridge table
+$stmt = $pdo->query("
+    SELECT
+        o.id,
+        u.email AS user_email,
+        g.name  AS game_name,
+        g.id    AS game_id,
+        i.filename AS cover_image,
+        k.key_code AS key_value,
+        oi.unit_price AS total_price,
+        o.order_date AS created_at,
+        o.status
+    FROM Orders o
+    JOIN Users      u ON o.user_id  = u.id
+    JOIN Order_Items oi ON o.id = oi.order_id
+    JOIN Game_Keys  k ON oi.key_id   = k.id
+    JOIN Games      g ON oi.game_id  = g.id
+    LEFT JOIN Game_Images i ON g.id = i.game_id AND i.is_cover = 1
+    ORDER BY o.order_date DESC
+    LIMIT 10
+");
+$recent_orders = $stmt->fetchAll();
+
+// ── GAMES LIST ───────────────────────────────────────────────────────────────
+$stmt = $pdo->query("
+    SELECT
+        g.id,
+        g.name,
+        g.price,
+        g.genres,
+        i.filename AS cover_image,
+        COUNT(k.id) AS stock_count
+    FROM Games g
+    LEFT JOIN Game_Images i ON g.id = i.game_id AND i.is_cover = 1
+    LEFT JOIN Game_Keys   k ON g.id = k.game_id AND k.is_sold = 0
+    GROUP BY g.id, g.name, g.price, g.genres, i.filename
+    ORDER BY g.name ASC
+");
+$games = $stmt->fetchAll();
+
+// ── HELPERS ──────────────────────────────────────────────────────────────────
+$bg_colors = ['bg-purple','bg-green','bg-dark','bg-blue','bg-red','bg-navy','bg-black','bg-forest'];
+
+function stockBadge(int $n): string {
+    if ($n === 0)  return '<span class="badge-red">Out of Stock</span>';
+    if ($n < 5)    return '<span class="badge-orange">Low Stock</span>';
+    return '<span class="badge-green">Available</span>';
+}
+
+function statusBadge(string $s): string {
+    return match(strtolower($s)) {
+        'delivered', 'completed' => '<span class="badge-green">Delivered</span>',
+        'pending'   => '<span class="badge-blue">Pending</span>',
+        'cancelled' => '<span class="badge-red">Cancelled</span>',
+        default     => '<span class="badge-orange">' . htmlspecialchars(ucfirst($s)) . '</span>',
+    };
+}
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel — GameHub Online Store</title>
+    <link rel="stylesheet" href="css/navbar.css">
+    <link rel="stylesheet" href="css/dashboard-layout.css">
+</head>
+<body>
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            <div class="logo-box">Ghos</div>
+            <span class="logo-name">Admin Panel</span>
+        </div>
         <a href="#section-dashboard" class="sidebar-link active">📊 Dashboard</a>
         <a href="#section-games"     class="sidebar-link">🎮 Manage Games</a>
         <a href="#section-orders"    class="sidebar-link">🛒 Orders</a>
