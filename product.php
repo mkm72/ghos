@@ -3,9 +3,11 @@ session_start();
 
 require_once 'php/db_connect.php';
 
+// Determine the current user's role
 $user_role = isset($_SESSION['user_role']) ? $_SESSION['user_role'] : 'guest';
 $is_logged_in = isset($_SESSION['user_id']);
 
+// 1. Get the Game ID from the URL
 if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
     header("Location: index.php");
     exit;
@@ -13,12 +15,13 @@ if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
 
 $game_id = (int)$_GET['id'];
 
-$stmt = $pdo->prepare('
+// 2. Fetch the Game Details and Stock Count
+$stmt = $pdo->prepare("
     SELECT g.*, 
-           (SELECT COUNT(*) FROM "Game_Keys" k WHERE k.game_id = g.id AND k.is_sold = 0) AS stock_count
-    FROM "Games" g
+           (SELECT COUNT(*) FROM Game_Keys k WHERE k.game_id = g.id AND k.is_sold = 0) AS stock_count
+    FROM Games g
     WHERE g.id = :id
-');
+");
 $stmt->execute(['id' => $game_id]);
 $game = $stmt->fetch();
 
@@ -26,19 +29,21 @@ if (!$game) {
     die("<h2 style='text-align:center; padding: 50px; font-family: Arial;'>Game not found. <a href='index.php'>Return to store</a></h2>");
 }
 
-$stmt_img = $pdo->prepare('
+// 3. Fetch Images for this Game
+$stmt_img = $pdo->prepare("
     SELECT filename, is_cover 
-    FROM "Game_Images" 
+    FROM Game_Images 
     WHERE game_id = :id 
     ORDER BY is_cover DESC
-');
+");
 $stmt_img->execute(['id' => $game_id]);
 $images = $stmt_img->fetchAll();
 
 $main_image = !empty($images) ? ltrim($images[0]['filename'], '/') : '';
 
+// 4. Calculate some display variables
 $in_stock = $game['stock_count'] > 0;
-$old_price = $game['price'] * 1.20;
+$old_price = $game['price'] * 1.20; 
 
 $platforms = array_filter(array_map('trim', explode(',', $game['platform'])));
 $genres = array_filter(array_map('trim', explode(',', $game['genres'])));
@@ -59,6 +64,7 @@ $genres = array_filter(array_map('trim', explode(',', $game['genres'])));
     <div class="breadcrumb">
         <a href="index.php">← Back to Store</a>
     </div>
+
 
     <div class="product-layout">
 
@@ -95,7 +101,9 @@ $genres = array_filter(array_map('trim', explode(',', $game['genres'])));
 
             <div class="product-price">
                 <span class="price-display" data-usd="<?php echo $game['price']; ?>">$<?php echo number_format($game['price'], 2); ?></span>
+                
                 <s><span class="price-display" style="font-size: 0.6em; color: #888;" data-usd="<?php echo $old_price; ?>">$<?php echo number_format($old_price, 2); ?></span></s>
+                
                 <span class="discount">−20%</span>
             </div>
 
@@ -105,14 +113,19 @@ $genres = array_filter(array_map('trim', explode(',', $game['genres'])));
                 <span class="stock-status stock-out">Not Available</span>
             <?php endif; ?>
 
+            <!-- Wrap the inputs and buttons in a form targeting cart.php -->
             <form action="cart.php" method="POST">
+                <!-- Hidden input to send the game_id -->
                 <input type="hidden" name="game_id" value="<?php echo $game['id']; ?>">
 
                 <div>
                     <div class="quantity-label">Quantity</div>
                     <div class="quantity-control">
                         <button class="qty-btn" type="button" onclick="document.getElementById('qtyInput').stepDown()" <?php echo !$in_stock ? 'disabled style="opacity: 0.5; cursor: not-allowed;"' : ''; ?>>−</button>
+                        
+                        <!-- Added name="quantity" so PHP can grab this value -->
                         <input type="number" name="quantity" id="qtyInput" class="qty-input" value="1" min="1" max="<?php echo $game['stock_count'] > 0 ? $game['stock_count'] : 1; ?>" <?php echo !$in_stock ? 'disabled' : ''; ?>>
+                        
                         <button class="qty-btn" type="button" onclick="document.getElementById('qtyInput').stepUp()" <?php echo !$in_stock ? 'disabled style="opacity: 0.5; cursor: not-allowed;"' : ''; ?>>+</button>
                     </div>
                 </div>
@@ -127,6 +140,7 @@ $genres = array_filter(array_map('trim', explode(',', $game['genres'])));
 
                 <div class="action-buttons">
                     <?php if ($in_stock): ?>
+                        <!-- Changed <a> tags to <button> tags -->
                         <button type="submit" name="action" value="buy_now" class="btn-blue" style="border: none; cursor: pointer; font-family: inherit; font-size: inherit;">🛒 Buy Now</button>
                         <button type="submit" name="action" value="add_cart" class="btn-white" style="border: 1px solid #ccc; cursor: pointer; font-family: inherit; font-size: inherit;">+ Add to Cart</button>
                     <?php else: ?>
@@ -164,4 +178,3 @@ $genres = array_filter(array_map('trim', explode(',', $game['genres'])));
 
 </body>
 </html>
-
