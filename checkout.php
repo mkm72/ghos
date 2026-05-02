@@ -185,7 +185,7 @@ unset($_SESSION['pay_error']);
 
         </div>
 
-        <!-- RIGHT: Order summary -->
+       <!-- RIGHT: Order summary -->
         <div class="checkout-right">
             <div class="summary-box">
                 <div class="summary-title">Order Summary</div>
@@ -205,7 +205,10 @@ unset($_SESSION['pay_error']);
                             <div class="summary-item-qty">Qty: <?= (int)$item['quantity'] ?></div>
                         </div>
                         <div class="summary-item-price">
-                            $<?= number_format($item['price'] * $item['quantity'], 2) ?>
+                            <!-- Wrapped the item total -->
+                            <span class="price-display" data-usd="<?= $item['price'] * $item['quantity'] ?>">
+                                $<?= number_format($item['price'] * $item['quantity'], 2) ?>
+                            </span>
                         </div>
                     </div>
                 <?php endforeach; ?>
@@ -214,11 +217,17 @@ unset($_SESSION['pay_error']);
 
                 <div class="summary-row">
                     <span>Subtotal</span>
-                    <span>$<?= number_format($subtotal, 2) ?></span>
+                    <!-- Wrapped the subtotal -->
+                    <span class="price-display" data-usd="<?= $subtotal ?>">
+                        $<?= number_format($subtotal, 2) ?>
+                    </span>
                 </div>
                 <div class="summary-row">
                     <span>Tax</span>
-                    <span>$0.00</span>
+                    <!-- Wrapped the tax -->
+                    <span class="price-display" data-usd="0">
+                        $0.00
+                    </span>
                 </div>
                 <div class="summary-row">
                     <span>Delivery</span>
@@ -229,20 +238,23 @@ unset($_SESSION['pay_error']);
 
                 <div class="summary-total-row">
                     <span>Total</span>
-                    <span class="summary-total-price">$<?= number_format($subtotal, 2) ?></span>
+                    <!-- Wrapped the total price -->
+                    <span class="summary-total-price price-display" data-usd="<?= $subtotal ?>">
+                        $<?= number_format($subtotal, 2) ?>
+                    </span>
                 </div>
 
                 <button class="pay-btn" id="payBtn" onclick="submitPay()">
-                    Pay $<?= number_format($subtotal, 2) ?>
+                    Pay 
+                    <!-- Wrapped the button price -->
+                    <span class="price-display" data-usd="<?= $subtotal ?>">
+                        $<?= number_format($subtotal, 2) ?>
+                    </span>
                 </button>
 
                 <div class="secure-note">Your payment is 100% secure and encrypted</div>
             </div>
         </div>
-
-    </div>
-</div>
-
 <div class="footer">© 2026 GameHub Online Store. All rights reserved.</div>
 
 <!-- Success overlay -->
