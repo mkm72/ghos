@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 5.2.3
+-- version 5.2.1deb3
 -- https://www.phpmyadmin.net/
 --
--- Host: localhost
--- Generation Time: Apr 20, 2026 at 02:01 PM
--- Server version: 12.2.2-MariaDB
--- PHP Version: 8.5.5
+-- Host: localhost:3306
+-- Generation Time: May 02, 2026 at 07:56 AM
+-- Server version: 8.0.45-0ubuntu0.24.04.1
+-- PHP Version: 8.3.6
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -20,7 +20,7 @@ SET time_zone = "+00:00";
 --
 -- Database: `ghos`
 --
-CREATE DATABASE IF NOT EXISTS `ghos` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE DATABASE IF NOT EXISTS `ghos` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
 USE `ghos`;
 
 -- --------------------------------------------------------
@@ -30,11 +30,19 @@ USE `ghos`;
 --
 
 CREATE TABLE `Cart` (
-  `id` int(11) NOT NULL,
-  `user_id` int(11) NOT NULL,
-  `game_id` int(11) NOT NULL,
-  `quantity` int(11) NOT NULL DEFAULT 1
+  `id` int NOT NULL,
+  `user_id` int NOT NULL,
+  `game_id` int NOT NULL,
+  `quantity` int NOT NULL DEFAULT '1'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `Cart`
+--
+
+INSERT INTO `Cart` (`id`, `user_id`, `game_id`, `quantity`) VALUES
+(2, 4, 28154, 1),
+(5, 5, 28154, 1);
 
 -- --------------------------------------------------------
 
@@ -43,12 +51,12 @@ CREATE TABLE `Cart` (
 --
 
 CREATE TABLE `Games` (
-  `id` int(11) NOT NULL,
-  `name` varchar(255) NOT NULL,
-  `description` text DEFAULT NULL,
+  `id` int NOT NULL,
+  `name` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `description` text COLLATE utf8mb4_unicode_ci,
   `price` decimal(10,2) DEFAULT NULL,
-  `platform` varchar(255) DEFAULT NULL,
-  `genres` varchar(255) DEFAULT NULL
+  `platform` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `genres` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
@@ -165,10 +173,10 @@ INSERT INTO `Games` (`id`, `name`, `description`, `price`, `platform`, `genres`)
 --
 
 CREATE TABLE `Game_Images` (
-  `id` int(11) NOT NULL,
-  `game_id` int(11) NOT NULL,
-  `is_cover` tinyint(1) DEFAULT 0,
-  `filename` varchar(255) NOT NULL
+  `id` int NOT NULL,
+  `game_id` int NOT NULL,
+  `is_cover` tinyint(1) DEFAULT '0',
+  `filename` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
@@ -284,11 +292,130 @@ INSERT INTO `Game_Images` (`id`, `game_id`, `is_cover`, `filename`) VALUES
 --
 
 CREATE TABLE `Game_Keys` (
-  `id` int(11) NOT NULL,
-  `game_id` int(11) NOT NULL,
-  `key_code` varchar(100) NOT NULL,
-  `is_sold` tinyint(1) DEFAULT 0
+  `id` int NOT NULL,
+  `game_id` int NOT NULL,
+  `key_code` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `is_sold` tinyint(1) DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `Game_Keys`
+--
+
+INSERT INTO `Game_Keys` (`id`, `game_id`, `key_code`, `is_sold`) VALUES
+(1, 28, 'RDR2A-B3C4D-E5F6G', 0),
+(2, 28, 'RDR2X-Y7Z8W-V9U0T', 1),
+(3, 28, 'RDR2P-Q1R2S-T3U4V', 0),
+(4, 42, 'EDITH-1A2B3-C4D5E', 0),
+(5, 42, 'EDITH-9F8G7-H6I5J', 0),
+(6, 654, 'FARM1-S2T3U-V4W5X', 1),
+(7, 654, 'FARM2-Y6Z7A-B8C9D', 0),
+(8, 654, 'FARM3-E0F1G-H2I3J', 0),
+(9, 3498, 'GTAV1-K4L5M-N6O7P', 0),
+(10, 3498, 'GTAV2-Q8R9S-T0U1V', 1),
+(11, 3328, 'WILDH-W2X3Y-Z4A5B', 0),
+(12, 3328, 'WILDH-C6D7E-F8G9H', 0),
+(13, 3328, 'WILDH-I0J1K-L2M3N', 1),
+(14, 4200, 'PORT2-O4P5Q-R6S7T', 0),
+(15, 4200, 'PORT2-U8V9W-X0Y1Z', 0),
+(16, 9767, 'HOLLW-A2B3C-D4E5F', 1),
+(17, 9767, 'HOLLW-G6H7I-J8K9L', 0),
+(18, 274755, 'HADES-M0N1O-P2Q3R', 0),
+(19, 274755, 'HADES-S4T5U-V6W7X', 0),
+(20, 326243, 'ELDEN-Y8Z9A-B0C1D', 1),
+(21, 326243, 'ELDEN-E2F3G-H4I5J', 0),
+(22, 326243, 'ELDEN-K6L7M-N8O9P', 0),
+(23, 115, 'KEY-115-A1B2C', 0),
+(24, 591, 'KEY-591-D3E4F', 0),
+(25, 622, 'KEY-622-G5H6I', 0),
+(26, 1358, 'KEY-1358-J7K8L', 0),
+(27, 1450, 'KEY-1450-M9N0O', 0),
+(28, 1452, 'KEY-1452-P1Q2R', 0),
+(29, 1458, 'KEY-1458-S3T4U', 0),
+(30, 1682, 'KEY-1682-V5W6X', 0),
+(31, 2454, 'KEY-2454-Y7Z8A', 0),
+(32, 2551, 'KEY-2551-B9C0D', 0),
+(33, 3612, 'KEY-3612-E1F2G', 0),
+(34, 4062, 'KEY-4062-H3I4J', 0),
+(35, 4166, 'KEY-4166-K5L6M', 0),
+(36, 4186, 'KEY-4186-N7O8P', 0),
+(37, 4248, 'KEY-4248-Q9R0S', 0),
+(38, 4265, 'KEY-4265-T1U2V', 0),
+(39, 4439, 'KEY-4439-W3X4Y', 0),
+(40, 4535, 'KEY-4535-Z5A6B', 0),
+(41, 4544, 'KEY-4544-C7D8E', 0),
+(42, 4550, 'KEY-4550-F9G0H', 0),
+(43, 4570, 'KEY-4570-I1J2K', 0),
+(44, 5563, 'KEY-5563-L3M4N', 0),
+(45, 5679, 'KEY-5679-O5P6Q', 0),
+(46, 10073, 'KEY-10073-R7S8T', 0),
+(47, 10141, 'KEY-10141-U9V0W', 0),
+(48, 10389, 'KEY-10389-X1Y2Z', 0),
+(49, 11498, 'KEY-11498-A3B4C', 0),
+(50, 11971, 'KEY-11971-D5E6F', 0),
+(51, 12447, 'KEY-12447-G7H8I', 0),
+(52, 13536, 'KEY-13536-J9K0L', 0),
+(53, 13537, 'KEY-13537-M1N2O', 0),
+(54, 13820, 'KEY-13820-P3Q4R', 0),
+(55, 13856, 'KEY-13856-S5T6U', 0),
+(56, 13925, 'KEY-13925-V7W8X', 0),
+(57, 14935, 'KEY-14935-Y9Z0A', 0),
+(58, 17572, 'KEY-17572-B1C2D', 0),
+(59, 17576, 'KEY-17576-E3F4G', 0),
+(60, 17959, 'KEY-17959-H5I6J', 0),
+(61, 18080, 'KEY-18080-K7L8M', 0),
+(62, 19445, 'KEY-19445-N9O0P', 0),
+(63, 19457, 'KEY-19457-Q1R2S', 0),
+(64, 19635, 'KEY-19635-T3U4V', 0),
+(65, 19654, 'KEY-19654-W5X6Y', 0),
+(66, 20709, 'KEY-20709-Z7A8B', 0),
+(67, 21974, 'KEY-21974-C9D0E', 0),
+(68, 23741, 'KEY-23741-F1G2H', 0),
+(69, 28154, 'KEY-28154-I3J4K', 0),
+(70, 28199, 'KEY-28199-L5M6N', 0),
+(71, 28568, 'KEY-28568-O7P8Q', 0),
+(72, 28623, 'KEY-28623-R9S0T', 0),
+(73, 29153, 'KEY-29153-U1V2W', 0),
+(74, 29642, 'KEY-29642-X3Y4Z', 0),
+(75, 42303, 'KEY-42303-A5B6C', 0),
+(76, 43050, 'KEY-43050-D7E8F', 0),
+(77, 43252, 'KEY-43252-G9H0I', 0),
+(78, 43737, 'KEY-43737-J1K2L', 0),
+(79, 45958, 'KEY-45958-M3N4O', 0),
+(80, 50734, 'KEY-50734-P5Q6R', 0),
+(81, 50839, 'KEY-50839-S7T8U', 0),
+(82, 51610, 'KEY-51610-V9W0X', 0),
+(83, 52201, 'KEY-52201-Y1Z2A', 0),
+(84, 52884, 'KEY-52884-B3C4D', 0),
+(85, 56184, 'KEY-56184-E5F6G', 0),
+(86, 58134, 'KEY-58134-H7I8J', 0),
+(87, 58175, 'KEY-58175-K9L0M', 0),
+(88, 58388, 'KEY-58388-N1O2P', 0),
+(89, 58550, 'KEY-58550-Q3R4S', 0),
+(90, 58813, 'KEY-58813-T5U6V', 0),
+(91, 58890, 'KEY-58890-W7X8Y', 0),
+(92, 59199, 'KEY-59199-Z9A0B', 0),
+(93, 254545, 'KEY-254545-C1D2E', 0),
+(94, 257192, 'KEY-257192-F3G4H', 0),
+(95, 262382, 'KEY-262382-I5J6K', 0),
+(96, 274757, 'KEY-274757-L7M8N', 0),
+(97, 307137, 'KEY-307137-O9P0Q', 0),
+(98, 324997, 'KEY-324997-R1S2T', 0),
+(99, 339958, 'KEY-339958-U3V4W', 0),
+(100, 366881, 'KEY-366881-X5Y6Z', 0),
+(101, 366885, 'KEY-366885-A7B8C', 0),
+(102, 366889, 'KEY-366889-D9E0F', 0),
+(103, 385406, 'KEY-385406-G1H2I', 0),
+(104, 422859, 'KEY-422859-J3K4L', 0),
+(105, 428664, 'KEY-428664-M5N6O', 0),
+(106, 452649, 'KEY-452649-P7Q8R', 0),
+(107, 455597, 'KEY-455597-S9T0U', 0),
+(108, 479694, 'KEY-479694-V1W2X', 0),
+(109, 484971, 'KEY-484971-Y3Z4A', 0),
+(110, 516111, 'KEY-516111-B5C6D', 0),
+(111, 545015, 'KEY-545015-E7F8G', 0),
+(112, 566445, 'KEY-566445-H9I0J', 0),
+(113, 727315, 'KEY-727315-K1L2M', 0);
 
 -- --------------------------------------------------------
 
@@ -297,12 +424,12 @@ CREATE TABLE `Game_Keys` (
 --
 
 CREATE TABLE `Orders` (
-  `id` int(11) NOT NULL,
-  `order_date` datetime DEFAULT current_timestamp(),
-  `user_id` int(11) NOT NULL,
-  `key_id` int(11) NOT NULL,
-  `game_id` int(11) NOT NULL,
-  `status` varchar(50) NOT NULL DEFAULT 'pending'
+  `id` int NOT NULL,
+  `order_date` datetime DEFAULT CURRENT_TIMESTAMP,
+  `user_id` int NOT NULL,
+  `key_id` int NOT NULL,
+  `game_id` int NOT NULL,
+  `status` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'pending'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
@@ -312,11 +439,11 @@ CREATE TABLE `Orders` (
 --
 
 CREATE TABLE `Users` (
-  `id` int(11) NOT NULL,
-  `email` varchar(255) NOT NULL,
-  `password` varchar(255) NOT NULL,
-  `role` varchar(50) DEFAULT 'customer',
-  `is_active` tinyint(1) NOT NULL DEFAULT 1
+  `id` int NOT NULL,
+  `email` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `password` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `role` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT 'customer',
+  `is_active` tinyint(1) NOT NULL DEFAULT '1'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
@@ -326,7 +453,10 @@ CREATE TABLE `Users` (
 INSERT INTO `Users` (`id`, `email`, `password`, `role`, `is_active`) VALUES
 (1, 'admin@ghos.com', '123456', 'admin', 1),
 (2, 'seller@ghos.com', '123456', 'business', 1),
-(3, 'gamer@ghos.com', '123456', 'customer', 1);
+(3, 'gamer@ghos.com', '123456', 'customer', 1),
+(4, 'test@test.me', '$2y$10$0dkPtM3Njzrv2YXQCbppZuf0WWkwi.vwObXSpuIDLWQ/5HjeNCKLO', 'user', 1),
+(5, 'admin@gamestore.com', '$2y$10$i8eA0nHRNNaVF4B2bKQW1eRDsGHUHOgCDy8XGU24r0fJZsC1ypxC.', 'admin', 1),
+(6, 'ali@ghos.com', '$2y$10$lKGVu4yLIDuh2.A5SJYP3.jzamwZt6FBmLqxP8clZ1mDf.kbQunfG', 'user', 1);
 
 --
 -- Indexes for dumped tables
@@ -385,37 +515,37 @@ ALTER TABLE `Users`
 -- AUTO_INCREMENT for table `Cart`
 --
 ALTER TABLE `Cart`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `Games`
 --
 ALTER TABLE `Games`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=727316;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=727316;
 
 --
 -- AUTO_INCREMENT for table `Game_Images`
 --
 ALTER TABLE `Game_Images`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=101;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=101;
 
 --
 -- AUTO_INCREMENT for table `Game_Keys`
 --
 ALTER TABLE `Game_Keys`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=114;
 
 --
 -- AUTO_INCREMENT for table `Orders`
 --
 ALTER TABLE `Orders`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `Users`
 --
 ALTER TABLE `Users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- Constraints for dumped tables
