@@ -94,7 +94,7 @@ unset($_SESSION['pay_error']);
                 </div>
                 <div class="panel-body">
                     <!-- FIX 1: action points to php/ subfolder; onsubmit removed -->
-                    <form id="payForm" action="php/process_payment.php" method="POST">
+                    <form id="payForm" action="process_payment.php" method="POST">
 
                         <div class="form-group">
                             <label for="cardName">Cardholder Name</label>
