@@ -13,16 +13,25 @@ if (!isset($_SESSION['user_id']) || ($_SESSION['role'] ?? '') !== 'admin') {
 require_once 'php/db_connect.php';
 
 // --- DASHBOARD STATS ---
-$total_revenue = (float) $pdo->query("SELECT COALESCE(SUM(total_price), 0) FROM Orders WHERE status IN ('delivered', 'completed')")->fetchColumn();
+// Total Revenue from Orders table
+$stmt = $pdo->query("SELECT COALESCE(SUM(total_price), 0) FROM Orders WHERE status IN ('delivered', 'completed')");
+$total_revenue = (float) $stmt->fetchColumn();
+
+// Total Users
 $total_users = (int) $pdo->query("SELECT COUNT(*) FROM Users")->fetchColumn();
+
+// Total Orders
 $total_orders = (int) $pdo->query("SELECT COUNT(*) FROM Orders")->fetchColumn();
-$low_stock_count = (int) $pdo->query("
+
+// Low Stock Alerts (< 5 keys)
+$stmt = $pdo->query("
     SELECT COUNT(*) FROM (
         SELECT game_id FROM Game_Keys WHERE is_sold = 0 GROUP BY game_id HAVING COUNT(id) < 5
     ) AS low
-")->fetchColumn();
+");
+$low_stock_count = (int) $stmt->fetchColumn();
 
-// --- RECENT ORDERS (Subquery method - 100% Safe) ---
+// --- RECENT ORDERS (Using Order_Items Bridge) ---
 $recent_orders = $pdo->query("
     SELECT 
         o.id, u.email AS user_email, g.name AS game_name, 
@@ -37,10 +46,10 @@ $recent_orders = $pdo->query("
     ORDER BY o.order_date DESC LIMIT 15
 ")->fetchAll();
 
-// --- GAMES LIST (Subquery method - Bypasses ONLY_FULL_GROUP_BY) ---
+// --- GAMES LIST ---
 $games_list = $pdo->query("
     SELECT 
-        g.id, g.name, g.price,
+        g.id, g.name, g.price, 
         (SELECT filename FROM Game_Images WHERE game_id = g.id AND is_cover = 1 LIMIT 1) AS cover_image,
         (SELECT COUNT(*) FROM Game_Keys WHERE game_id = g.id AND is_sold = 0) AS stock_count
     FROM Games g
@@ -62,39 +71,34 @@ function statusBadge($s) {
     <link rel="stylesheet" href="css/navbar.css">
     <link rel="stylesheet" href="css/dashboard-layout.css">
     <style>
-        .admin-section { display: none; }
-        .active-section { display: block !important; }
-        .sidebar-link.active { background: rgba(255,255,255,0.1); border-left: 4px solid #2563eb; }
+        /* FAILSAFE: If JS fails, show everything so the user isn't stuck with a blank screen */
+        .admin-section { display: block; margin-bottom: 40px; }
         
+        /* Once JS loads and adds 'active-section', it will handle the hiding */
+        .js-loaded .admin-section { display: none; margin-bottom: 0; }
+        .js-loaded .active-section { display: block !important; }
+
+        .sidebar-link.active { background: rgba(255,255,255,0.1); border-left: 4px solid #2563eb; }
         .badge-green { background:#dcfce7; color:#16a34a; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:bold; }
         .badge-blue { background:#dbeafe; color:#2563eb; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:bold; }
         .badge-red { background:#fee2e2; color:#dc2626; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:bold; }
-        
         .game-cell { display: flex; align-items: center; gap: 10px; }
         .mini-img img { width: 35px; height: 45px; object-fit: cover; border-radius: 4px; background: #222; }
-
-        /* Order Filter Tabs */
-        .order-filter-tab {
-            padding: 5px 14px; border-radius: 20px; border: 1px solid #e0e0e0;
-            background: white; font-size: 12px; font-weight: bold;
-            color: #888; cursor: pointer; transition: all 0.15s;
-        }
-        .order-filter-tab.active { background: #1a1a1a; color: white; border-color: #1a1a1a; }
     </style>
 </head>
-<body>
+<body data-flash="<?= $_SESSION['success'] ?? '' ?>" data-flash-type="success">
+    <?php unset($_SESSION['success']); ?>
+
     <aside class="sidebar">
         <div class="sidebar-logo"><div class="logo-box">Ghos</div> Admin</div>
-        <!-- IMPORTANT: The data-section attributes are what makes the JS work! -->
         <a href="#" class="sidebar-link active" data-section="section-dashboard">📊 Dashboard</a>
         <a href="#" class="sidebar-link" data-section="section-games">🎮 Manage Games</a>
         <a href="#" class="sidebar-link" data-section="section-orders">🛒 Orders</a>
         <hr class="sidebar-divider">
         <a href="index.php" class="sidebar-back">← Store</a>
-        <a href="?logout=1" class="sidebar-back" style="color:#ef4444; margin-top:8px;">🚪 Logout</a>
     </aside>
 
-    <main class="main-content">
+    <main class="main-content" id="mainContent">
         <!-- DASHBOARD SECTION -->
         <div id="section-dashboard" class="admin-section active-section">
             <h1 class="page-title">Dashboard Overview</h1>
@@ -140,7 +144,7 @@ function statusBadge($s) {
                         <td>
                             <div class="game-cell">
                                 <div class="mini-img">
-                                    <img src="<?= htmlspecialchars(ltrim($g['cover_image'] ?? '', '/')) ?>" alt="">
+                                    <img src="<?= htmlspecialchars(ltrim($g['cover_image'] ?? '', '/')) ?>" alt="" onerror="this.style.display='none'">
                                 </div>
                                 <span><?= htmlspecialchars($g['name']) ?></span>
                             </div>
@@ -183,7 +187,7 @@ function statusBadge($s) {
                         <td>
                             <div class="game-cell">
                                 <div class="mini-img">
-                                    <img src="<?= htmlspecialchars(ltrim($o['cover_image'] ?? '', '/')) ?>" alt="">
+                                    <img src="<?= htmlspecialchars(ltrim($o['cover_image'] ?? '', '/')) ?>" alt="" onerror="this.style.display='none'">
                                 </div>
                                 <span><?= htmlspecialchars($o['game_name']) ?></span>
                             </div>
@@ -198,7 +202,11 @@ function statusBadge($s) {
         </div>
     </main>
 
-    <!-- The ?v= forces the browser to pull the newest version of your JS -->
+    <!-- Inline JS Failsafe -->
+    <script>
+        // If this runs, it means JS is working, so we can safely hide inactive tabs.
+        document.getElementById('mainContent').classList.add('js-loaded');
+    </script>
     <script src="js/admin.js?v=<?= time() ?>"></script>
 </body>
 </html>
