@@ -88,6 +88,27 @@ $bg_colors = ['bg-purple', 'bg-green', 'bg-dark', 'bg-blue', 'bg-red', 'bg-navy'
 
     <?php include 'navbar.php'; ?>
 
+    <!-- ========================================== -->
+    <!-- GUEST SUCCESS POP-OUT (Triggers after pay) -->
+    <!-- ========================================== -->
+    <?php if (isset($_SESSION['guest_success'])): ?>
+        <div id="guestPopup" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.7); z-index: 9999; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(3px);">
+            <div style="background: white; padding: 30px; border-radius: 12px; text-align: center; max-width: 400px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+                <div style="font-size: 3rem; margin-bottom: 10px;">✉️</div>
+                <h2 style="margin-top: 0; color: #0f172a; font-size: 1.5rem;">Order Confirmed!</h2>
+                <p style="color: #475569; font-size: 1.1rem; line-height: 1.5; margin-bottom: 20px;">
+                    <?= htmlspecialchars($_SESSION['guest_success']) ?>
+                </p>
+                <button onclick="document.getElementById('guestPopup').style.display='none'" 
+                        style="width: 100%; padding: 12px; background: #8b5cf6; color: white; border: none; border-radius: 6px; font-weight: bold; font-size: 1rem; cursor: pointer;">
+                    Continue Shopping
+                </button>
+            </div>
+        </div>
+        <?php unset($_SESSION['guest_success']); // Clear it so it only shows once ?>
+    <?php endif; ?>
+    <!-- ========================================== -->
+
     <div class="hero-carousel">
         <button class="carousel-btn prev-btn" onclick="moveSlide(-1)">❮</button>
         <button class="carousel-btn next-btn" onclick="moveSlide(1)">❯</button>
