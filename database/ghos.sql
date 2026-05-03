@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: May 02, 2026 at 09:14 AM
+-- Generation Time: May 03, 2026 at 06:03 AM
 -- Server version: 8.0.45-0ubuntu0.24.04.1
 -- PHP Version: 8.3.6
 
@@ -31,18 +31,19 @@ USE `ghos`;
 
 CREATE TABLE `Cart` (
   `id` int NOT NULL,
-  `user_id` int NOT NULL,
+  `user_id` int DEFAULT NULL,
   `game_id` int NOT NULL,
-  `quantity` int NOT NULL DEFAULT '1'
+  `quantity` int NOT NULL DEFAULT '1',
+  `session_id` varchar(128) COLLATE utf8mb4_unicode_ci DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Dumping data for table `Cart`
 --
 
-INSERT INTO `Cart` (`id`, `user_id`, `game_id`, `quantity`) VALUES
-(5, 5, 28154, 1),
-(8, 4, 591, 1);
+INSERT INTO `Cart` (`id`, `user_id`, `game_id`, `quantity`, `session_id`) VALUES
+(5, 5, 28154, 1, NULL),
+(9, 5, 19457, 1, NULL);
 
 -- --------------------------------------------------------
 
@@ -67,7 +68,7 @@ INSERT INTO `Games` (`id`, `name`, `description`, `price`, `platform`, `genres`)
 (28, 'Red Dead Redemption 2', 'America, 1899. The end of the wild west era has begun as lawmen hunt down the last remaining outlaw gangs. Those who will not surrender or succumb are killed. \r\n\r\nAfter a robbery goes badly wrong in the western town of Blackwater, Arthur Morgan and the Van der Linde gang are forced to flee. With federal agents and the best bounty hunters in the nation massing on their heels, the gang must rob, steal and fight their way across the rugged heartland of America in order to survive.', 14.99, 'PC, Xbox One, PlayStation 4', 'Action'),
 (42, 'What Remains of Edith Finch', 'The Finch\'s family, also known as America\'s most unfortunate family, believes that the family is being pursued by a deadly curse. Each generation has only one child who survived to give birth to the next one.\r\n\r\nThe player begins to act as Edith Finch, who arrives in an orderly abandoned family mansion to find out what opens the key that she received from her mother along with the will.', 4.99, 'PC, Xbox One, PlayStation 4, Nintendo Switch, iOS', 'Indie, Adventure'),
 (115, 'Zero Escape: The Nonary Games', 'Kidnapped and taken to an unfamiliar location, nine people find themselves forced to participate in a diabolical Nonary Game by an enigmatic mastermind called Zero. Why were they there? Why were they chosen to put their lives on the line as part of a dangerous life and death game? Who can be trusted? Tensions rise as the situation becomes more and more dire, and the nine strangers must figure out how to escape before they wind up dead.', 2.99, 'PC, Xbox One, PlayStation 4, PS Vita', 'Adventure'),
-(591, 'Monument Valley', '** Apple Game of the Year 2014 **\r\n** Winner of Apple Design Award 2014 **\r\nIn Monument Valley you will manipulate impossible architecture and guide a silent princess through a stunningly beautiful world.\r\nMonument Valley is a surreal exploration through fantastical architecture and impossible geometry. Guide the silent princess Ida through mysterious monuments, uncovering hidden paths, unfolding optical illusions and outsmarting the enigmatic Crow People.\r\nIda\'s Dream now available.', 2.79, 'PC, iOS, Android', 'Casual, Adventure, Puzzle'),
+(591, 'Monument Valley', '** Apple Game of the Year 2014 **\r\n** Winner of Apple Design Award 2014 **\r\nIn Monument Valley you will manipulate impossible architecture and guide a silent princess through a stunningly beautiful world.\r\nMonument Valley is a surreal exploration through fantastical architecture and impossible geometry. Guide the silent princess Ida through mysterious monuments, uncovering hidden paths, unfolding optical illusions and outsmarting the enigmatic Crow People.\r\nIda\'s Dream now available.', 2.71, 'PC, iOS, Android', 'Casual, Adventure, Puzzle'),
 (622, 'XCOM: Enemy Within', '***NOTE: Compatible with iPad 3, iPad mini 2, iPhone 5 and up. WILL NOT be able to run on earlier generations, despite being able to purchase them on those devices***\r\nXCOM®: Enemy Within is a standalone expansion to the 2012 strategy game of the year XCOM: Enemy Unknown and it\'s now available on iOS devices!  Enemy Within features the core gameplay of Enemy Unknown plus more exciting content.', 5.99, 'PC, Xbox One, iOS, Android, Xbox 360, PlayStation 3, PS Vita', 'Strategy, Action, Simulation'),
 (654, 'Stardew Valley', 'The hero (in the beginning you can choose gender, name and appearance) - an office worker who inherited an abandoned farm. The landscape of the farm can also be selected. For example, you can decide whether there will be a river nearby for fishing.\r\nThe farm area needs to be cleared, and it will take time.', 7.49, 'PC, Xbox One, PlayStation 4, Nintendo Switch, iOS, Android, macOS, Linux, PS Vita', 'Indie, RPG, Simulation'),
 (1358, 'Papers, Please', 'The creator of the game often travelled through Asia and made the observation that the work of an immigration officer checking documents for entry is simultaneously very monotonous and very responsible. The game reproduces this work - but scammers and unusual situations occur in it much more often than in reality. The task of the player-officer is not to make a mistake, not to let an unwanted guest into the country. He has power, directories, translucent devices, etc.', 9.99, 'PC, iOS, Android, macOS, Linux, PS Vita', 'Educational, Indie, Simulation, Puzzle'),
@@ -326,7 +327,7 @@ INSERT INTO `Game_Keys` (`id`, `game_id`, `key_code`, `is_sold`) VALUES
 (21, 326243, 'ELDEN-E2F3G-H4I5J', 0),
 (22, 326243, 'ELDEN-K6L7M-N8O9P', 0),
 (23, 115, 'KEY-115-A1B2C', 0),
-(24, 591, 'KEY-591-D3E4F', 0),
+(24, 591, 'KEY-591-D3E4F', 1),
 (25, 622, 'KEY-622-G5H6I', 0),
 (26, 1358, 'KEY-1358-J7K8L', 0),
 (27, 1450, 'KEY-1450-M9N0O', 0),
@@ -415,7 +416,8 @@ INSERT INTO `Game_Keys` (`id`, `game_id`, `key_code`, `is_sold`) VALUES
 (110, 516111, 'KEY-516111-B5C6D', 0),
 (111, 545015, 'KEY-545015-E7F8G', 0),
 (112, 566445, 'KEY-566445-H9I0J', 0),
-(113, 727315, 'KEY-727315-K1L2M', 0);
+(113, 727315, 'KEY-727315-K1L2M', 0),
+(114, 591, 'sdfhsdfs-sdfsdfh-awehas', 0);
 
 -- --------------------------------------------------------
 
@@ -426,11 +428,19 @@ INSERT INTO `Game_Keys` (`id`, `game_id`, `key_code`, `is_sold`) VALUES
 CREATE TABLE `Orders` (
   `id` int NOT NULL,
   `order_date` datetime DEFAULT CURRENT_TIMESTAMP,
-  `user_id` int NOT NULL,
+  `user_id` int DEFAULT NULL,
   `total_price` decimal(10,2) NOT NULL,
   `payment_method` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `status` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'pending'
+  `status` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'pending',
+  `guest_email` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `Orders`
+--
+
+INSERT INTO `Orders` (`id`, `order_date`, `user_id`, `total_price`, `payment_method`, `status`, `guest_email`) VALUES
+(1, '2026-05-03 05:33:33', 4, 2.79, 'card', 'completed', NULL);
 
 -- --------------------------------------------------------
 
@@ -446,6 +456,13 @@ CREATE TABLE `Order_Items` (
   `quantity` int NOT NULL DEFAULT '1',
   `unit_price` decimal(10,2) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `Order_Items`
+--
+
+INSERT INTO `Order_Items` (`id`, `order_id`, `game_id`, `key_id`, `quantity`, `unit_price`) VALUES
+(1, 1, 591, 24, 1, 2.79);
 
 -- --------------------------------------------------------
 
@@ -469,7 +486,7 @@ INSERT INTO `Users` (`id`, `email`, `password`, `role`, `is_active`) VALUES
 (1, 'admin@ghos.com', '123456', 'admin', 1),
 (2, 'seller@ghos.com', '123456', 'business', 1),
 (3, 'gamer@ghos.com', '123456', 'customer', 1),
-(4, 'test@test.me', '$2y$10$0dkPtM3Njzrv2YXQCbppZuf0WWkwi.vwObXSpuIDLWQ/5HjeNCKLO', 'user', 1),
+(4, 'test@test.me', '$2y$10$0dkPtM3Njzrv2YXQCbppZuf0WWkwi.vwObXSpuIDLWQ/5HjeNCKLO', 'user', 0),
 (5, 'admin@gamestore.com', '$2y$10$i8eA0nHRNNaVF4B2bKQW1eRDsGHUHOgCDy8XGU24r0fJZsC1ypxC.', 'admin', 1),
 (6, 'ali@ghos.com', '$2y$10$lKGVu4yLIDuh2.A5SJYP3.jzamwZt6FBmLqxP8clZ1mDf.kbQunfG', 'user', 1);
 
@@ -537,7 +554,7 @@ ALTER TABLE `Users`
 -- AUTO_INCREMENT for table `Cart`
 --
 ALTER TABLE `Cart`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT for table `Games`
@@ -555,19 +572,19 @@ ALTER TABLE `Game_Images`
 -- AUTO_INCREMENT for table `Game_Keys`
 --
 ALTER TABLE `Game_Keys`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=114;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=115;
 
 --
 -- AUTO_INCREMENT for table `Orders`
 --
 ALTER TABLE `Orders`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `Order_Items`
 --
 ALTER TABLE `Order_Items`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `Users`

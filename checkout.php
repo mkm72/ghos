@@ -1,23 +1,23 @@
 <?php
 session_start();
-if (!isset($_SESSION['user_id'])) {
-    header('Location: auth.php');
-    exit;
-}
 require_once 'php/db_connect.php';
 
-$user_id = (int)$_SESSION['user_id'];
+$user_id = $_SESSION['user_id'] ?? null;
+$session_id = session_id();
 
-$cart_stmt = $pdo->prepare('
+$where_clause = $user_id ? "c.user_id = :identifier" : "c.session_id = :identifier";
+$identifier   = $user_id ?: $session_id;
+
+$cart_stmt = $pdo->prepare("
     SELECT c.id AS cart_id, c.quantity, c.game_id,
            g.name, g.price,
            i.filename AS cover_image
     FROM Cart c
     JOIN Games g ON c.game_id = g.id
     LEFT JOIN Game_Images i ON i.game_id = g.id AND i.is_cover = 1
-    WHERE c.user_id = ?
-');
-$cart_stmt->execute([$user_id]);
+    WHERE $where_clause
+");
+$cart_stmt->execute(['identifier' => $identifier]);
 $cart_items = $cart_stmt->fetchAll();
 
 if (empty($cart_items)) {
@@ -54,7 +54,6 @@ unset($_SESSION['pay_error']);
 
 <div class="page-wrapper">
 
-    <!-- Step indicator -->
     <div class="steps">
         <div class="step done">
             <div class="step-num">&#10003;</div>
@@ -78,106 +77,91 @@ unset($_SESSION['pay_error']);
 
     <div class="checkout-layout">
 
-        <!-- LEFT: Payment form -->
         <div class="checkout-left">
+            <!-- IMPORTANT: Form tag now wraps ALL inputs -->
+            <form id="payForm" action="process_payment.php" method="POST">
 
-            <!-- Card details -->
-            <div class="panel">
-                <div class="panel-header">
-                    <span class="panel-title">Card Details</span>
-                    <div class="accepted-cards">
-                        <span class="card-chip visa">VISA</span>
-                        <span class="card-chip mc">MC</span>
-                        <span class="card-chip mada">mada</span>
+                <div class="panel">
+                    <div class="panel-header">
+                        <span class="panel-title">Card Details</span>
+                        <div class="accepted-cards">
+                            <span class="card-chip visa">VISA</span>
+                            <span class="card-chip mc">MC</span>
+                            <span class="card-chip mada">mada</span>
+                        </div>
+                        <span class="ssl-tag">SSL Secured</span>
                     </div>
-                    <span class="ssl-tag">SSL Secured</span>
-                </div>
-                <div class="panel-body">
-                    <!-- FIX 1: action points to php/ subfolder; onsubmit removed -->
-                    <form id="payForm" action="process_payment.php" method="POST">
-
+                    <div class="panel-body">
                         <div class="form-group">
                             <label for="cardName">Cardholder Name</label>
-                            <input type="text" id="cardName" name="card_name"
-                                   placeholder="John Doe" autocomplete="cc-name">
+                            <input type="text" id="cardName" name="card_name" placeholder="John Doe" autocomplete="cc-name">
                         </div>
-
                         <div class="form-group">
                             <label for="cardNumber">Card Number</label>
                             <div class="card-input-wrap">
-                                <input type="text" id="cardNumber" name="card_number"
-                                       placeholder="1234 5678 9012 3456"
-                                       maxlength="19" autocomplete="cc-number"
-                                       oninput="formatCard(this)">
+                                <input type="text" id="cardNumber" name="card_number" placeholder="1234 5678 9012 3456" maxlength="19" autocomplete="cc-number" oninput="formatCard(this)">
                                 <span class="card-brand-tag" id="cardBrand"></span>
                             </div>
                         </div>
-
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="cardExpiry">Expiry Date</label>
-                                <input type="text" id="cardExpiry" name="card_expiry"
-                                       placeholder="MM / YY" maxlength="7"
-                                       oninput="formatExpiry(this)">
+                                <input type="text" id="cardExpiry" name="card_expiry" placeholder="MM / YY" maxlength="7" oninput="formatExpiry(this)">
                             </div>
                             <div class="form-group">
                                 <label for="cardCvv">CVV</label>
-                                <input type="text" id="cardCvv" name="card_cvv"
-                                       placeholder="123" maxlength="4"
-                                       oninput="this.value=this.value.replace(/\D/g,'')">
+                                <input type="text" id="cardCvv" name="card_cvv" placeholder="123" maxlength="4" oninput="this.value=this.value.replace(/\D/g,'')">
                             </div>
                         </div>
-
                         <input type="hidden" name="payment_method" value="card">
-                    </form>
+                    </div>
                 </div>
-            </div>
 
-            <!-- Billing info -->
-            <div class="panel">
-                <div class="panel-header">
-                    <span class="panel-title">Billing Information</span>
+                <div class="panel">
+                    <div class="panel-header">
+                        <span class="panel-title">Billing Information</span>
+                    </div>
+                    <div class="panel-body">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>First Name</label>
+                                <input type="text" name="first_name" placeholder="John">
+                            </div>
+                            <div class="form-group">
+                                <label>Last Name</label>
+                                <input type="text" name="last_name" placeholder="Doe">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Email Address</label>
+                            <input type="email" id="checkoutEmail" name="email" placeholder="john@example.com"
+                                   value="<?= htmlspecialchars($_SESSION['user_email'] ?? '') ?>">
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Country</label>
+                                <select name="country">
+                                    <option>Saudi Arabia</option>
+                                    <option>United Arab Emirates</option>
+                                    <option>Kuwait</option>
+                                    <option>Egypt</option>
+                                    <option>United States</option>
+                                    <option>United Kingdom</option>
+                                    <option>Germany</option>
+                                    <option>France</option>
+                                    <option>Other</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>ZIP / Postal Code</label>
+                                <input type="text" name="zip" placeholder="12345">
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="panel-body">
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>First Name</label>
-                            <input type="text" name="first_name" placeholder="John">
-                        </div>
-                        <div class="form-group">
-                            <label>Last Name</label>
-                            <input type="text" name="last_name" placeholder="Doe">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>Email Address</label>
-                        <input type="email" name="email" placeholder="john@example.com"
-                               value="<?= htmlspecialchars($_SESSION['user_email'] ?? '') ?>">
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Country</label>
-                            <select name="country">
-                                <option>Saudi Arabia</option>
-                                <option>United Arab Emirates</option>
-                                <option>Kuwait</option>
-                                <option>Egypt</option>
-                                <option>United States</option>
-                                <option>United Kingdom</option>
-                                <option>Germany</option>
-                                <option>France</option>
-                                <option>Other</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>ZIP / Postal Code</label>
-                            <input type="text" name="zip" placeholder="12345">
-                        </div>
-                    </div>
-                </div>
-            </div>
 
-            <!-- Security strip -->
+            </form>
+
             <div class="security-row">
                 <div class="security-badge">SSL Encrypted</div>
                 <div class="security-badge">Verified Store</div>
@@ -187,7 +171,6 @@ unset($_SESSION['pay_error']);
 
         </div>
 
-        <!-- RIGHT: Order summary -->
         <div class="checkout-right">
             <div class="summary-box">
                 <div class="summary-title">Order Summary</div>
@@ -196,8 +179,7 @@ unset($_SESSION['pay_error']);
                     <div class="summary-item">
                         <div class="summary-item-img">
                             <?php if ($item['cover_image']): ?>
-                                <img src="<?= htmlspecialchars(ltrim($item['cover_image'], '/')) ?>"
-                                     alt="<?= htmlspecialchars($item['name']) ?>">
+                                <img src="<?= htmlspecialchars(ltrim($item['cover_image'], '/')) ?>" alt="<?= htmlspecialchars($item['name']) ?>">
                             <?php else: ?>
                                 <div class="img-placeholder"></div>
                             <?php endif; ?>
@@ -251,27 +233,24 @@ unset($_SESSION['pay_error']);
             </div>
         </div>
 
-    </div><!-- /.checkout-layout -->
+    </div>
 
     <div class="footer">© 2026 Ghos. All rights reserved.</div>
 
-</div><!-- /.page-wrapper -->
+</div>
 
-<!-- Success overlay -->
 <div class="success-overlay" id="successOverlay">
     <div class="success-card">
         <div class="success-title">Payment Successful</div>
         <div class="success-sub">
             Your game keys are ready.<br>
-            Redirecting to your orders...
+            Redirecting...
         </div>
         <div class="countdown" id="countdown"></div>
-        <a href="orders.php?new=1" class="success-btn">View My Keys</a>
     </div>
 </div>
 
 <script>
-    /* ── Card number: groups of 4 + brand detect ── */
     function formatCard(el) {
         let val = el.value.replace(/\D/g, '').substring(0, 16);
         el.value = val.replace(/(.{4})/g, '$1 ').trim();
@@ -283,25 +262,23 @@ unset($_SESSION['pay_error']);
         else                          brand.textContent = '';
     }
 
-    /* ── Expiry: MM / YY ── */
     function formatExpiry(el) {
         let val = el.value.replace(/\D/g, '').substring(0, 4);
         el.value = val.length >= 3 ? val.substring(0, 2) + ' / ' + val.substring(2) : val;
     }
 
-    /* ── Validate & submit ── */
-    // FIX 2: handlePay(e) removed entirely — programmatic .submit() was being
-    // blocked by the same preventDefault it was meant to stop manual submits with.
     function submitPay() {
         const name   = document.getElementById('cardName').value.trim();
         const number = document.getElementById('cardNumber').value.replace(/\s/g, '');
         const expiry = document.getElementById('cardExpiry').value.replace(/[\s\/]/g, '');
         const cvv    = document.getElementById('cardCvv').value.trim();
+        const email  = document.getElementById('checkoutEmail').value.trim();
 
         if (!name)              return shakeField('cardName',   'Cardholder name is required.');
         if (number.length < 16) return shakeField('cardNumber', 'Enter a valid 16-digit card number.');
         if (expiry.length < 4)  return shakeField('cardExpiry', 'Enter the expiry date.');
         if (cvv.length < 3)     return shakeField('cardCvv',    'Enter the CVV.');
+        if (!email)             return shakeField('checkoutEmail', 'Email is required for order delivery.');
 
         const btn = document.getElementById('payBtn');
         btn.disabled = true;
@@ -309,7 +286,6 @@ unset($_SESSION['pay_error']);
 
         setTimeout(() => {
             showSuccess();
-            // FIX 2: .submit() now works because there is no onsubmit handler blocking it
             setTimeout(() => document.getElementById('payForm').submit(), 2500);
         }, 1200);
     }

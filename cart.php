@@ -3,25 +3,26 @@ ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
 session_start();
-
-// 1. Ensure user is logged in
-if (!isset($_SESSION['user_id'])) {
-    header("Location: login.php");
-    exit();
-}
-
 require_once 'php/db_connect.php';
+
+// --- GUEST CHECKOUT LOGIC ---
+$user_id = $_SESSION['user_id'] ?? null;
+$session_id = session_id();
+
+// Dynamic query builder: use user_id if logged in, otherwise use session_id
+$where_clause = $user_id ? "user_id = :identifier" : "session_id = :identifier";
+$identifier   = $user_id ?: $session_id;
+// ----------------------------
 
 // ------------------------------------------------------------------
 // 2. HANDLE ALL FORM SUBMISSIONS (Add, Update, Delete)
 // ------------------------------------------------------------------
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $user_id = (int)$_SESSION['user_id'];
 
     // Action: DELETE ITEM
     if (isset($_POST['action']) && $_POST['action'] === 'delete' && isset($_POST['cart_id'])) {
-        $stmt_delete = $pdo->prepare("DELETE FROM Cart WHERE id = ? AND user_id = ?");
-        $stmt_delete->execute([(int)$_POST['cart_id'], $user_id]);
+        $stmt_delete = $pdo->prepare("DELETE FROM Cart WHERE id = :cart_id AND $where_clause");
+        $stmt_delete->execute(['cart_id' => (int)$_POST['cart_id'], 'identifier' => $identifier]);
         
         $_SESSION['success'] = "Item successfully removed from your cart.";
         header("Location: cart.php");
@@ -33,23 +34,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $cart_id = (int)$_POST['cart_id'];
         $requested_qty = (int)$_POST['quantity'];
 
-        // Fetch BOTH game_id and current quantity from the cart
-        $stmt_game = $pdo->prepare("SELECT game_id, quantity FROM Cart WHERE id = ? AND user_id = ?");
-        $stmt_game->execute([$cart_id, $user_id]);
+        $stmt_game = $pdo->prepare("SELECT game_id, quantity FROM Cart WHERE id = :cart_id AND $where_clause");
+        $stmt_game->execute(['cart_id' => $cart_id, 'identifier' => $identifier]);
         $cart_row = $stmt_game->fetch();
 
         if ($cart_row) {
             $game_id = $cart_row['game_id'];
             $current_qty = (int)$cart_row['quantity'];
 
-            // Check actual stock
             $stmt_stock = $pdo->prepare("SELECT COUNT(*) FROM Game_Keys WHERE game_id = ? AND is_sold = 0");
             $stmt_stock->execute([$game_id]);
             $stock = (int)$stmt_stock->fetchColumn();
 
             $key_text = ($stock === 1) ? "1 key" : "$stock keys";
 
-            // SMART LOGIC: Check why the update was triggered
             if ($requested_qty > $stock) {
                 $_SESSION['error'] = "Could not update. We only have $key_text currently available.";
                 $final_qty = $stock;
@@ -57,7 +55,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_SESSION['error'] = "Minimum quantity is 1. Use the 'Delete' button to remove the item.";
                 $final_qty = 1;
             } elseif ($requested_qty === $current_qty) {
-                // The frontend stopped the number from changing, meaning they hit the limit
                 if ($current_qty === $stock) {
                     $_SESSION['error'] = "You have reached the maximum stock limit ($key_text).";
                 } elseif ($current_qty === 1) {
@@ -69,7 +66,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $final_qty = $requested_qty;
             }
 
-            // Only run the database update if the quantity actually changed
             if ($final_qty !== $current_qty) {
                 $stmt_update = $pdo->prepare("UPDATE Cart SET quantity = ? WHERE id = ?");
                 $stmt_update->execute([$final_qty, $cart_id]);
@@ -84,15 +80,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $game_id = (int)$_POST['game_id'];
         $requested_qty = max(1, (int)$_POST['quantity']);
 
-        // Check actual stock
         $stmt_stock = $pdo->prepare("SELECT COUNT(*) FROM Game_Keys WHERE game_id = ? AND is_sold = 0");
         $stmt_stock->execute([$game_id]);
         $stock = (int)$stmt_stock->fetchColumn();
 
         $key_text = ($stock === 1) ? "1 key" : "$stock keys";
 
-        $stmt_check = $pdo->prepare("SELECT id, quantity FROM Cart WHERE user_id = ? AND game_id = ?");
-        $stmt_check->execute([$user_id, $game_id]);
+        $stmt_check = $pdo->prepare("SELECT id, quantity FROM Cart WHERE game_id = :game_id AND $where_clause");
+        $stmt_check->execute(['game_id' => $game_id, 'identifier' => $identifier]);
         $existing_item = $stmt_check->fetch();
 
         if ($existing_item) {
@@ -118,8 +113,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             if ($final_qty > 0) { 
-                $stmt_insert = $pdo->prepare("INSERT INTO Cart (user_id, game_id, quantity) VALUES (?, ?, ?)");
-                $stmt_insert->execute([$user_id, $game_id, $final_qty]);
+                if ($user_id) {
+                    $stmt_insert = $pdo->prepare("INSERT INTO Cart (user_id, game_id, quantity) VALUES (?, ?, ?)");
+                    $stmt_insert->execute([$user_id, $game_id, $final_qty]);
+                } else {
+                    $stmt_insert = $pdo->prepare("INSERT INTO Cart (session_id, game_id, quantity) VALUES (?, ?, ?)");
+                    $stmt_insert->execute([$session_id, $game_id, $final_qty]);
+                }
             } else {
                  $_SESSION['error'] = "Sorry, this game is currently out of stock.";
             }
@@ -144,9 +144,9 @@ $stmt = $pdo->prepare("
     FROM Cart
     JOIN Games ON Cart.game_id = Games.id
     LEFT JOIN Game_Images ON Game_Images.game_id = Games.id AND Game_Images.is_cover = 1
-    WHERE Cart.user_id = ?
+    WHERE Cart.$where_clause
 ");
-$stmt->execute([$_SESSION['user_id']]);
+$stmt->execute(['identifier' => $identifier]);
 $cart_items = $stmt->fetchAll();
 
 $subtotal = 0;
@@ -169,7 +169,6 @@ foreach ($cart_items as $item) {
 
         <div class="page-wrapper">
             
-            <!-- NOTIFICATION MESSAGES START -->
             <?php if (isset($_SESSION['success'])): ?>
                 <div style="background-color: #d1fae5; color: #065f46; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #10b981; font-weight: bold;">
                     <?= htmlspecialchars($_SESSION['success']) ?>
@@ -183,12 +182,10 @@ foreach ($cart_items as $item) {
                 </div>
                 <?php unset($_SESSION['error']); ?>
             <?php endif; ?>
-            <!-- NOTIFICATION MESSAGES END -->
 
             <h1 class="page-title">Shopping Cart</h1>
 
             <div class="cart-layout">
-
                 <div>
                     <div class="cart-table-wrap">
                         <table class="cart-table">
@@ -202,7 +199,6 @@ foreach ($cart_items as $item) {
                                 </tr>
                             </thead>
                             <tbody>
-
                                 <?php if (empty($cart_items)): ?>
                                     <tr>
                                         <td colspan="5" style="text-align:center; padding: 2rem;">
@@ -259,7 +255,6 @@ foreach ($cart_items as $item) {
                                         </tr>
                                     <?php endforeach; ?>
                                 <?php endif; ?>
-
                             </tbody>
                         </table>
                     </div>
@@ -307,7 +302,6 @@ foreach ($cart_items as $item) {
                     <a href="checkout.php" class="checkout-btn">Proceed to Payment ⚡</a>
                     <p class="checkout-note">🔒 Digital keys delivered instantly</p>
                 </div>
-
             </div>
         </div>
 
