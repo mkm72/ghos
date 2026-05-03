@@ -239,81 +239,62 @@ unset($_SESSION['pay_error']);
 
 </div>
 
-<!-- Success overlay -->
-<div class="success-overlay" id="successOverlay">
+<!-- Processing overlay (Replacing the fake success overlay) -->
+<div class="success-overlay" id="processingOverlay">
     <div class="success-card">
-        <div class="success-title">Payment Successful</div>
-        <div class="success-sub">
-            <?php if ($user_id): ?>
-                Your game keys are ready.<br>
-            <?php else: ?>
-                We will email you with the code.<br>
-            <?php endif; ?>
-            Redirecting...
+        <div class="success-title">Processing Payment...</div>
+        <div class="success-sub" style="margin-top: 10px;">
+            Securely verifying your details.<br>
+            Please do not close or refresh this page.
         </div>
-        <div class="countdown" id="countdown"></div>
+        <!-- Loading Spinner -->
+        <div style="margin: 20px auto; border: 4px solid #f1f5f9; border-top: 4px solid #8b5cf6; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite;"></div>
+        <style>@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }</style>
     </div>
 </div>
+
 <script>
-    function formatCard(el) {
-        let val = el.value.replace(/\D/g, '').substring(0, 16);
-        el.value = val.replace(/(.{4})/g, '$1 ').trim();
-
-        const brand = document.getElementById('cardBrand');
-        if      (val.startsWith('4')) brand.textContent = 'VISA';
-        else if (val.startsWith('5')) brand.textContent = 'MC';
-        else if (val.startsWith('6')) brand.textContent = 'mada';
-        else                          brand.textContent = '';
+    function formatCard(el) { 
+        let val = el.value.replace(/\D/g, '').substring(0, 16); 
+        el.value = val.replace(/(.{4})/g, '$1 ').trim(); 
     }
-
-    function formatExpiry(el) {
-        let val = el.value.replace(/\D/g, '').substring(0, 4);
-        el.value = val.length >= 3 ? val.substring(0, 2) + ' / ' + val.substring(2) : val;
+    
+    function formatExpiry(el) { 
+        let val = el.value.replace(/\D/g, '').substring(0, 4); 
+        el.value = val.length >= 3 ? val.substring(0, 2) + ' / ' + val.substring(2) : val; 
     }
-
+    
     function submitPay() {
-        const name   = document.getElementById('cardName').value.trim();
+        const name = document.getElementById('cardName').value.trim();
         const number = document.getElementById('cardNumber').value.replace(/\s/g, '');
         const expiry = document.getElementById('cardExpiry').value.replace(/[\s\/]/g, '');
-        const cvv    = document.getElementById('cardCvv').value.trim();
-        const email  = document.getElementById('checkoutEmail').value.trim();
+        const cvv = document.getElementById('cardCvv').value.trim();
+        const email = document.getElementById('checkoutEmail').value.trim();
 
-        if (!name)              return shakeField('cardName',   'Cardholder name is required.');
-        if (number.length < 16) return shakeField('cardNumber', 'Enter a valid 16-digit card number.');
-        if (expiry.length < 4)  return shakeField('cardExpiry', 'Enter the expiry date.');
-        if (cvv.length < 3)     return shakeField('cardCvv',    'Enter the CVV.');
-        if (!email)             return shakeField('checkoutEmail', 'Email is required for order delivery.');
+        // 1. Validate frontend fields
+        if (!name) return shakeField('cardName');
+        if (number.length < 16) return shakeField('cardNumber');
+        if (expiry.length < 4) return shakeField('cardExpiry');
+        if (cvv.length < 3) return shakeField('cardCvv');
+        if (!email) return shakeField('checkoutEmail');
 
+        // 2. Lock the button and show the "Processing" overlay
         const btn = document.getElementById('payBtn');
         btn.disabled = true;
         btn.textContent = 'Processing...';
-
-        setTimeout(() => {
-            showSuccess();
-            setTimeout(() => document.getElementById('payForm').submit(), 2500);
-        }, 1200);
+        document.getElementById('processingOverlay').classList.add('show');
+        
+        // 3. Immediately submit the form to the server to do the real checks
+        document.getElementById('payForm').submit();
     }
-
-    function shakeField(id, msg) {
+    
+    function shakeField(id) {
         const el = document.getElementById(id);
-        el.classList.add('field-error');
+        el.classList.add('field-error'); 
         el.focus();
         setTimeout(() => el.classList.remove('field-error'), 2000);
         return false;
     }
-
-    function showSuccess() {
-        document.getElementById('successOverlay').classList.add('show');
-        let secs = 3;
-        const cd = document.getElementById('countdown');
-        cd.textContent = 'Redirecting in ' + secs + 's';
-        const iv = setInterval(() => {
-            secs--;
-            cd.textContent = secs > 0 ? 'Redirecting in ' + secs + 's' : '';
-            if (secs <= 0) clearInterval(iv);
-        }, 1000);
-    }
 </script>
-
 </body>
 </html>
