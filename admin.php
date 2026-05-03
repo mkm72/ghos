@@ -56,15 +56,22 @@ $stmt = $pdo->query("
 ");
 $recent_orders = $stmt->fetchAll();
 
-// --- GAMES LIST ---[cite: 2]
+// ── GAMES LIST ───────────────────────────────────────────────────────────────
+// We now include g.name and g.price in the GROUP BY to satisfy MySQL 8 requirements
+// We use MAX(i.filename) to pick the cover image safely
 $games = $pdo->query("
-    SELECT g.id, g.name, g.price, i.filename AS cover_image, COUNT(k.id) AS stock_count
+    SELECT 
+        g.id, 
+        g.name, 
+        g.price, 
+        MAX(i.filename) AS cover_image, 
+        COUNT(k.id) AS stock_count
     FROM Games g
     LEFT JOIN Game_Images i ON g.id = i.game_id AND i.is_cover = 1
     LEFT JOIN Game_Keys k ON g.id = k.game_id AND k.is_sold = 0
-    GROUP BY g.id ORDER BY g.name ASC
+    GROUP BY g.id, g.name, g.price
+    ORDER BY g.name ASC
 ")->fetchAll();
-
 function statusBadge($s) {
     $s = strtolower($s);
     if ($s == 'delivered' || $s == 'completed') return '<span class="badge-green">Delivered</span>';
