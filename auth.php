@@ -113,11 +113,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </head>
 <body>
 
-    <?php if ($error && strpos($error, 'suspended') !== false): ?>
-    <script>
-        alert("Your account has been suspended.\nContact us via Discord or email.");
-    </script>
-    <?php endif; ?>
+<?php if ($error && strpos($error, 'suspended') !== false): ?>
+<div style="
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+">
+    <div style="
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        text-align: center;
+        width: 300px;
+    ">
+        <h3>Account Suspended</h3>
+        <p style="font-size:14px;">
+            Please contact us via Discord or email.
+        </p>
+        <button onclick="this.closest('div').parentElement.remove()"
+            style="margin-top:10px; padding:6px 15px;">
+            OK
+        </button>
+    </div>
+</div>
+<?php endif; ?>
 
 <div class="auth-logo">
     <div class="logo-box">Ghos</div>
@@ -132,7 +155,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <button class="tab-btn <?= $mode === 'register' ? 'active' : '' ?>" onclick="switchMode('register')" type="button" id="tab-register">Register</button>
     </div>
 
-    <?php if ($error):   ?><div class="alert alert-error"  ><?= htmlspecialchars($error)   ?></div><?php endif; ?>
+    <?php if ($error && strpos($error, 'suspended') === false): ?>
     <?php if ($success): ?><div class="alert alert-success"><?= htmlspecialchars($success) ?></div><?php endif; ?>
 
     <!-- LOGIN -->
