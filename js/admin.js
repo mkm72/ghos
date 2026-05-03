@@ -1,134 +1,200 @@
-<?php
-session_start();
-require_once 'php/db_connect.php';
+/**
+ * admin.js — Ghos Admin Panel
+ * Handles: sidebar navigation, table sorting, live search, order filter tabs, toast notifications
+ */
 
-// Protection: Admin only
-if (!isset($_SESSION['user_id']) || ($_SESSION['role'] ?? '') !== 'admin') {
-    header("Location: index.php");
-    exit;
+document.addEventListener('DOMContentLoaded', () => {
+    initSidebar();
+    initSortableTables();
+    initSearch();
+    initOrderStatusFilter();
+    initToast();
+});
+
+/* =============================================
+   SIDEBAR — single-page section switching
+   ============================================= */
+function initSidebar() {
+    const links   = document.querySelectorAll('.sidebar-link[data-section]');
+    const sections = document.querySelectorAll('.admin-section');
+
+    // Activate a section by id
+    function activate(sectionId) {
+        sections.forEach(s => s.classList.remove('active-section'));
+        links.forEach(l => l.classList.remove('active'));
+
+        const target = document.getElementById(sectionId);
+        if (target) target.classList.add('active-section');
+
+        const link = document.querySelector(`.sidebar-link[data-section="${sectionId}"]`);
+        if (link) link.classList.add('active');
+
+        // Persist choice so a refresh stays on the same tab
+        sessionStorage.setItem('adminSection', sectionId);
+    }
+
+    links.forEach(link => {
+        link.addEventListener('click', e => {
+            e.preventDefault();
+            activate(link.dataset.section);
+        });
+    });
+
+    // Restore last tab, default to dashboard
+    const saved = sessionStorage.getItem('adminSection') || 'section-dashboard';
+    activate(saved);
 }
 
-// --- Fetch Stats ---
-$total_revenue = (float) $pdo->query("SELECT SUM(g.price) FROM Orders o JOIN Games g ON o.game_id = g.id WHERE o.status IN ('delivered', 'completed')")->fetchColumn();
-$total_users = (int) $pdo->query("SELECT COUNT(*) FROM Users")->fetchColumn();
-$total_orders = (int) $pdo->query("SELECT COUNT(*) FROM Orders")->fetchColumn();
-$low_stock = (int) $pdo->query("SELECT COUNT(*) FROM (SELECT g.id FROM Games g LEFT JOIN Game_Keys k ON g.id = k.game_id AND k.is_sold = 0 GROUP BY g.id HAVING COUNT(k.id) < 5) AS low")->fetchColumn();
+/* =============================================
+   SORTABLE TABLES
+   ============================================= */
+function initSortableTables() {
+    document.querySelectorAll('table[data-sortable]').forEach(table => {
+        const tbody = table.querySelector('tbody');
+        if (!tbody) return;
 
-// --- Fetch Orders (Formatted for admin.js) ---
-$recent_orders = $pdo->query("
-    SELECT o.id, u.email, g.name as game_name, g.price, o.order_date, o.status
-    FROM Orders o
-    JOIN Users u ON o.user_id = u.id
-    JOIN Games g ON o.game_id = g.id
-    ORDER BY o.order_date DESC LIMIT 15
-")->fetchAll();
+        table.querySelectorAll('th[data-col]').forEach(th => {
+            th.style.cursor = 'pointer';
+            th.title = 'Click to sort';
+            let asc = true;
 
-// --- Fetch Games (Formatted for admin.js) ---
-$games_list = $pdo->query("
-    SELECT g.id, g.name, g.price, COUNT(k.id) as stock
-    FROM Games g
-    LEFT JOIN Game_Keys k ON g.id = k.game_id AND k.is_sold = 0
-    GROUP BY g.id ORDER BY g.name ASC
-")->fetchAll();
-?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Ghos Admin</title>
-    <link rel="stylesheet" href="css/navbar.css">
-    <link rel="stylesheet" href="css/dashboard-layout.css">
-</head>
-<!-- The data-flash attributes allow your initToast() to show messages on load -->
-<body data-flash="<?= $_SESSION['success'] ?? '' ?>" data-flash-type="success">
-    <?php unset($_SESSION['success']); ?>
+            th.addEventListener('click', () => {
+                const col = th.dataset.col;
+                const rows = Array.from(tbody.querySelectorAll('tr:not(#gamesEmptySearch)'));
 
-    <aside class="sidebar">
-        <div class="sidebar-logo"><div class="logo-box">Ghos</div> Admin</div>
-        <!-- Matches your initSidebar() querySelector -->
-        <a href="#" class="sidebar-link" data-section="section-dashboard">📊 Dashboard</a>
-        <a href="#" class="sidebar-link" data-section="section-games">🎮 Manage Games</a>
-        <a href="#" class="sidebar-link" data-section="section-orders">🛒 Orders</a>
-        <hr class="sidebar-divider">
-        <a href="index.php" class="sidebar-back">← Store</a>
-    </aside>
+                rows.sort((a, b) => {
+                    const cellA = a.querySelector(`td[data-col="${col}"]`);
+                    const cellB = b.querySelector(`td[data-col="${col}"]`);
+                    if (!cellA || !cellB) return 0;
 
-    <main class="main-content">
-        <!-- Section: Dashboard -->
-        <div id="section-dashboard" class="admin-section">
-            <h1 class="page-title">Dashboard</h1>
-            <div class="stats-grid">
-                <div class="stat-card"><div class="stat-label">Revenue</div><div class="stat-value">$<?= number_format($total_revenue, 2) ?></div></div>
-                <div class="stat-card"><div class="stat-label">Users</div><div class="stat-value"><?= $total_users ?></div></div>
-                <div class="stat-card"><div class="stat-label">Orders</div><div class="stat-value"><?= $total_orders ?></div></div>
-                <div class="stat-card"><div class="stat-label">Low Stock</div><div class="stat-value orange"><?= $low_stock ?></div></div>
-            </div>
-        </div>
+                    // Use data-val for numeric sorting if available
+                    const valA = cellA.dataset.val ?? cellA.textContent.trim();
+                    const valB = cellB.dataset.val ?? cellB.textContent.trim();
 
-        <!-- Section: Manage Games -->
-        <div id="section-games" class="admin-section panel">
-            <div class="panel-header">
-                <h2>Games (<span id="gamesCount"><?= count($games_list) ?></span>)</h2>
-                <input id="gamesSearch" type="text" placeholder="Live search...">
-            </div>
-            <table data-sortable class="data-table">
-                <thead>
-                    <tr>
-                        <th data-col="id">ID</th>
-                        <th data-col="name">Name</th>
-                        <th data-col="price">Price</th>
-                        <th data-col="stock">Stock</th>
-                    </tr>
-                </thead>
-                <tbody id="gamesTableBody">
-                    <?php foreach ($games_list as $g): ?>
-                    <tr>
-                        <td data-col="id" data-val="<?= $g['id'] ?>"><?= $g['id'] ?></td>
-                        <td data-col="name"><?= htmlspecialchars($g['name']) ?></td>
-                        <td data-col="price" data-val="<?= $g['price'] ?>">$<?= number_format($g['price'], 2) ?></td>
-                        <td data-col="stock" data-val="<?= $g['stock'] ?>"><?= $g['stock'] ?></td>
-                    </tr>
-                    <?php endforeach; ?>
-                    <!-- Matches your initSearch() empty state -->
-                    <tr id="gamesEmptySearch" style="display:none;"><td colspan="4">No matches found.</td></tr>
-                </tbody>
-            </table>
-        </div>
+                    const numA = parseFloat(valA);
+                    const numB = parseFloat(valB);
+                    const isNumeric = !isNaN(numA) && !isNaN(numB);
 
-        <!-- Section: Orders -->
-        <div id="section-orders" class="admin-section panel">
-            <div class="panel-header">
-                <h2>Orders (<span id="ordersCount"><?= count($recent_orders) ?></span>)</h2>
-                <div class="filter-tabs">
-                    <button class="order-filter-tab active" data-filter="all">All</button>
-                    <button class="order-filter-tab" data-filter="pending">Pending</button>
-                    <button class="order-filter-tab" data-filter="delivered">Delivered</button>
-                </div>
-            </div>
-            <table data-sortable class="data-table">
-                <thead>
-                    <tr>
-                        <th data-col="id">Order #</th>
-                        <th>User</th>
-                        <th data-col="price">Total</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody id="ordersTableBody">
-                    <?php foreach ($recent_orders as $o): ?>
-                    <!-- data-status is used by your initOrderStatusFilter() -->
-                    <tr data-status="<?= strtolower($o['status']) ?>">
-                        <td data-col="id" data-val="<?= $o['id'] ?>"><?= $o['id'] ?></td>
-                        <td><?= htmlspecialchars($o['email']) ?></td>
-                        <td data-col="price" data-val="<?= $o['price'] ?>">$<?= number_format($o['price'], 2) ?></td>
-                        <td><?= htmlspecialchars($o['status']) ?></td>
-                    </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
-        </div>
-    </main>
+                    if (isNumeric) return asc ? numA - numB : numB - numA;
+                    return asc
+                        ? valA.localeCompare(valB)
+                        : valB.localeCompare(valA);
+                });
 
-    <script src="js/admin.js"></script>
-</body>
-</html>
+                // Update sort indicator on header
+                table.querySelectorAll('th[data-col]').forEach(h => {
+                    h.textContent = h.textContent.replace(/ [▲▼]$/, '');
+                });
+                th.textContent += asc ? ' ▲' : ' ▼';
+                asc = !asc;
+
+                rows.forEach(r => tbody.appendChild(r));
+            });
+        });
+    });
+}
+
+/* =============================================
+   LIVE SEARCH — Games table
+   ============================================= */
+function initSearch() {
+    const input    = document.getElementById('gamesSearch');
+    const tbody    = document.getElementById('gamesTableBody');
+    const empty    = document.getElementById('gamesEmptySearch');
+    const countEl  = document.getElementById('gamesCount');
+    if (!input || !tbody) return;
+
+    input.addEventListener('input', () => {
+        const query = input.value.trim().toLowerCase();
+        const rows  = tbody.querySelectorAll('tr:not(#gamesEmptySearch)');
+        let visible = 0;
+
+        rows.forEach(row => {
+            const text = row.textContent.toLowerCase();
+            const match = text.includes(query);
+            row.style.display = match ? '' : 'none';
+            if (match) visible++;
+        });
+
+        if (empty) empty.style.display = visible === 0 ? '' : 'none';
+        if (countEl) countEl.textContent = visible;
+    });
+}
+
+/* =============================================
+   ORDER STATUS FILTER TABS
+   ============================================= */
+function initOrderStatusFilter() {
+    const tabs   = document.querySelectorAll('.order-filter-tab');
+    const tbody  = document.getElementById('ordersTableBody');
+    const countEl = document.getElementById('ordersCount');
+    if (!tabs.length || !tbody) return;
+
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            tabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+
+            const filter = tab.dataset.filter;
+            const rows   = tbody.querySelectorAll('tr');
+            let visible  = 0;
+
+            rows.forEach(row => {
+                const status = row.dataset.status ?? '';
+                const show   = filter === 'all' || status === filter;
+                row.style.display = show ? '' : 'none';
+                if (show) visible++;
+            });
+
+            if (countEl) countEl.textContent = visible;
+        });
+    });
+}
+
+/* =============================================
+   TOAST — reads data-flash from <body>
+   ============================================= */
+function initToast() {
+    const body = document.body;
+    const msg  = body.dataset.flash;
+    if (!msg) return;
+
+    const type = body.dataset.flashType || 'success';
+    showToast(msg, type);
+}
+
+function showToast(message, type = 'success') {
+    // Remove any existing toast
+    document.querySelector('.admin-toast')?.remove();
+
+    const toast = document.createElement('div');
+    toast.className = 'admin-toast';
+    toast.textContent = message;
+
+    Object.assign(toast.style, {
+        position:     'fixed',
+        bottom:       '24px',
+        right:        '24px',
+        padding:      '12px 20px',
+        borderRadius: '8px',
+        fontWeight:   'bold',
+        fontSize:     '14px',
+        color:        '#fff',
+        background:   type === 'error' ? '#dc2626' : '#16a34a',
+        boxShadow:    '0 4px 12px rgba(0,0,0,0.15)',
+        zIndex:       '9999',
+        opacity:      '0',
+        transition:   'opacity 0.3s ease',
+    });
+
+    document.body.appendChild(toast);
+
+    // Fade in
+    requestAnimationFrame(() => { toast.style.opacity = '1'; });
+
+    // Fade out after 3 s
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.addEventListener('transitionend', () => toast.remove());
+    }, 3000);
+}

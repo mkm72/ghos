@@ -23,10 +23,13 @@ $total_users = (int) $pdo->query("SELECT COUNT(*) FROM Users")->fetchColumn();
 // Total Orders
 $total_orders = (int) $pdo->query("SELECT COUNT(*) FROM Orders")->fetchColumn();
 
-// Low Stock Alerts (< 5 keys)
+// Low Stock Alerts: games that HAVE keys but fewer than 5 unsold remaining
 $stmt = $pdo->query("
     SELECT COUNT(*) FROM (
-        SELECT game_id FROM Game_Keys WHERE is_sold = 0 GROUP BY game_id HAVING COUNT(id) < 5
+        SELECT game_id FROM Game_Keys
+        WHERE is_sold = 0
+        GROUP BY game_id
+        HAVING COUNT(id) > 0 AND COUNT(id) < 5
     ) AS low
 ");
 $low_stock_count = (int) $stmt->fetchColumn();
@@ -79,6 +82,12 @@ function statusBadge($s) {
         .js-loaded .active-section { display: block !important; }
 
         .sidebar-link.active { background: rgba(255,255,255,0.1); border-left: 4px solid #2563eb; }
+        /* Always keep stats in a single row */
+        .stats-grid { grid-template-columns: repeat(4, 1fr) !important; }
+        /* Order filter tab styles */
+        .order-filter-tab { background:#f3f4f6; border:1px solid #e0e0e0; padding:6px 14px; border-radius:6px; font-size:13px; font-weight:600; cursor:pointer; color:#555; }
+        .order-filter-tab:hover { background:#e5e7eb; }
+        .order-filter-tab.active { background:#2563eb; color:#fff; border-color:#2563eb; }
         .badge-green { background:#dcfce7; color:#16a34a; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:bold; }
         .badge-blue { background:#dbeafe; color:#2563eb; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:bold; }
         .badge-red { background:#fee2e2; color:#dc2626; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:bold; }
