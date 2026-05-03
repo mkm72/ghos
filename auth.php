@@ -48,15 +48,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (empty($email) || empty($pass)) {
             $error = 'Email and password are required.';
         } else {
-            $stmt = $pdo->prepare('SELECT id, email, password, role FROM Users WHERE email = ?');
+            $stmt = $pdo->prepare('SELECT id, email, password, role, is_active FROM Users WHERE email = ?');
             $stmt->execute([$email]);
             $user = $stmt->fetch();
             if ($user && password_verify($pass, $user['password'])) {
-                $_SESSION['user_id']    = $user['id'];
-                $_SESSION['user_email'] = $user['email'];
-                $_SESSION['role']       = $user['role'];
-                header('Location: index.php');
-                exit;
+            
+                if ((int)$user['is_active'] === 0) {
+                    $error = 'Your account has been suspended. Please contact us via Discord or email.';
+                } else {
+                    $_SESSION['user_id']    = $user['id'];
+                    $_SESSION['user_email'] = $user['email'];
+                    $_SESSION['role']       = $user['role'];
+                    header('Location: index.php');
+                    exit;
+                }
+            
             } else {
                 $error = 'Invalid email or password.';
             }
@@ -106,6 +112,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </style>
 </head>
 <body>
+
+    <?php if ($error && strpos($error, 'suspended') !== false): ?>
+    <script>
+        alert("Your account has been suspended.\nContact us via Discord or email.");
+    </script>
+    <?php endif; ?>
 
 <div class="auth-logo">
     <div class="logo-box">Ghos</div>
