@@ -9,7 +9,7 @@ if (!isset($_SESSION['user_id'])) {
     header('Location: ../auth.php');
     exit;
 }
-require_once 'db_connect.php';
+require_once 'php/db_connect.php';
 
 $user_id = (int)$_SESSION['user_id'];
 $method  = $_POST['payment_method'] ?? 'card';
