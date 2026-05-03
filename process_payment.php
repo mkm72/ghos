@@ -140,10 +140,13 @@ try {
 }
 
 // ── Success ───────────────────────────────────────────────────
-$_SESSION['success'] = 'Payment successful! Your keys are ready.';
-
-// If they are a guest, you might want to redirect them to a generic success page 
-// or a page where they can check their order via email. For now, we will route them
-// to the orders page, but you'll likely need to adapt that file next to handle guests.
-header('Location: orders.php?new=1');
+// ── Success ───────────────────────────────────────────────────
+if ($user_id) {
+    $_SESSION['success'] = 'Payment successful! Your keys are ready.';
+    header('Location: orders.php?new=1');
+} else {
+    // Send guests to the homepage with a special flag for the pop-up
+    $_SESSION['guest_success'] = 'Payment successful! We will email you with the activation code shortly.';
+    header('Location: index.php');
+}
 exit;
