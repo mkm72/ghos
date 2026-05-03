@@ -214,7 +214,7 @@ function statusBadge($s) {
         .panel-header h2 { margin:0; }
     </style>
 </head>
-<body data-flash="<?= htmlspecialchars($_SESSION['success'] ?? '') ?>" data-flash-type="success">
+<body data-flash="<?= htmlspecialchars($_SESSION['success'] ?? '') ?>" data-flash-type="success" data-force-section="<?= $view_game_id ? 'section-keys' : '' ?>">
 <?php unset($_SESSION['success']); ?>
 
 <aside class="sidebar">
@@ -602,15 +602,7 @@ function statusBadge($s) {
         openModal('modalDeleteGame');
     }
 
-    <?php if ($view_game_id): ?>
-    // Auto-switch to keys section if viewing keys
-    document.addEventListener('DOMContentLoaded', () => {
-        document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active-section'));
-        document.getElementById('section-keys').classList.add('active-section');
-        document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
-        document.querySelector('[data-section="section-games"]').classList.add('active');
-    });
-    <?php endif; ?>
+
 </script>
 <script src="js/admin.js?v=<?= time() ?>"></script>
 </body>
