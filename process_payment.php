@@ -6,7 +6,7 @@ error_reporting(E_ALL);
 s
 session_start();
 if (!isset($_SESSION['user_id'])) {
-    header('Location: ../auth.php');
+    header('Location: auth.php');
     exit;
 }
 require_once 'php/db_connect.php';
@@ -25,17 +25,17 @@ if ($method === 'card') {
 
     if (!$card_name) {
         $_SESSION['pay_error'] = 'Cardholder name is required.';
-        header('Location: ../checkout.php');
+        header('Location: checkout.php');
         exit;
     }
     if (!preg_match('/^\d{16}$/', $card_number)) {
         $_SESSION['pay_error'] = 'Please enter a valid 16-digit card number.';
-        header('Location: ../checkout.php');
+        header('Location: checkout.php');
         exit;
     }
     if (!preg_match('/^\d{4}$/', $card_expiry)) {
         $_SESSION['pay_error'] = 'Please enter a valid expiry date (MM/YY).';
-        header('Location: ../checkout.php');
+        header('Location: checkout.php');
         exit;
     }
     // Validate expiry is not in the past
@@ -45,12 +45,12 @@ if ($method === 'card') {
     $now_year  = (int)date('Y');
     if ($exp_year < $now_year || ($exp_year === $now_year && $exp_month < $now_month)) {
         $_SESSION['pay_error'] = 'Your card has expired.';
-        header('Location: ../checkout.php');
+        header('Location: checkout.php');
         exit;
     }
     if (!preg_match('/^\d{3,4}$/', $card_cvv)) {
         $_SESSION['pay_error'] = 'Please enter a valid CVV.';
-        header('Location: ../checkout.php');
+        header('Location: checkout.php');
         exit;
     }
 }
@@ -66,7 +66,7 @@ $cart_stmt->execute([$user_id]);
 $cart_items = $cart_stmt->fetchAll(PDO::FETCH_ASSOC);
 
 if (empty($cart_items)) {
-    header('Location: ../cart.php');
+    header('Location: cart.php');
     exit;
 }
 
@@ -82,7 +82,7 @@ foreach ($cart_items as $item) {
     if ($available < $item['quantity']) {
         $_SESSION['pay_error'] = htmlspecialchars($item['name'])
             . ' only has ' . $available . ' key(s) left in stock.';
-        header('Location: ../checkout.php');
+        header('Location: checkout.php');
         exit;
     }
 }
@@ -160,11 +160,11 @@ try {
 } catch (Exception $e) {
     $pdo->rollBack();
     $_SESSION['pay_error'] = $e->getMessage();
-    header('Location: ../checkout.php');
+    header('Location: checkout.php');
     exit;
 }
 
 // ── Success ───────────────────────────────────────────────────
 $_SESSION['success'] = 'Payment successful! Your keys are ready.';
-header('Location: ../orders.php?new=1');
+header('Location: orders.php?new=1');
 exit;
