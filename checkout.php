@@ -16,7 +16,8 @@ $cart_stmt = $pdo->prepare('
     JOIN Games g ON c.game_id = g.id
     LEFT JOIN Game_Images i ON i.game_id = g.id AND i.is_cover = 1
     WHERE c.user_id = ?
-');$cart_stmt->execute([$user_id]);
+');
+$cart_stmt->execute([$user_id]);
 $cart_items = $cart_stmt->fetchAll();
 
 if (empty($cart_items)) {
@@ -37,7 +38,7 @@ unset($_SESSION['pay_error']);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Checkout — GameHub Online Store</title>
+    <title>Checkout — Ghos</title>
     <link rel="stylesheet" href="css/navbar.css">
     <link rel="stylesheet" href="css/checkout.css">
 </head>
@@ -92,7 +93,8 @@ unset($_SESSION['pay_error']);
                     <span class="ssl-tag">SSL Secured</span>
                 </div>
                 <div class="panel-body">
-                    <form id="payForm" action="process_payment.php" method="POST" onsubmit="return handlePay(event)">
+                    <!-- FIX 1: action points to php/ subfolder; onsubmit removed -->
+                    <form id="payForm" action="php/process_payment.php" method="POST">
 
                         <div class="form-group">
                             <label for="cardName">Cardholder Name</label>
@@ -185,7 +187,7 @@ unset($_SESSION['pay_error']);
 
         </div>
 
-       <!-- RIGHT: Order summary -->
+        <!-- RIGHT: Order summary -->
         <div class="checkout-right">
             <div class="summary-box">
                 <div class="summary-title">Order Summary</div>
@@ -205,7 +207,6 @@ unset($_SESSION['pay_error']);
                             <div class="summary-item-qty">Qty: <?= (int)$item['quantity'] ?></div>
                         </div>
                         <div class="summary-item-price">
-                            <!-- Wrapped the item total -->
                             <span class="price-display" data-usd="<?= $item['price'] * $item['quantity'] ?>">
                                 $<?= number_format($item['price'] * $item['quantity'], 2) ?>
                             </span>
@@ -217,17 +218,13 @@ unset($_SESSION['pay_error']);
 
                 <div class="summary-row">
                     <span>Subtotal</span>
-                    <!-- Wrapped the subtotal -->
                     <span class="price-display" data-usd="<?= $subtotal ?>">
                         $<?= number_format($subtotal, 2) ?>
                     </span>
                 </div>
                 <div class="summary-row">
                     <span>Tax</span>
-                    <!-- Wrapped the tax -->
-                    <span class="price-display" data-usd="0">
-                        $0.00
-                    </span>
+                    <span class="price-display" data-usd="0">$0.00</span>
                 </div>
                 <div class="summary-row">
                     <span>Delivery</span>
@@ -238,15 +235,13 @@ unset($_SESSION['pay_error']);
 
                 <div class="summary-total-row">
                     <span>Total</span>
-                    <!-- Wrapped the total price -->
                     <span class="summary-total-price price-display" data-usd="<?= $subtotal ?>">
                         $<?= number_format($subtotal, 2) ?>
                     </span>
                 </div>
 
                 <button class="pay-btn" id="payBtn" onclick="submitPay()">
-                    Pay 
-                    <!-- Wrapped the button price -->
+                    Pay
                     <span class="price-display" data-usd="<?= $subtotal ?>">
                         $<?= number_format($subtotal, 2) ?>
                     </span>
@@ -255,7 +250,12 @@ unset($_SESSION['pay_error']);
                 <div class="secure-note">Your payment is 100% secure and encrypted</div>
             </div>
         </div>
-<div class="footer">© 2026 GameHub Online Store. All rights reserved.</div>
+
+    </div><!-- /.checkout-layout -->
+
+    <div class="footer">© 2026 Ghos. All rights reserved.</div>
+
+</div><!-- /.page-wrapper -->
 
 <!-- Success overlay -->
 <div class="success-overlay" id="successOverlay">
@@ -290,10 +290,12 @@ unset($_SESSION['pay_error']);
     }
 
     /* ── Validate & submit ── */
+    // FIX 2: handlePay(e) removed entirely — programmatic .submit() was being
+    // blocked by the same preventDefault it was meant to stop manual submits with.
     function submitPay() {
         const name   = document.getElementById('cardName').value.trim();
         const number = document.getElementById('cardNumber').value.replace(/\s/g, '');
-        const expiry = document.getElementById('cardExpiry').value.replace(/\s|\//g, '');
+        const expiry = document.getElementById('cardExpiry').value.replace(/[\s\/]/g, '');
         const cvv    = document.getElementById('cardCvv').value.trim();
 
         if (!name)              return shakeField('cardName',   'Cardholder name is required.');
@@ -307,11 +309,10 @@ unset($_SESSION['pay_error']);
 
         setTimeout(() => {
             showSuccess();
+            // FIX 2: .submit() now works because there is no onsubmit handler blocking it
             setTimeout(() => document.getElementById('payForm').submit(), 2500);
         }, 1200);
     }
-
-    function handlePay(e) { e.preventDefault(); }
 
     function shakeField(id, msg) {
         const el = document.getElementById(id);
