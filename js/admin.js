@@ -1,221 +1,134 @@
-// ============================================================
-//  admin.js — GameHub Admin Panel Interactivity
-// ============================================================
+<?php
+session_start();
+require_once 'php/db_connect.php';
 
-document.addEventListener('DOMContentLoaded', () => {
-    initSidebar();
-    initSearch();
-    initOrderStatusFilter();
-    initSortableTables();
-    initConfirmDeletes();
-    initToast();
-});
-
-// ============================================================
-// 1. SIDEBAR — Single-Page Navigation (no reload)
-// ============================================================
-function initSidebar() {
-    const links = document.querySelectorAll('.sidebar-link[data-section]');
-    const sections = document.querySelectorAll('.admin-section');
-
-    function showSection(id) {
-        sections.forEach(s => s.classList.toggle('active-section', s.id === id));
-        links.forEach(l => l.classList.toggle('active', l.dataset.section === id));
-        // Update URL hash silently
-        history.replaceState(null, '', '#' + id);
-    }
-
-    links.forEach(link => {
-        link.addEventListener('click', e => {
-            e.preventDefault();
-            showSection(link.dataset.section);
-        });
-    });
-
-    // On load, respect hash or default to dashboard
-    const hash = location.hash.replace('#', '');
-    const validIds = Array.from(sections).map(s => s.id);
-    showSection(validIds.includes(hash) ? hash : validIds[0]);
+// Protection: Admin only
+if (!isset($_SESSION['user_id']) || ($_SESSION['role'] ?? '') !== 'admin') {
+    header("Location: index.php");
+    exit;
 }
 
-// ============================================================
-// 2. LIVE SEARCH — Games Table
-// ============================================================
-function initSearch() {
-    const input = document.getElementById('gamesSearch');
-    if (!input) return;
+// --- Fetch Stats ---
+$total_revenue = (float) $pdo->query("SELECT SUM(g.price) FROM Orders o JOIN Games g ON o.game_id = g.id WHERE o.status IN ('delivered', 'completed')")->fetchColumn();
+$total_users = (int) $pdo->query("SELECT COUNT(*) FROM Users")->fetchColumn();
+$total_orders = (int) $pdo->query("SELECT COUNT(*) FROM Orders")->fetchColumn();
+$low_stock = (int) $pdo->query("SELECT COUNT(*) FROM (SELECT g.id FROM Games g LEFT JOIN Game_Keys k ON g.id = k.game_id AND k.is_sold = 0 GROUP BY g.id HAVING COUNT(k.id) < 5) AS low")->fetchColumn();
 
-    input.addEventListener('input', () => {
-        const q = input.value.trim().toLowerCase();
-        const rows = document.querySelectorAll('#gamesTableBody tr');
-        let visible = 0;
-        rows.forEach(row => {
-            const text = row.textContent.toLowerCase();
-            const show = text.includes(q);
-            row.style.display = show ? '' : 'none';
-            if (show) visible++;
-        });
+// --- Fetch Orders (Formatted for admin.js) ---
+$recent_orders = $pdo->query("
+    SELECT o.id, u.email, g.name as game_name, g.price, o.order_date, o.status
+    FROM Orders o
+    JOIN Users u ON o.user_id = u.id
+    JOIN Games g ON o.game_id = g.id
+    ORDER BY o.order_date DESC LIMIT 15
+")->fetchAll();
 
-        // Show/hide empty state
-        const empty = document.getElementById('gamesEmptySearch');
-        if (empty) empty.style.display = visible === 0 ? '' : 'none';
+// --- Fetch Games (Formatted for admin.js) ---
+$games_list = $pdo->query("
+    SELECT g.id, g.name, g.price, COUNT(k.id) as stock
+    FROM Games g
+    LEFT JOIN Game_Keys k ON g.id = k.game_id AND k.is_sold = 0
+    GROUP BY g.id ORDER BY g.name ASC
+")->fetchAll();
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Ghos Admin</title>
+    <link rel="stylesheet" href="css/navbar.css">
+    <link rel="stylesheet" href="css/dashboard-layout.css">
+</head>
+<!-- The data-flash attributes allow your initToast() to show messages on load -->
+<body data-flash="<?= $_SESSION['success'] ?? '' ?>" data-flash-type="success">
+    <?php unset($_SESSION['success']); ?>
 
-        // Update count badge
-        const badge = document.getElementById('gamesCount');
-        if (badge) badge.textContent = visible;
-    });
-}
+    <aside class="sidebar">
+        <div class="sidebar-logo"><div class="logo-box">Ghos</div> Admin</div>
+        <!-- Matches your initSidebar() querySelector -->
+        <a href="#" class="sidebar-link" data-section="section-dashboard">📊 Dashboard</a>
+        <a href="#" class="sidebar-link" data-section="section-games">🎮 Manage Games</a>
+        <a href="#" class="sidebar-link" data-section="section-orders">🛒 Orders</a>
+        <hr class="sidebar-divider">
+        <a href="index.php" class="sidebar-back">← Store</a>
+    </aside>
 
-// ============================================================
-// 3. ORDERS — Status Filter Tabs
-// ============================================================
-function initOrderStatusFilter() {
-    const tabs = document.querySelectorAll('.order-filter-tab');
-    if (!tabs.length) return;
+    <main class="main-content">
+        <!-- Section: Dashboard -->
+        <div id="section-dashboard" class="admin-section">
+            <h1 class="page-title">Dashboard</h1>
+            <div class="stats-grid">
+                <div class="stat-card"><div class="stat-label">Revenue</div><div class="stat-value">$<?= number_format($total_revenue, 2) ?></div></div>
+                <div class="stat-card"><div class="stat-label">Users</div><div class="stat-value"><?= $total_users ?></div></div>
+                <div class="stat-card"><div class="stat-label">Orders</div><div class="stat-value"><?= $total_orders ?></div></div>
+                <div class="stat-card"><div class="stat-label">Low Stock</div><div class="stat-value orange"><?= $low_stock ?></div></div>
+            </div>
+        </div>
 
-    tabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-            tabs.forEach(t => t.classList.remove('active'));
-            tab.classList.add('active');
+        <!-- Section: Manage Games -->
+        <div id="section-games" class="admin-section panel">
+            <div class="panel-header">
+                <h2>Games (<span id="gamesCount"><?= count($games_list) ?></span>)</h2>
+                <input id="gamesSearch" type="text" placeholder="Live search...">
+            </div>
+            <table data-sortable class="data-table">
+                <thead>
+                    <tr>
+                        <th data-col="id">ID</th>
+                        <th data-col="name">Name</th>
+                        <th data-col="price">Price</th>
+                        <th data-col="stock">Stock</th>
+                    </tr>
+                </thead>
+                <tbody id="gamesTableBody">
+                    <?php foreach ($games_list as $g): ?>
+                    <tr>
+                        <td data-col="id" data-val="<?= $g['id'] ?>"><?= $g['id'] ?></td>
+                        <td data-col="name"><?= htmlspecialchars($g['name']) ?></td>
+                        <td data-col="price" data-val="<?= $g['price'] ?>">$<?= number_format($g['price'], 2) ?></td>
+                        <td data-col="stock" data-val="<?= $g['stock'] ?>"><?= $g['stock'] ?></td>
+                    </tr>
+                    <?php endforeach; ?>
+                    <!-- Matches your initSearch() empty state -->
+                    <tr id="gamesEmptySearch" style="display:none;"><td colspan="4">No matches found.</td></tr>
+                </tbody>
+            </table>
+        </div>
 
-            const filter = tab.dataset.filter;
-            const rows = document.querySelectorAll('#ordersTableBody tr');
-            let visible = 0;
-            rows.forEach(row => {
-                const status = row.dataset.status ?? '';
-                const show = filter === 'all' || status === filter;
-                row.style.display = show ? '' : 'none';
-                if (show) visible++;
-            });
+        <!-- Section: Orders -->
+        <div id="section-orders" class="admin-section panel">
+            <div class="panel-header">
+                <h2>Orders (<span id="ordersCount"><?= count($recent_orders) ?></span>)</h2>
+                <div class="filter-tabs">
+                    <button class="order-filter-tab active" data-filter="all">All</button>
+                    <button class="order-filter-tab" data-filter="pending">Pending</button>
+                    <button class="order-filter-tab" data-filter="delivered">Delivered</button>
+                </div>
+            </div>
+            <table data-sortable class="data-table">
+                <thead>
+                    <tr>
+                        <th data-col="id">Order #</th>
+                        <th>User</th>
+                        <th data-col="price">Total</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="ordersTableBody">
+                    <?php foreach ($recent_orders as $o): ?>
+                    <!-- data-status is used by your initOrderStatusFilter() -->
+                    <tr data-status="<?= strtolower($o['status']) ?>">
+                        <td data-col="id" data-val="<?= $o['id'] ?>"><?= $o['id'] ?></td>
+                        <td><?= htmlspecialchars($o['email']) ?></td>
+                        <td data-col="price" data-val="<?= $o['price'] ?>">$<?= number_format($o['price'], 2) ?></td>
+                        <td><?= htmlspecialchars($o['status']) ?></td>
+                    </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+    </main>
 
-            const badge = document.getElementById('ordersCount');
-            if (badge) badge.textContent = visible;
-        });
-    });
-}
-
-// ============================================================
-// 4. SORTABLE TABLE HEADERS
-// ============================================================
-function initSortableTables() {
-    document.querySelectorAll('table[data-sortable]').forEach(table => {
-        const headers = table.querySelectorAll('th[data-col]');
-        let lastCol = null;
-        let ascending = true;
-
-        headers.forEach(th => {
-            th.style.cursor = 'pointer';
-            th.title = 'Click to sort';
-
-            th.addEventListener('click', () => {
-                const col = th.dataset.col;
-                ascending = lastCol === col ? !ascending : true;
-                lastCol = col;
-
-                // Update sort arrow indicator
-                headers.forEach(h => h.classList.remove('sort-asc', 'sort-desc'));
-                th.classList.add(ascending ? 'sort-asc' : 'sort-desc');
-
-                const tbody = table.querySelector('tbody');
-                const rows = Array.from(tbody.querySelectorAll('tr'));
-
-                rows.sort((a, b) => {
-                    const aCell = a.querySelector(`td[data-col="${col}"]`);
-                    const bCell = b.querySelector(`td[data-col="${col}"]`);
-                    if (!aCell || !bCell) return 0;
-
-                    const aVal = aCell.dataset.val ?? aCell.textContent.trim();
-                    const bVal = bCell.dataset.val ?? bCell.textContent.trim();
-
-                    const aNum = parseFloat(aVal);
-                    const bNum = parseFloat(bVal);
-
-                    if (!isNaN(aNum) && !isNaN(bNum)) {
-                        return ascending ? aNum - bNum : bNum - aNum;
-                    }
-                    return ascending
-                        ? aVal.localeCompare(bVal)
-                        : bVal.localeCompare(aVal);
-                });
-
-                rows.forEach(r => tbody.appendChild(r));
-            });
-        });
-    });
-}
-
-// ============================================================
-// 5. CONFIRM BEFORE DELETE
-// ============================================================
-function initConfirmDeletes() {
-    document.addEventListener('click', e => {
-        const btn = e.target.closest('[data-confirm]');
-        if (!btn) return;
-        e.preventDefault();
-        const msg = btn.dataset.confirm || 'Are you sure?';
-        if (confirm(msg)) {
-            const href = btn.href || btn.dataset.href;
-            if (href) location.href = href;
-            else btn.closest('form')?.submit();
-        }
-    });
-}
-
-// ============================================================
-// 6. TOAST NOTIFICATIONS
-// ============================================================
-let toastContainer;
-
-function initToast() {
-    toastContainer = document.createElement('div');
-    toastContainer.id = 'toast-container';
-    toastContainer.style.cssText = `
-        position: fixed; bottom: 24px; right: 24px;
-        display: flex; flex-direction: column; gap: 10px;
-        z-index: 9999; pointer-events: none;
-    `;
-    document.body.appendChild(toastContainer);
-
-    // Auto-show toast if PHP set a flash message in data attribute
-    const flash = document.body.dataset.flash;
-    const flashType = document.body.dataset.flashType || 'success';
-    if (flash) showToast(flash, flashType);
-}
-
-function showToast(message, type = 'success') {
-    const colors = {
-        success: '#16a34a',
-        error:   '#dc2626',
-        info:    '#2563eb',
-        warning: '#ea580c',
-    };
-    const toast = document.createElement('div');
-    toast.style.cssText = `
-        background: ${colors[type] || colors.info};
-        color: white; padding: 12px 18px; border-radius: 8px;
-        font-size: 14px; font-weight: bold;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        pointer-events: all; opacity: 0;
-        transform: translateY(10px);
-        transition: opacity 0.25s, transform 0.25s;
-        max-width: 320px;
-    `;
-    toast.textContent = message;
-    toastContainer.appendChild(toast);
-
-    // Animate in
-    requestAnimationFrame(() => {
-        toast.style.opacity = '1';
-        toast.style.transform = 'translateY(0)';
-    });
-
-    // Animate out after 3.5s
-    setTimeout(() => {
-        toast.style.opacity = '0';
-        toast.style.transform = 'translateY(10px)';
-        setTimeout(() => toast.remove(), 300);
-    }, 3500);
-}
-
-// Expose globally for PHP-generated onclick attributes
-window.showToast = showToast;
+    <script src="js/admin.js"></script>
+</body>
+</html>
