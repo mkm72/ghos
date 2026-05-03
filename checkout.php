@@ -239,17 +239,21 @@ unset($_SESSION['pay_error']);
 
 </div>
 
+<!-- Success overlay -->
 <div class="success-overlay" id="successOverlay">
     <div class="success-card">
         <div class="success-title">Payment Successful</div>
         <div class="success-sub">
-            Your game keys are ready.<br>
+            <?php if ($user_id): ?>
+                Your game keys are ready.<br>
+            <?php else: ?>
+                We will email you with the code.<br>
+            <?php endif; ?>
             Redirecting...
         </div>
         <div class="countdown" id="countdown"></div>
     </div>
 </div>
-
 <script>
     function formatCard(el) {
         let val = el.value.replace(/\D/g, '').substring(0, 16);
