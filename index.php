@@ -3,10 +3,6 @@ session_start();
 
 require_once 'php/db_connect.php';
 
-// --- MOCK LOGIN FOR TESTING ---
-//$_SESSION['user_id'] = 3; 
-//$_SESSION['role'] = 'customer'; 
-// ------------------------------
 
 $user_role = isset($_SESSION['user_role']) ? $_SESSION['user_role'] : 'guest';
 $is_logged_in = isset($_SESSION['user_id']);

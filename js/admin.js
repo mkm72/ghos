@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
    SIDEBAR — single-page section switching
    ============================================= */
 function initSidebar() {
-    const links   = document.querySelectorAll('.sidebar-link[data-section]');
+    const links = document.querySelectorAll('.sidebar-link[data-section]');
     const sections = document.querySelectorAll('.admin-section');
 
     // Activate a section by id
@@ -98,15 +98,15 @@ function initSortableTables() {
    LIVE SEARCH — Games table
    ============================================= */
 function initSearch() {
-    const input    = document.getElementById('gamesSearch');
-    const tbody    = document.getElementById('gamesTableBody');
-    const empty    = document.getElementById('gamesEmptySearch');
-    const countEl  = document.getElementById('gamesCount');
+    const input = document.getElementById('gamesSearch');
+    const tbody = document.getElementById('gamesTableBody');
+    const empty = document.getElementById('gamesEmptySearch');
+    const countEl = document.getElementById('gamesCount');
     if (!input || !tbody) return;
 
     input.addEventListener('input', () => {
         const query = input.value.trim().toLowerCase();
-        const rows  = tbody.querySelectorAll('tr:not(#gamesEmptySearch)');
+        const rows = tbody.querySelectorAll('tr:not(#gamesEmptySearch)');
         let visible = 0;
 
         rows.forEach(row => {
@@ -125,8 +125,8 @@ function initSearch() {
    ORDER STATUS FILTER TABS
    ============================================= */
 function initOrderStatusFilter() {
-    const tabs   = document.querySelectorAll('.order-filter-tab');
-    const tbody  = document.getElementById('ordersTableBody');
+    const tabs = document.querySelectorAll('.order-filter-tab');
+    const tbody = document.getElementById('ordersTableBody');
     const countEl = document.getElementById('ordersCount');
     if (!tabs.length || !tbody) return;
 
@@ -136,12 +136,12 @@ function initOrderStatusFilter() {
             tab.classList.add('active');
 
             const filter = tab.dataset.filter;
-            const rows   = tbody.querySelectorAll('tr');
-            let visible  = 0;
+            const rows = tbody.querySelectorAll('tr');
+            let visible = 0;
 
             rows.forEach(row => {
                 const status = row.dataset.status ?? '';
-                const show   = filter === 'all' || status === filter;
+                const show = filter === 'all' || status === filter;
                 row.style.display = show ? '' : 'none';
                 if (show) visible++;
             });
@@ -156,7 +156,7 @@ function initOrderStatusFilter() {
    ============================================= */
 function initToast() {
     const body = document.body;
-    const msg  = body.dataset.flash;
+    const msg = body.dataset.flash;
     if (!msg) return;
 
     const type = body.dataset.flashType || 'success';
@@ -172,19 +172,19 @@ function showToast(message, type = 'success') {
     toast.textContent = message;
 
     Object.assign(toast.style, {
-        position:     'fixed',
-        bottom:       '24px',
-        right:        '24px',
-        padding:      '12px 20px',
+        position: 'fixed',
+        bottom: '24px',
+        right: '24px',
+        padding: '12px 20px',
         borderRadius: '8px',
-        fontWeight:   'bold',
-        fontSize:     '14px',
-        color:        '#fff',
-        background:   type === 'error' ? '#dc2626' : '#16a34a',
-        boxShadow:    '0 4px 12px rgba(0,0,0,0.15)',
-        zIndex:       '9999',
-        opacity:      '0',
-        transition:   'opacity 0.3s ease',
+        fontWeight: 'bold',
+        fontSize: '14px',
+        color: '#fff',
+        background: type === 'error' ? '#dc2626' : '#16a34a',
+        boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+        zIndex: '9999',
+        opacity: '0',
+        transition: 'opacity 0.3s ease',
     });
 
     document.body.appendChild(toast);
