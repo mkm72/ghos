@@ -1,190 +1,213 @@
-/**
- * admin.js — Ghos Admin Panel
- */
+// ============================================================
+//  admin.js — GameHub Admin Panel Interactivity
+// ============================================================
+
 document.addEventListener('DOMContentLoaded', () => {
     initSidebar();
-    initSortableTables();
     initSearch();
     initOrderStatusFilter();
+    initSortableTables();
+    initConfirmDeletes();
     initToast();
 });
 
-/* =============================================
-   SIDEBAR
-   ============================================= */
+// ============================================================
+// 1. SIDEBAR — Scroll navigation (all sections always visible)
+// ============================================================
 function initSidebar() {
-    const links = document.querySelectorAll('.sidebar-link[data-section]');
+    const links    = document.querySelectorAll('.sidebar-link[data-section]');
     const sections = document.querySelectorAll('.admin-section');
 
-    function activate(sectionId, save) {
-        sections.forEach(s => s.classList.remove('active-section'));
-        links.forEach(l => l.classList.remove('active'));
+    // Show all sections on load
+    sections.forEach(s => s.style.display = 'block');
 
-        const target = document.getElementById(sectionId);
-        if (target) target.classList.add('active-section');
-
-        const link = document.querySelector('.sidebar-link[data-section="' + sectionId + '"]');
-        if (link) link.classList.add('active');
-
-        if (save) sessionStorage.setItem('adminSection', sectionId);
-    }
-
+    // Sidebar links scroll to section
     links.forEach(link => {
-        link.addEventListener('click', function(e) {
+        link.addEventListener('click', e => {
             e.preventDefault();
-            activate(this.dataset.section, true);
+            const target = document.getElementById(link.dataset.section);
+            if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            links.forEach(l => l.classList.remove('active'));
+            link.classList.add('active');
         });
     });
 
-    // If PHP set a forced section (e.g. keys viewer), respect it
-    var forced = document.body.dataset.forceSection;
-    if (forced) {
-        activate(forced, false);
-    } else {
-        var saved = sessionStorage.getItem('adminSection') || 'section-dashboard';
-        // Make sure the saved section actually exists on this page
-        if (!document.getElementById(saved)) saved = 'section-dashboard';
-        activate(saved, false);
-    }
-}
-
-/* =============================================
-   SORTABLE TABLES
-   ============================================= */
-function initSortableTables() {
-    document.querySelectorAll('table[data-sortable]').forEach(function(table) {
-        var tbody = table.querySelector('tbody');
-        if (!tbody) return;
-
-        table.querySelectorAll('th[data-col]').forEach(function(th) {
-            th.style.cursor = 'pointer';
-            th.title = 'Click to sort';
-            var asc = true;
-
-            th.addEventListener('click', function() {
-                var col = th.dataset.col;
-                var rows = Array.from(tbody.querySelectorAll('tr:not(#gamesEmptySearch)'));
-
-                rows.sort(function(a, b) {
-                    var cellA = a.querySelector('td[data-col="' + col + '"]');
-                    var cellB = b.querySelector('td[data-col="' + col + '"]');
-                    if (!cellA || !cellB) return 0;
-
-                    var valA = cellA.dataset.val !== undefined ? cellA.dataset.val : cellA.textContent.trim();
-                    var valB = cellB.dataset.val !== undefined ? cellB.dataset.val : cellB.textContent.trim();
-
-                    var numA = parseFloat(valA);
-                    var numB = parseFloat(valB);
-
-                    if (!isNaN(numA) && !isNaN(numB)) return asc ? numA - numB : numB - numA;
-                    return asc ? valA.localeCompare(valB) : valB.localeCompare(valA);
-                });
-
-                table.querySelectorAll('th[data-col]').forEach(function(h) {
-                    h.textContent = h.textContent.replace(/ [▲▼]$/, '');
-                });
-                th.textContent += asc ? ' ▲' : ' ▼';
-                asc = !asc;
-
-                rows.forEach(function(r) { tbody.appendChild(r); });
-            });
+    // Auto-highlight active link based on scroll position
+    window.addEventListener('scroll', () => {
+        let current = '';
+        sections.forEach(s => {
+            if (window.scrollY >= s.offsetTop - 100) current = s.id;
         });
-    });
+        links.forEach(l => l.classList.toggle('active', l.dataset.section === current));
+    }, { passive: true });
 }
 
-/* =============================================
-   LIVE SEARCH — Games table
-   ============================================= */
+// ============================================================
+// 2. LIVE SEARCH — Games Table
+// ============================================================
 function initSearch() {
-    var input = document.getElementById('gamesSearch');
-    var tbody = document.getElementById('gamesTableBody');
-    var empty = document.getElementById('gamesEmptySearch');
-    var countEl = document.getElementById('gamesCount');
-    if (!input || !tbody) return;
+    const input = document.getElementById('gamesSearch');
+    if (!input) return;
 
-    input.addEventListener('input', function() {
-        var query = input.value.trim().toLowerCase();
-        var rows = tbody.querySelectorAll('tr:not(#gamesEmptySearch)');
-        var visible = 0;
-
-        rows.forEach(function(row) {
-            var match = row.textContent.toLowerCase().includes(query);
-            row.style.display = match ? '' : 'none';
-            if (match) visible++;
+    input.addEventListener('input', () => {
+        const q = input.value.trim().toLowerCase();
+        const rows = document.querySelectorAll('#gamesTableBody tr:not(#gamesEmptySearch)');
+        let visible = 0;
+        rows.forEach(row => {
+            const text = row.textContent.toLowerCase();
+            const show = text.includes(q);
+            row.style.display = show ? '' : 'none';
+            if (show) visible++;
         });
 
+        const empty = document.getElementById('gamesEmptySearch');
         if (empty) empty.style.display = visible === 0 ? '' : 'none';
-        if (countEl) countEl.textContent = visible;
+
+        const badge = document.getElementById('gamesCount');
+        if (badge) badge.textContent = visible;
     });
 }
 
-/* =============================================
-   ORDER STATUS FILTER TABS
-   ============================================= */
+// ============================================================
+// 3. ORDERS — Status Filter Tabs
+// ============================================================
 function initOrderStatusFilter() {
-    var tabs = document.querySelectorAll('.order-filter-tab');
-    var tbody = document.getElementById('ordersTableBody');
-    var countEl = document.getElementById('ordersCount');
-    if (!tabs.length || !tbody) return;
+    const tabs = document.querySelectorAll('.order-filter-tab');
+    if (!tabs.length) return;
 
-    tabs.forEach(function(tab) {
-        tab.addEventListener('click', function() {
-            tabs.forEach(function(t) { t.classList.remove('active'); });
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            tabs.forEach(t => t.classList.remove('active'));
             tab.classList.add('active');
 
-            var filter = tab.dataset.filter;
-            var rows = tbody.querySelectorAll('tr');
-            var visible = 0;
-
-            rows.forEach(function(row) {
-                var status = row.dataset.status || '';
-                var show = filter === 'all' || status === filter;
+            const filter = tab.dataset.filter;
+            const rows   = document.querySelectorAll('#ordersTableBody tr');
+            let visible  = 0;
+            rows.forEach(row => {
+                const status = row.dataset.status ?? '';
+                const show   = filter === 'all' || status === filter;
                 row.style.display = show ? '' : 'none';
                 if (show) visible++;
             });
 
-            if (countEl) countEl.textContent = visible;
+            const badge = document.getElementById('ordersCount');
+            if (badge) badge.textContent = visible;
         });
     });
 }
 
-/* =============================================
-   TOAST
-   ============================================= */
+// ============================================================
+// 4. SORTABLE TABLE HEADERS
+// ============================================================
+function initSortableTables() {
+    document.querySelectorAll('table[data-sortable]').forEach(table => {
+        const headers = table.querySelectorAll('th[data-col]');
+        let lastCol   = null;
+        let ascending = true;
+
+        headers.forEach(th => {
+            th.style.cursor = 'pointer';
+            th.title = 'Click to sort';
+
+            th.addEventListener('click', () => {
+                const col  = th.dataset.col;
+                ascending  = lastCol === col ? !ascending : true;
+                lastCol    = col;
+
+                headers.forEach(h => h.classList.remove('sort-asc', 'sort-desc'));
+                th.classList.add(ascending ? 'sort-asc' : 'sort-desc');
+
+                const tbody = table.querySelector('tbody');
+                const rows  = Array.from(tbody.querySelectorAll('tr:not(#gamesEmptySearch)'));
+
+                rows.sort((a, b) => {
+                    const aCell = a.querySelector(`td[data-col="${col}"]`);
+                    const bCell = b.querySelector(`td[data-col="${col}"]`);
+                    if (!aCell || !bCell) return 0;
+
+                    const aVal = aCell.dataset.val ?? aCell.textContent.trim();
+                    const bVal = bCell.dataset.val ?? bCell.textContent.trim();
+                    const aNum = parseFloat(aVal);
+                    const bNum = parseFloat(bVal);
+
+                    if (!isNaN(aNum) && !isNaN(bNum)) return ascending ? aNum - bNum : bNum - aNum;
+                    return ascending ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+                });
+
+                rows.forEach(r => tbody.appendChild(r));
+            });
+        });
+    });
+}
+
+// ============================================================
+// 5. CONFIRM BEFORE DELETE
+// ============================================================
+function initConfirmDeletes() {
+    document.addEventListener('click', e => {
+        const btn = e.target.closest('[data-confirm]');
+        if (!btn) return;
+        e.preventDefault();
+        const msg = btn.dataset.confirm || 'Are you sure?';
+        if (confirm(msg)) {
+            const href = btn.href || btn.dataset.href;
+            if (href) location.href = href;
+            else btn.closest('form')?.submit();
+        }
+    });
+}
+
+// ============================================================
+// 6. TOAST NOTIFICATIONS
+// ============================================================
+let toastContainer;
+
 function initToast() {
-    var msg = document.body.dataset.flash;
-    if (!msg) return;
-    showToast(msg, document.body.dataset.flashType || 'success');
+    toastContainer = document.createElement('div');
+    toastContainer.id = 'toast-container';
+    toastContainer.style.cssText = `
+        position: fixed; bottom: 24px; right: 24px;
+        display: flex; flex-direction: column; gap: 10px;
+        z-index: 9999; pointer-events: none;
+    `;
+    document.body.appendChild(toastContainer);
+
+    const flash     = document.body.dataset.flash;
+    const flashType = document.body.dataset.flashType || 'success';
+    if (flash) showToast(flash, flashType);
 }
 
-function showToast(message, type) {
-    var existing = document.querySelector('.admin-toast');
-    if (existing) existing.remove();
-
-    var toast = document.createElement('div');
-    toast.className = 'admin-toast';
+function showToast(message, type = 'success') {
+    const colors = {
+        success: '#16a34a',
+        error:   '#dc2626',
+        info:    '#2563eb',
+        warning: '#ea580c',
+    };
+    const toast = document.createElement('div');
+    toast.style.cssText = `
+        background: ${colors[type] || colors.info};
+        color: white; padding: 12px 18px; border-radius: 8px;
+        font-size: 14px; font-weight: bold;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        pointer-events: all; opacity: 0;
+        transform: translateY(10px);
+        transition: opacity 0.25s, transform 0.25s;
+        max-width: 320px;
+    `;
     toast.textContent = message;
+    toastContainer.appendChild(toast);
 
-    toast.style.position = 'fixed';
-    toast.style.bottom = '24px';
-    toast.style.right = '24px';
-    toast.style.padding = '12px 20px';
-    toast.style.borderRadius = '8px';
-    toast.style.fontWeight = 'bold';
-    toast.style.fontSize = '14px';
-    toast.style.color = '#fff';
-    toast.style.background = type === 'error' ? '#dc2626' : '#16a34a';
-    toast.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
-    toast.style.zIndex = '9999';
-    toast.style.opacity = '0';
-    toast.style.transition = 'opacity 0.3s ease';
+    requestAnimationFrame(() => {
+        toast.style.opacity = '1';
+        toast.style.transform = 'translateY(0)';
+    });
 
-    document.body.appendChild(toast);
-
-    requestAnimationFrame(function() { toast.style.opacity = '1'; });
-
-    setTimeout(function() {
+    setTimeout(() => {
         toast.style.opacity = '0';
-        toast.addEventListener('transitionend', function() { toast.remove(); });
-    }, 3000);
+        toast.style.transform = 'translateY(10px)';
+        setTimeout(() => toast.remove(), 300);
+    }, 3500);
 }
+
+window.showToast = showToast;
