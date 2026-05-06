@@ -12,34 +12,43 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // ============================================================
-// 1. SIDEBAR — Scroll navigation (all sections always visible)
+// 1. SIDEBAR — Dashboard always visible, others toggle
 // ============================================================
 function initSidebar() {
     const links    = document.querySelectorAll('.sidebar-link[data-section]');
     const sections = document.querySelectorAll('.admin-section');
+    const DASHBOARD = 'section-dashboard';
 
-    // Show all sections on load
-    sections.forEach(s => s.style.display = 'block');
+    function showSection(id) {
+        sections.forEach(s => {
+            if (s.id === DASHBOARD) {
+                s.style.display = 'block'; // always visible
+            } else {
+                s.style.display = s.id === id ? 'block' : 'none';
+            }
+        });
+        links.forEach(l => l.classList.toggle('active', l.dataset.section === id));
+        // If dashboard clicked, hide other sections
+        if (id === DASHBOARD) {
+            sections.forEach(s => {
+                if (s.id !== DASHBOARD) s.style.display = 'none';
+            });
+        }
+        history.replaceState(null, '', '#' + id);
+    }
 
-    // Sidebar links scroll to section
     links.forEach(link => {
         link.addEventListener('click', e => {
             e.preventDefault();
-            const target = document.getElementById(link.dataset.section);
-            if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            links.forEach(l => l.classList.remove('active'));
-            link.classList.add('active');
+            showSection(link.dataset.section);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         });
     });
 
-    // Auto-highlight active link based on scroll position
-    window.addEventListener('scroll', () => {
-        let current = '';
-        sections.forEach(s => {
-            if (window.scrollY >= s.offsetTop - 100) current = s.id;
-        });
-        links.forEach(l => l.classList.toggle('active', l.dataset.section === current));
-    }, { passive: true });
+    // On load: show dashboard only by default
+    const hash = location.hash.replace('#', '');
+    const validIds = Array.from(sections).map(s => s.id);
+    showSection(validIds.includes(hash) ? hash : DASHBOARD);
 }
 
 // ============================================================
