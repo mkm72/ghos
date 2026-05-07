@@ -78,7 +78,11 @@ if ($user_id) {
                             </div>
                         </div>
                         <div class="order-right">
-                            <div class="order-price">$<?= number_format($order['unit_price'], 2) ?></div>
+                            <div class="order-price">
+                                <span class="price-display" data-usd="<?= $order['unit_price'] ?>">
+                                    $<?= number_format($order['unit_price'], 2) ?>
+                                </span>
+                            </div>
                             <span class="badge-green">✅ Delivered</span>
                         </div>
                     </div>
