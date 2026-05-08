@@ -53,6 +53,39 @@ function applyCurrency(currency, exchangeRate) {
     });
 }
 
+// ========================================================
+// CONTACT MODAL
+// ========================================================
+function initContactModal() {
+    const modal = document.getElementById('contactModal');
+    const contactBtn = document.querySelector('.contact-link');
+    const closeBtn = document.querySelector('.close-btn');
+ 
+    if (!modal) return; // Safety check: modal must exist on the page
+ 
+    // Open modal
+    if (contactBtn) {
+        contactBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            modal.style.display = 'flex';
+        });
+    }
+ 
+    // Close via X button
+    if (closeBtn) {
+        closeBtn.addEventListener('click', () => {
+            modal.style.display = 'none';
+        });
+    }
+ 
+    // Close by clicking outside modal content
+    window.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.style.display = 'none';
+        }
+    });
+}
+
 // Run the sync function when the page normally loads
 document.addEventListener('DOMContentLoaded', syncCurrency);
 
