@@ -162,6 +162,7 @@ foreach ($cart_items as $item) {
         <title>Shopping Cart — GameHub Online Store</title>
         <link rel="stylesheet" href="css/navbar.css">
         <link rel="stylesheet" href="css/cart.css">
+        <script src="js/navbar.js"></script>
     </head>
     <body>
 
