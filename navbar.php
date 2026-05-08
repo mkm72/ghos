@@ -36,7 +36,7 @@ if ($is_logged_in) {
 
         <select id="currencySelector" class="currency-select">
             <option value="USD">USD ($)</option>
-            <option value="SAR">SAR (ر.س)</option>
+            <option value="SAR">SAR (⃁)</option>
         </select>
 
         <?php if ($user_role === 'admin'): ?>
