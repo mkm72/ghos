@@ -101,13 +101,15 @@ $recent_orders = $pdo->query("
 $users_list = $pdo->query("SELECT id, email, role, is_active FROM Users ORDER BY id ASC")->fetchAll();
 
 $games = $pdo->query("
-    SELECT g.id, g.name, g.price, i.filename AS cover_image, COUNT(k.id) AS stock
+    SELECT g.id, g.name, g.price, 
+           MAX(i.filename) AS cover_image, 
+           COUNT(k.id) AS stock
     FROM Games g
     LEFT JOIN Game_Images i ON g.id = i.game_id AND i.is_cover = 1
     LEFT JOIN Game_Keys k ON g.id = k.game_id AND k.is_sold = 0
-    GROUP BY g.id ORDER BY g.id DESC
+    GROUP BY g.id, g.name, g.price
+    ORDER BY g.id DESC
 ")->fetchAll();
-
 function statusBadgeClass($s) {
     return match(strtolower($s)) {
         'delivered', 'completed' => 'badge-green',
