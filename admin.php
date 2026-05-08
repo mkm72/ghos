@@ -45,7 +45,12 @@ if ($action === 'edit_game') {
 
 if ($action === 'delete_game') {
     $id = (int)$_POST['game_id'];
+    
+    $pdo->prepare('DELETE FROM Order_Items WHERE game_id = ?')->execute([$id]);
+    $pdo->prepare('DELETE FROM Game_Images WHERE game_id = ?')->execute([$id]);
+    $pdo->prepare('DELETE FROM Game_Keys WHERE game_id = ?')->execute([$id]);
     $pdo->prepare('DELETE FROM Games WHERE id = ?')->execute([$id]);
+    
     $_SESSION['success'] = 'Game deleted.';
     header('Location: admin.php'); exit;
 }
