@@ -111,11 +111,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     .alert-error   { background: #fff0f0; border: 1px solid #fca5a5; color: #b91c1c; }
     .alert-success { background: #f0fdf4; border: 1px solid #86efac; color: #15803d; }
+    .form-section          { display: none; }
+    .form-section.active   { display: block; }
+
     /* Password Strength Meter */
-    .strength-wrap {
-        margin-top: 8px;
-        margin-bottom: 4px;
-    }
+    .strength-wrap { margin-top: -8px; margin-bottom: 16px; }
     .strength-bar-track {
         height: 5px;
         background: #e0e0e0;
@@ -133,12 +133,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         font-size: 12px;
         font-weight: bold;
         margin-bottom: 6px;
+        color: #999;
     }
-    .strength-hints {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 6px;
-    }
+    .strength-hints { display: flex; flex-wrap: wrap; gap: 5px; }
     .hint {
         font-size: 11px;
         padding: 3px 8px;
@@ -147,10 +144,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         color: #999;
         transition: all 0.2s;
     }
-    .hint.met {
-        background: #dcfce7;
-        color: #15803d;
-    }
+    .hint.met { background: #dcfce7; color: #15803d; }
 </style>
 </head>
 <body>
@@ -232,7 +226,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="strength-bar-track">
                     <div class="strength-bar-fill" id="strength-bar"></div>
                 </div>
-                <div class="strength-label" id="strength-label" style="color:#999;">Enter a password</div>
+                <div class="strength-label" id="strength-label">Enter a password</div>
                 <div class="strength-hints">
                     <span class="hint" id="hint-length">8+ characters</span>
                     <span class="hint" id="hint-number">Number</span>
@@ -266,15 +260,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     function checkStrength(val) {
-        const bar    = document.getElementById('strength-bar');
-        const label  = document.getElementById('strength-label');
+        const bar   = document.getElementById('strength-bar');
+        const label = document.getElementById('strength-label');
 
         const hasLength  = val.length >= 8;
         const hasNumber  = /[0-9]/.test(val);
         const hasSpecial = /[^a-zA-Z0-9]/.test(val);
         const hasUpper   = /[A-Z]/.test(val);
 
-        // Update hint pills
         document.getElementById('hint-length') .classList.toggle('met', hasLength);
         document.getElementById('hint-number') .classList.toggle('met', hasNumber);
         document.getElementById('hint-special').classList.toggle('met', hasSpecial);
@@ -283,11 +276,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         const score = [hasLength, hasNumber, hasSpecial, hasUpper].filter(Boolean).length;
 
         const levels = [
-            { pct: '0%',   color: '#e0e0e0', text: 'Enter a password',  textColor: '#999'     },
-            { pct: '25%',  color: '#ef4444', text: '🔴 Weak',           textColor: '#ef4444'  },
-            { pct: '50%',  color: '#f97316', text: '🟠 Fair',           textColor: '#f97316'  },
-            { pct: '75%',  color: '#eab308', text: '🟡 Medium',         textColor: '#eab308'  },
-            { pct: '100%', color: '#22c55e', text: '🟢 Strong',         textColor: '#22c55e'  },
+            { pct: '0%',   color: '#e0e0e0', text: 'Enter a password', textColor: '#999'     },
+            { pct: '25%',  color: '#ef4444', text: '🔴 Weak',          textColor: '#ef4444'  },
+            { pct: '50%',  color: '#f97316', text: '🟠 Fair',          textColor: '#f97316'  },
+            { pct: '75%',  color: '#eab308', text: '🟡 Medium',        textColor: '#eab308'  },
+            { pct: '100%', color: '#22c55e', text: '🟢 Strong',        textColor: '#22c55e'  },
         ];
 
         const level = val.length === 0 ? levels[0] : levels[score];
