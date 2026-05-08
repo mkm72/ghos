@@ -46,7 +46,7 @@ function applyCurrency(currency, exchangeRate) {
         if (currency === 'SAR') {
             const sarVal = (usdVal * exchangeRate).toFixed(2);
             // USE innerHTML and <bdi> to prevent RTL text from breaking the layout
-            el.innerHTML = sarVal + ' <bdi>⃁</bdi>';
+            el.innerHTML = sarVal + ' ⃁';
         } else {
             el.innerHTML = '$' + usdVal.toFixed(2);
         }
