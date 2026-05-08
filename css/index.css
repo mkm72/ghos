@@ -225,6 +225,7 @@
     background-color: white;
     cursor: pointer;
     outline: none;
+    appearance: none;
     transition: border-color 0.2s;
 }
 .sort-select:hover,
