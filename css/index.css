@@ -213,7 +213,6 @@
     font-weight: bold;
     color: #2563eb;
 }
-
 .sort-select {
     background-color: white;
     border: 1px solid #e0e0e0;
@@ -222,15 +221,11 @@
     font-size: 13px;
     font-weight: bold;
     color: #555;
-    cursor: pointer;
-    outline: none;
-    appearance: none;
-    -webkit-appearance: none;
+    text-decoration: none;
     transition: all 0.2s ease;
 }
-.sort-select:hover,
-.sort-select:focus {
-    background-color: #2563eb;
+.sort-select:hover, .sort-select.active {
+    background-color: #e0e0e0;
     color: white;
-    border-color: #2563eb;
+    border-color: #e0e0e0;
 }

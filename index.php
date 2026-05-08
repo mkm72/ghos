@@ -141,7 +141,7 @@ $bg_colors = ['bg-purple', 'bg-green', 'bg-dark', 'bg-blue', 'bg-red', 'bg-navy'
     <div class="games-section">
         <div style="display: flex; justify-content: space-between; align-items: center;">
             <h2 class="section-title">Browse Games</h2>
-            <select onchange="window.location='index.php?sort='+this.value+'&category=<?php echo urlencode($current_category); ?>'" class="category-pill">
+            <select onchange="window.location='index.php?sort='+this.value+'&category=<?php echo urlencode($current_category); ?>'" class="sort-select">
                 <option value="rating"      <?= ($_GET['sort'] ?? '') === 'rating'     ? 'selected' : '' ?>>Top Rated</option>
                 <option value="price_asc"   <?= ($_GET['sort'] ?? '') === 'price_asc'  ? 'selected' : '' ?>>Price: Low to High</option>
                 <option value="price_desc"  <?= ($_GET['sort'] ?? '') === 'price_desc' ? 'selected' : '' ?>>Price: High to Low</option>
