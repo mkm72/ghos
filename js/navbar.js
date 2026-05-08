@@ -87,7 +87,12 @@ function initContactModal() {
 }
 
 // Run the sync function when the page normally loads
-document.addEventListener('DOMContentLoaded', syncCurrency);
+// document.addEventListener('DOMContentLoaded', syncCurrency);
+// Run on DOM ready
+document.addEventListener('DOMContentLoaded', () => {
+    syncCurrency();
+    initContactModal();
+});
 
 // Run the sync function if the user navigates using the browser's "Back" button
 window.addEventListener('pageshow', syncCurrency);
