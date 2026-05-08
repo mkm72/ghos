@@ -89,23 +89,6 @@ $bg_colors = ['bg-purple', 'bg-green', 'bg-dark', 'bg-blue', 'bg-red', 'bg-navy'
     <link rel="stylesheet" href="css/navbar.css">
     <link rel="stylesheet" href="css/index.css">
 </head>
-<style>
-select.sort-select {
-    appearance: none !important;
-    -webkit-appearance: none !important;
-    background-color: transparent !important;
-    border: 2px solid #e0e0e0 !important;
-    padding: 8px 32px 8px 18px !important;
-    border-radius: 20px !important;
-    font-size: 13px !important;
-    font-weight: bold !important;
-    color: #555 !important;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") !important;
-    background-repeat: no-repeat !important;
-    background-position: right 12px center !important;
-    background-size: 14px !important;
-}
-</style>
 <body>
 
     <?php include 'navbar.php'; ?>
