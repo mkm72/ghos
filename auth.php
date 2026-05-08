@@ -2,6 +2,8 @@
 session_start();
 require_once 'php/db_connect.php';
 
+require_once 'sendEmail.php';
+
 $error   = '';
 $success = '';
 $mode    = 'login';
@@ -35,12 +37,53 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $hash = password_hash($pass, PASSWORD_BCRYPT);
                 $ins  = $pdo->prepare('INSERT INTO Users (email, password, role) VALUES (?, ?, ?)');
                 $ins->execute([$email, $hash, 'user']);
-                
+
                 // --- CLAIM GUEST ORDERS ---
-                // Automatically link any past guest orders made with this email to the new account
                 $new_user_id = $pdo->lastInsertId();
                 $claim_stmt = $pdo->prepare('UPDATE Orders SET user_id = ? WHERE guest_email = ? AND user_id IS NULL');
                 $claim_stmt->execute([$new_user_id, $email]);
+                // --------------------------
+
+                // --- SEND WELCOME EMAIL ---
+                sendEmail(
+                    $email,
+                    $email,
+                    'Welcome to GameHub! 🎮',
+                    "
+                    <div style='font-family: Arial, sans-serif; max-width: 500px; margin: auto; padding: 20px;'>
+                        <div style='text-align:center; margin-bottom: 24px;'>
+                            <div style='display:inline-block; background:#1a1a1a; color:white;
+                                        font-size:22px; font-weight:bold; padding:10px 24px;
+                                        border-radius:8px; letter-spacing:2px;'>
+                                Ghos
+                            </div>
+                        </div>
+                        <h2 style='color:#1a1a1a; margin-bottom:8px;'>Welcome to GameHub! 🎮</h2>
+                        <p style='color:#555; font-size:15px;'>
+                            Your account has been created successfully.
+                        </p>
+                        <div style='background:#f9f9f9; border:1px solid #e0e0e0;
+                                    border-radius:8px; padding:14px 18px; margin: 20px 0;'>
+                            <p style='margin:0; font-size:14px; color:#333;'>
+                                <strong>Email:</strong> $email
+                            </p>
+                        </div>
+                        <p style='color:#555; font-size:14px;'>
+                            You can now log in and start exploring our store.
+                        </p>
+                        <a href='https://ghos.shop/auth.php'
+                           style='display:inline-block; margin-top:10px; padding:11px 24px;
+                                  background:#1a1a1a; color:white; border-radius:8px;
+                                  text-decoration:none; font-size:14px; font-weight:bold;'>
+                            Go to Login →
+                        </a>
+                        <hr style='border:none; border-top:1px solid #e0e0e0; margin:28px 0 16px;'>
+                        <p style='font-size:12px; color:#999; margin:0;'>
+                            GameHub Online Store — <a href='https://ghos.shop' style='color:#999;'>ghos.shop</a>
+                        </p>
+                    </div>
+                    "
+                );
                 // --------------------------
 
                 $success = 'Account created! You can now log in.';
@@ -56,7 +99,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->execute([$email]);
             $user = $stmt->fetch();
             if ($user && password_verify($pass, $user['password'])) {
-            
+
                 if ((int)$user['is_active'] === 0) {
                     $error = 'Your account has been suspended. Please contact us via Discord or email.';
                 } else {
@@ -66,7 +109,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     header('Location: index.php');
                     exit;
                 }
-            
+
             } else {
                 $error = 'Invalid email or password.';
             }
