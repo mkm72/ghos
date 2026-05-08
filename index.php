@@ -9,14 +9,22 @@ $is_logged_in = isset($_SESSION['user_id']);
 
 $current_category = isset($_GET['category']) ? trim($_GET['category']) : 'All Games';
 
-$random_order_by = "ORDER BY RAND()"; // NOTE: Can be slow on large tables; centralized for easier replacement.
+$sort = $_GET['sort'] ?? '';
+$random_order_by = match($sort) {
+    'price_asc'  => 'ORDER BY g.price ASC',
+    'price_desc' => 'ORDER BY g.price DESC',
+    'name'       => 'ORDER BY g.name ASC',
+    default      => 'ORDER BY RAND()',
+};
+
+// $random_order_by = "ORDER BY RAND()"; // NOTE: Can be slow on large tables; centralized for easier replacement.
 
 // 1. Fetch Multiple Featured Games for the Hero Carousel (Randomized)
 $stmt_featured = $pdo->prepare("
     SELECT g.id, g.name, g.price, i.filename AS cover_image
     FROM Games g
     JOIN Game_Images i ON g.id = i.game_id AND i.is_cover = 1
-    $random_order_by
+    ORDER BY RAND()
     LIMIT 3
 ");
 $stmt_featured->execute();
@@ -52,6 +60,7 @@ if ($current_category !== 'All Games') {
 }
 
 $grid_query .= " $random_order_by"; // Shuffles the entire grid
+
 
 $stmt_games = $pdo->prepare($grid_query);
 
@@ -132,6 +141,13 @@ $bg_colors = ['bg-purple', 'bg-green', 'bg-dark', 'bg-blue', 'bg-red', 'bg-navy'
     <div class="games-section">
         <div style="display: flex; justify-content: space-between; align-items: center;">
             <h2 class="section-title">Browse Games</h2>
+            <select onchange="window.location='index.php?sort='+this.value+'&category=<?php echo urlencode($current_category); ?>'"
+                    class="sort-select">
+                <option value="rating"      <?= ($_GET['sort'] ?? '') === 'rating'     ? 'selected' : '' ?>>Top Rated</option>
+                <option value="price_asc"   <?= ($_GET['sort'] ?? '') === 'price_asc'  ? 'selected' : '' ?>>Price: Low to High</option>
+                <option value="price_desc"  <?= ($_GET['sort'] ?? '') === 'price_desc' ? 'selected' : '' ?>>Price: High to Low</option>
+                <option value="name"        <?= ($_GET['sort'] ?? '') === 'name'       ? 'selected' : '' ?>>Name: A–Z</option>
+            </select>
         </div>
 
         <div class="category-bar">
@@ -177,7 +193,7 @@ $bg_colors = ['bg-purple', 'bg-green', 'bg-dark', 'bg-blue', 'bg-red', 'bg-navy'
                     </div>
                     <?php endif; ?>
                 </div>
-                
+
                 <div class="game-info">
                     <div class="game-name"><?php echo htmlspecialchars($game['name']); ?></div>
                     
@@ -187,7 +203,6 @@ $bg_colors = ['bg-purple', 'bg-green', 'bg-dark', 'bg-blue', 'bg-red', 'bg-navy'
                             echo htmlspecialchars(trim($genres_array[0])); 
                         ?>
                     </div>
-
                     <div class="game-platform"><?php echo htmlspecialchars($game['platform']); ?></div>
                     <div class="game-footer" style="margin-top: 10px;">
                         <span class="game-price price-display" data-usd="<?php echo $game['price']; ?>">$<?php echo number_format($game['price'], 2); ?></span>
