@@ -17,8 +17,6 @@ $random_order_by = match($sort) {
     default      => 'ORDER BY RAND()',
 };
 
-// $random_order_by = "ORDER BY RAND()"; // NOTE: Can be slow on large tables; centralized for easier replacement.
-
 // 1. Fetch Multiple Featured Games for the Hero Carousel (Randomized)
 $stmt_featured = $pdo->prepare("
     SELECT g.id, g.name, g.price, i.filename AS cover_image
@@ -54,13 +52,11 @@ $grid_query = "
     LEFT JOIN Game_Images i ON g.id = i.game_id AND i.is_cover = 1
 ";
 
-// If a specific category is selected, add a WHERE clause
 if ($current_category !== 'All Games') {
     $grid_query .= " WHERE g.genres LIKE :category ";
 }
 
-$grid_query .= " $random_order_by"; // Shuffles the entire grid
-
+$grid_query .= " $random_order_by";
 
 $stmt_games = $pdo->prepare($grid_query);
 
@@ -78,6 +74,16 @@ unset($g);
 
 // Array of background colors
 $bg_colors = ['bg-purple', 'bg-green', 'bg-dark', 'bg-blue', 'bg-red', 'bg-navy', 'bg-black', 'bg-forest'];
+
+// Sort options for the custom dropdown
+$sort_options = [
+    'rating'     => 'Top Rated',
+    'price_asc'  => 'Price: Low to High',
+    'price_desc' => 'Price: High to Low',
+    'name'       => 'Name: A–Z',
+];
+$current_sort       = $_GET['sort'] ?? 'rating';
+$current_sort_label = $sort_options[$current_sort] ?? 'Top Rated';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -110,7 +116,7 @@ $bg_colors = ['bg-purple', 'bg-green', 'bg-dark', 'bg-blue', 'bg-red', 'bg-navy'
                 </button>
             </div>
         </div>
-        <?php unset($_SESSION['guest_success']); // Clear it so it only shows once ?>
+        <?php unset($_SESSION['guest_success']); ?>
     <?php endif; ?>
     <!-- ========================================== -->
 
@@ -141,12 +147,27 @@ $bg_colors = ['bg-purple', 'bg-green', 'bg-dark', 'bg-blue', 'bg-red', 'bg-navy'
     <div class="games-section">
         <div style="display: flex; justify-content: space-between; align-items: center;">
             <h2 class="section-title">Browse Games</h2>
-            <select onchange="window.location='index.php?sort='+this.value+'&category=<?php echo urlencode($current_category); ?>'" class="sort-select">
-                <option value="rating"      <?= ($_GET['sort'] ?? '') === 'rating'     ? 'selected' : '' ?>>Top Rated</option>
-                <option value="price_asc"   <?= ($_GET['sort'] ?? '') === 'price_asc'  ? 'selected' : '' ?>>Price: Low to High</option>
-                <option value="price_desc"  <?= ($_GET['sort'] ?? '') === 'price_desc' ? 'selected' : '' ?>>Price: High to Low</option>
-                <option value="name"        <?= ($_GET['sort'] ?? '') === 'name'       ? 'selected' : '' ?>>Name: A–Z</option>
-            </select>
+
+            <!-- ── Custom Sort Dropdown ── -->
+            <div class="custom-select-wrapper" id="sortDropdown">
+                <div class="custom-select-trigger" onclick="toggleSortDropdown(event)">
+                    <span id="sort-label"><?php echo htmlspecialchars($current_sort_label); ?></span>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                         stroke="#555555" stroke-width="2.5"
+                         stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                </div>
+                <div class="custom-select-options">
+                    <?php foreach ($sort_options as $value => $label): ?>
+                        <div class="custom-option <?php echo $current_sort === $value ? 'selected' : ''; ?>"
+                             onclick="applySort('<?php echo $value; ?>')">
+                            <?php echo htmlspecialchars($label); ?>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+            <!-- ── End Custom Sort Dropdown ── -->
         </div>
 
         <div class="category-bar">
@@ -173,8 +194,6 @@ $bg_colors = ['bg-purple', 'bg-green', 'bg-dark', 'bg-blue', 'bg-red', 'bg-navy'
                     $current_bg = $bg_colors[$color_index % count($bg_colors)];
                     $color_index++;
                     $image_path = ltrim($game['cover_image'], '/');
-                    
-                    // If the index is 16 or higher, it gets the hidden-game class for JS to reveal later
                     $hidden_class = $index >= 16 ? 'hidden-game' : '';
             ?>
             <a href="product.php?id=<?php echo $game['id']; ?>" class="game-card <?php echo $hidden_class; ?>">
@@ -235,6 +254,27 @@ $bg_colors = ['bg-purple', 'bg-green', 'bg-dark', 'bg-blue', 'bg-red', 'bg-navy'
     </div>
 
     <script src="js/index.js"></script>
+
+    <script>
+        // ── Custom Sort Dropdown Logic ──
+        const currentCategory = <?php echo json_encode($current_category); ?>;
+
+        function toggleSortDropdown(e) {
+            e.stopPropagation();
+            document.getElementById('sortDropdown').classList.toggle('open');
+        }
+
+        function applySort(value) {
+            const url = new URL(window.location.href);
+            url.searchParams.set('sort', value);
+            window.location.href = url.toString();
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function () {
+            document.getElementById('sortDropdown').classList.remove('open');
+        });
+    </script>
 
 </body>
 </html>
