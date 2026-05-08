@@ -61,7 +61,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 sendEmail(
                     $email,
                     $email,
-                    'Your GameHub verification code 🎮',
+                    'Your GameHub verification code',
                     "
                     <div style='font-family: Arial, sans-serif; max-width: 500px; margin: auto; padding: 20px;'>
                         <div style='text-align:center; margin-bottom: 24px;'>
