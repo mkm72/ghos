@@ -2,7 +2,7 @@
 session_start();
 require_once 'php/db_connect.php';
 
-require_once 'php/sendEmail.php';
+require_once 'sendEmail.php';
 
 $error   = '';
 $success = '';
