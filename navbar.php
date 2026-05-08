@@ -32,7 +32,7 @@ if ($is_logged_in) {
     </div>
     
     <div class="navbar-links">
-        <a href="javascript:void(0)" class="contact-link">📞 Contact Us</a>
+        <a href="#contactModal" class="contact-link">📞 Contact Us</a>
 
         <select id="currencySelector" class="currency-select">
             <option value="USD">USD ($)</option>
