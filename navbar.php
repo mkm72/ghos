@@ -73,7 +73,7 @@ if ($is_logged_in) {
 <!-- ========== CONTACT MODAL ========== -->
 <div id="contactModal" class="modal">
     <div class="modal-content">
-        <span class="close-btn">×</span>
+        <span class="close-btn" onclick="document.getElementById('contactModal').style.display='none'">×</span>
         <h2>Contact Us</h2>
         <p><strong>Email:</strong> support@ghos.com</p>
         <p><strong>Location:</strong> IAU, Saudi Arabia</p>
