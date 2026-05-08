@@ -28,7 +28,15 @@ if ($is_logged_in) {
         <span class="logo-name">GameHub Online Store</span>
     </a>
     <div class="navbar-search">
-        <input type="text" placeholder="Search for games...">
+    <form method="GET" action="index.php" style="display:flex; gap:6px;">
+        <input type="text" name="search" placeholder="Search for games..." 
+               value="<?php echo htmlspecialchars($_GET['search'] ?? ''); ?>">
+        <button type="submit" style="
+            background:#2563eb; color:white; border:none; 
+            padding:8px 14px; border-radius:6px; cursor:pointer; font-size:14px;">
+            🔍
+        </button>
+    </form>
     </div>
     
     <div class="navbar-links">
