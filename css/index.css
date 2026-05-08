@@ -4,21 +4,23 @@
     width: 100%;
     overflow: hidden;
 }
+
 .hero-slides-container {
     display: flex;
     transition: transform 0.5s ease-in-out;
     width: 100%;
 }
+
 .hero-slide {
     min-width: 100%;
     box-sizing: border-box;
-    
-    min-height: 550px; 
+
+    min-height: 550px;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    padding: 40px 30px; 
-    
+    padding: 40px 30px;
+
     text-align: left;
     background-size: cover;
     background-position: center;
@@ -28,8 +30,9 @@
 .featured-product-inner {
     max-width: 1100px;
     margin: 0 auto;
-    width: 100%; 
+    width: 100%;
 }
+
 .featured-product-badge {
     background-color: #ef4444;
     color: white;
@@ -41,23 +44,27 @@
     margin-bottom: 16px;
     text-transform: uppercase;
 }
+
 .hero-slide h1 {
     font-size: 48px;
     font-weight: bold;
     color: white;
     margin-bottom: 12px;
 }
+
 .featured-product-promo {
     color: #dddddd;
     font-size: 18px;
     margin-bottom: 12px;
 }
+
 .featured-product-price {
     font-size: 36px;
     font-weight: bold;
     color: #3b82f6;
     margin-bottom: 24px;
 }
+
 .carousel-btn {
     position: absolute;
     top: 50%;
@@ -76,11 +83,18 @@
     justify-content: center;
     transition: background 0.2s;
 }
+
 .carousel-btn:hover {
     background: rgba(37, 99, 235, 0.8);
 }
-.prev-btn { left: 20px; }
-.next-btn { right: 20px; }
+
+.prev-btn {
+    left: 20px;
+}
+
+.next-btn {
+    right: 20px;
+}
 
 /* ---- GAMES SECTION ---- */
 .games-section {
@@ -88,6 +102,7 @@
     margin: 0 auto;
     padding: 40px 20px;
 }
+
 .section-title {
     font-size: 22px;
     font-weight: bold;
@@ -102,6 +117,7 @@
     flex-wrap: wrap;
     margin-bottom: 24px;
 }
+
 .category-pill {
     background-color: white;
     border: 1px solid #e0e0e0;
@@ -113,7 +129,9 @@
     text-decoration: none;
     transition: all 0.2s ease;
 }
-.category-pill:hover, .category-pill.active {
+
+.category-pill:hover,
+.category-pill.active {
     background-color: #2563eb;
     color: white;
     border-color: #2563eb;
@@ -125,6 +143,7 @@
     grid-template-columns: repeat(4, 1fr);
     gap: 20px;
 }
+
 .game-card {
     background-color: white;
     border: 1px solid #e0e0e0;
@@ -135,6 +154,7 @@
     display: block;
     transition: all 0.2s ease;
 }
+
 .game-card:hover {
     border-color: #2563eb;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
@@ -153,11 +173,13 @@
     font-size: 48px;
     position: relative;
 }
+
 .game-image img {
     width: 100%;
     height: 100%;
     object-fit: cover;
 }
+
 .out-of-stock-overlay {
     position: absolute;
     top: 0;
@@ -169,6 +191,7 @@
     align-items: center;
     justify-content: center;
 }
+
 .out-of-stock-label {
     background-color: #ef4444;
     color: white;
@@ -178,14 +201,17 @@
     border-radius: 4px;
     text-transform: uppercase;
 }
+
 .game-info {
     padding: 14px;
 }
+
 .game-name {
     font-size: 15px;
     font-weight: bold;
     margin-bottom: 4px;
 }
+
 .game-genre {
     font-size: 11px;
     color: #888;
@@ -193,42 +219,52 @@
     text-transform: uppercase;
     font-weight: bold;
 }
+
 .game-platform {
     font-size: 12px;
     color: #888888;
     margin-bottom: 10px;
 }
+
 .game-delivery {
     font-size: 12px;
     color: #16a34a;
     margin-bottom: 10px;
 }
+
 .game-footer {
     display: flex;
     align-items: center;
     justify-content: space-between;
 }
+
 .game-price {
     font-size: 16px;
     font-weight: bold;
     color: #2563eb;
 }
+
 .sort-select {
-    background-color: white !important;
-    border: 1px solid #e0e0e0 !important;
-    padding: 8px 18px !important;
-    border-radius: 20px !important;
-    font-size: 13px !important;
-    font-weight: bold !important;
-    color: #555 !important;
+    background-color: transparent;
+    border: 1px solid #444;
+    padding: 8px 32px 8px 18px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: bold;
+    color: inherit;
     cursor: pointer;
     outline: none;
-    appearance: none !important;
-    -webkit-appearance: none !important;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 14px;
     transition: all 0.2s ease;
 }
-.sort-select:hover, .sort-select:focus {
-    background-color: #2563eb !important;
-    color: white !important;
-    border-color: #2563eb !important;
-}
+
+.sort-select:hover,
+.sort-select:focus {
+    background-color: #2563eb;
+    color: white;
+    border-color: #2563eb;
