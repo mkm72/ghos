@@ -1,7 +1,7 @@
 // js/navbar.js
 
 function syncCurrency() {
-    const exchangeRate = 3; // 1 USD = 3.75 SAR
+    const exchangeRate = 3.75; // 1 USD = 3.75 SAR
     const selector = document.getElementById('currencySelector');
     
     // 1. Check if the user already chose a currency previously
