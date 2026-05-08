@@ -18,8 +18,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $error = 'All fields are required.';
         } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             $error = 'Invalid email address.';
-        } elseif (strlen($pass) < 6) {
-            $error = 'Password must be at least 6 characters.';
+        } elseif (strlen($pass) < 8) {
+            $error = 'Password must be at least 8 characters.';
+        } elseif (!preg_match('/[0-9]/', $pass)) {
+            $error = 'Password must contain at least one number.';
+        } elseif (!preg_match('/[^a-zA-Z0-9]/', $pass)) {
+            $error = 'Password must contain at least one special character.';
         } elseif ($pass !== $repeat) {
             $error = 'Passwords do not match.';
         } else {
@@ -107,8 +111,46 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     .alert-error   { background: #fff0f0; border: 1px solid #fca5a5; color: #b91c1c; }
     .alert-success { background: #f0fdf4; border: 1px solid #86efac; color: #15803d; }
-    .form-section          { display: none; }
-    .form-section.active   { display: block; }
+    /* Password Strength Meter */
+    .strength-wrap {
+        margin-top: 8px;
+        margin-bottom: 4px;
+    }
+    .strength-bar-track {
+        height: 5px;
+        background: #e0e0e0;
+        border-radius: 99px;
+        overflow: hidden;
+        margin-bottom: 6px;
+    }
+    .strength-bar-fill {
+        height: 100%;
+        width: 0%;
+        border-radius: 99px;
+        transition: width 0.3s ease, background-color 0.3s ease;
+    }
+    .strength-label {
+        font-size: 12px;
+        font-weight: bold;
+        margin-bottom: 6px;
+    }
+    .strength-hints {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+    .hint {
+        font-size: 11px;
+        padding: 3px 8px;
+        border-radius: 99px;
+        background: #f0f0f0;
+        color: #999;
+        transition: all 0.2s;
+    }
+    .hint.met {
+        background: #dcfce7;
+        color: #15803d;
+    }
 </style>
 </head>
 <body>
@@ -185,7 +227,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <input type="email" name="email" placeholder="your.email@example.com" required
                    value="<?= $mode === 'register' ? htmlspecialchars($_POST['email'] ?? '') : '' ?>">
             <label>Password</label>
-            <input type="password" name="password" placeholder="Min. 6 characters" required>
+            <input type="password" name="password" id="reg-password" placeholder="Min. 8 characters" required oninput="checkStrength(this.value)">
+            <div class="strength-wrap">
+                <div class="strength-bar-track">
+                    <div class="strength-bar-fill" id="strength-bar"></div>
+                </div>
+                <div class="strength-label" id="strength-label" style="color:#999;">Enter a password</div>
+                <div class="strength-hints">
+                    <span class="hint" id="hint-length">8+ characters</span>
+                    <span class="hint" id="hint-number">Number</span>
+                    <span class="hint" id="hint-special">Special character</span>
+                    <span class="hint" id="hint-upper">Uppercase</span>
+                </div>
+            </div>
             <label>Repeat Password</label>
             <input type="password" name="repeat_password" placeholder="••••••••" required>
             <button class="auth-btn" type="submit">Register</button>
@@ -209,6 +263,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         });
         document.getElementById('page-title').textContent = labels[mode].h1;
         document.getElementById('page-sub').textContent   = labels[mode].p;
+    }
+
+    function checkStrength(val) {
+        const bar    = document.getElementById('strength-bar');
+        const label  = document.getElementById('strength-label');
+
+        const hasLength  = val.length >= 8;
+        const hasNumber  = /[0-9]/.test(val);
+        const hasSpecial = /[^a-zA-Z0-9]/.test(val);
+        const hasUpper   = /[A-Z]/.test(val);
+
+        // Update hint pills
+        document.getElementById('hint-length') .classList.toggle('met', hasLength);
+        document.getElementById('hint-number') .classList.toggle('met', hasNumber);
+        document.getElementById('hint-special').classList.toggle('met', hasSpecial);
+        document.getElementById('hint-upper')  .classList.toggle('met', hasUpper);
+
+        const score = [hasLength, hasNumber, hasSpecial, hasUpper].filter(Boolean).length;
+
+        const levels = [
+            { pct: '0%',   color: '#e0e0e0', text: 'Enter a password',  textColor: '#999'     },
+            { pct: '25%',  color: '#ef4444', text: '🔴 Weak',           textColor: '#ef4444'  },
+            { pct: '50%',  color: '#f97316', text: '🟠 Fair',           textColor: '#f97316'  },
+            { pct: '75%',  color: '#eab308', text: '🟡 Medium',         textColor: '#eab308'  },
+            { pct: '100%', color: '#22c55e', text: '🟢 Strong',         textColor: '#22c55e'  },
+        ];
+
+        const level = val.length === 0 ? levels[0] : levels[score];
+        bar.style.width           = level.pct;
+        bar.style.backgroundColor = level.color;
+        label.textContent         = level.text;
+        label.style.color         = level.textColor;
     }
 </script>
 
