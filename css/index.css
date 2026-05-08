@@ -218,7 +218,7 @@
 .sort-select {
     padding: 8px 14px;
     border: 1px solid #e0e0e0;
-    border-radius: 8px;
+    border-radius: 20px;
     font-size: 13px;
     font-weight: bold;
     color: #555;
@@ -232,4 +232,16 @@
 .sort-select:focus {
     border-color: #2563eb;
     color: #2563eb;
+}
+
+.category-pill {
+    background-color: white;
+    border: 1px solid #e0e0e0;
+    padding: 8px 18px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: bold;
+    color: #555;
+    text-decoration: none;
+    transition: all 0.2s ease;
 }
