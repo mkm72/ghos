@@ -235,10 +235,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     .resend-link { background: none; border: none; color: #555; font-size: 13px; cursor: pointer; text-decoration: underline; padding: 0; }
     .resend-link:hover { color: #1a1a1a; }
     #countdown { font-weight: bold; color: #1a1a1a; }
-    .toggle-password { position:absolute; right:12px; top:50%; transform:translateY(-50%); background:none !important; border:none !important; color:#aaaaaa; cursor:pointer; padding:0 !important; margin:0 !important; width:auto !important; display:flex; align-items:center; line-height:0; box-shadow:none !important; font-size:inherit; border-radius:0 !important; }
-    .toggle-password:hover { color:#555555; background:none !important; }
-    .password-wrap { position:relative; margin-bottom:16px; }
-    .auth-card .password-wrap input { margin-bottom:0 !important; padding-right:42px !important; }
+    .password-wrap { position:relative !important; margin-bottom:16px !important; background:none !important; border:none !important; padding:0 !important; box-shadow:none !important; }
+    .password-wrap input[type="password"], .password-wrap input[type="text"] { margin-bottom:0 !important; padding-right:42px !important; width:100% !important; box-sizing:border-box !important; }
+    .toggle-password { position:absolute !important; right:12px !important; top:50% !important; transform:translateY(-50%) !important; background:none !important; border:none !important; color:#aaaaaa !important; cursor:pointer !important; padding:0 !important; margin:0 !important; width:auto !important; height:auto !important; display:flex !important; align-items:center !important; line-height:0 !important; box-shadow:none !important; border-radius:0 !important; outline:none !important; }
+    .toggle-password:hover { color:#555555 !important; background:none !important; }
 </style>
 </head>
 <body>
@@ -478,4 +478,3 @@ if (countdownEl) {
 
 </body>
 </html>
-
