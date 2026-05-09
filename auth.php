@@ -9,7 +9,6 @@ require_once 'sendEMail.php';
 $error   = '';
 $success = '';
 $mode = isset($_SESSION['pending_register']) && $_SESSION['pending_register'] ? 'verify' : 'login';
-// ─── HELPERS ────────────────────────────────────────────────────────────────
 
 function generateCode() {
     return str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
@@ -19,12 +18,9 @@ function codeExpired() {
     return !isset($_SESSION['code_expires']) || time() > $_SESSION['code_expires'];
 }
 
-// ─── HANDLE POST ────────────────────────────────────────────────────────────
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $mode = $_POST['mode'] ?? 'login';
 
-    // ── STEP 1: Register form submitted → send code ──────────────────────────
     if ($mode === 'register') {
         $email  = trim($_POST['email'] ?? '');
         $pass   = $_POST['password'] ?? '';
@@ -43,23 +39,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } elseif ($pass !== $repeat) {
             $error = 'Passwords do not match.';
         } else {
-            // Check if email already exists
             $stmt = $pdo->prepare('SELECT id FROM Users WHERE email = ?');
             $stmt->execute([$email]);
             if ($stmt->fetch()) {
                 $error = 'An account with that email already exists.';
             } else {
-                // Generate code and store everything in session (NOT in DB yet)
                 $code = generateCode();
                 $_SESSION['pending_register'] = [
                     'email' => $email,
                     'hash'  => password_hash($pass, PASSWORD_BCRYPT),
                 ];
                 $_SESSION['verify_code']    = $code;
-                $_SESSION['code_expires']   = time() + 600; // 10 minutes
+                $_SESSION['code_expires']   = time() + 600;
                 $_SESSION['code_attempts']  = 0;
 
-                // Send the code
                sendEmail(
                     $email,
                     $email,
@@ -67,40 +60,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     "
                     <div style='font-family: Arial, sans-serif; max-width: 500px; margin: auto; padding: 20px;'>
                         <div style='text-align:center; margin-bottom: 24px;'>
-                            <div style='display:inline-block; background:#1a1a1a; color:white;
-                                        font-size:22px; font-weight:bold; padding:10px 24px;
-                                        border-radius:8px; letter-spacing:2px;'>
-                                Ghos
-                            </div>
+                            <div style='display:inline-block; background:#1a1a1a; color:white; font-size:22px; font-weight:bold; padding:10px 24px; border-radius:8px; letter-spacing:2px;'>Ghos</div>
                         </div>
                         <h2 style='color:#1a1a1a; margin-bottom:8px;'>Verify your email</h2>
-                        <p style='color:#555; font-size:15px;'>
-                            Use the code below to complete your registration. It expires in <strong>10 minutes</strong>.
-                        </p>
+                        <p style='color:#555; font-size:15px;'>Use the code below to complete your registration. It expires in <strong>10 minutes</strong>.</p>
                         <div style='text-align:center; margin: 28px 0;'>
-                            <div style='display:inline-block; background:#f4f4f4; border:2px dashed #ccc;
-                                        border-radius:12px; padding:18px 36px;'>
-                                <span style='font-size:36px; font-weight:bold; letter-spacing:10px; color:#1a1a1a;'>
-                                    $code
-                                </span>
+                            <div style='display:inline-block; background:#f4f4f4; border:2px dashed #ccc; border-radius:12px; padding:18px 36px;'>
+                                <span style='font-size:36px; font-weight:bold; letter-spacing:10px; color:#1a1a1a;'>$code</span>
                             </div>
                         </div>
-                        <p style='color:#999; font-size:13px;'>
-                            If you did not try to register on GameHub, you can safely ignore this email.
-                        </p>
+                        <p style='color:#999; font-size:13px;'>If you did not try to register on GameHub, you can safely ignore this email.</p>
                         <hr style='border:none; border-top:1px solid #e0e0e0; margin:28px 0 16px;'>
-                        <p style='font-size:12px; color:#999; margin:0;'>
-                            GameHub Online Store — <a href='https://ghos.shop' style='color:#999;'>ghos.shop</a>
-                        </p>
-                    </div>
-                    "
+                        <p style='font-size:12px; color:#999; margin:0;'>GameHub Online Store — <a href='https://ghos.shop' style='color:#999;'>ghos.shop</a></p>
+                    </div>"
                 );
-
                 $mode = 'verify';
             }
         }
 
-    // ── STEP 2: Code submitted → verify then save to DB ──────────────────────
     } elseif ($mode === 'verify') {
         $entered = trim($_POST['code'] ?? '');
 
@@ -108,14 +85,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $error = 'Session expired. Please register again.';
             $mode  = 'register';
         } elseif (codeExpired()) {
-            // Clear session
-            unset($_SESSION['pending_register'], $_SESSION['verify_code'],
-                  $_SESSION['code_expires'], $_SESSION['code_attempts']);
+            unset($_SESSION['pending_register'], $_SESSION['verify_code'], $_SESSION['code_expires'], $_SESSION['code_attempts']);
             $error = 'Code expired. Please register again.';
             $mode  = 'register';
         } elseif ($_SESSION['code_attempts'] >= 5) {
-            unset($_SESSION['pending_register'], $_SESSION['verify_code'],
-                  $_SESSION['code_expires'], $_SESSION['code_attempts']);
+            unset($_SESSION['pending_register'], $_SESSION['verify_code'], $_SESSION['code_expires'], $_SESSION['code_attempts']);
             $error = 'Too many wrong attempts. Please register again.';
             $mode  = 'register';
         } elseif ($entered !== $_SESSION['verify_code']) {
@@ -124,12 +98,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $error = "Wrong code. $left attempt(s) remaining.";
             $mode  = 'verify';
         } else {
-            // ✅ Code correct — now save to DB
             $pending = $_SESSION['pending_register'];
             $email   = $pending['email'];
             $hash    = $pending['hash'];
 
-            // Double-check email not taken while user was verifying
             $stmt = $pdo->prepare('SELECT id FROM Users WHERE email = ?');
             $stmt->execute([$email]);
             if ($stmt->fetch()) {
@@ -140,20 +112,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $ins->execute([$email, $hash, 'user']);
                 $new_user_id = $pdo->lastInsertId();
 
-                // Claim guest orders
                 $claim_stmt = $pdo->prepare('UPDATE Orders SET user_id = ? WHERE guest_email = ? AND user_id IS NULL');
                 $claim_stmt->execute([$new_user_id, $email]);
 
-                // Clear session
-                unset($_SESSION['pending_register'], $_SESSION['verify_code'],
-                      $_SESSION['code_expires'], $_SESSION['code_attempts']);
-
+                unset($_SESSION['pending_register'], $_SESSION['verify_code'], $_SESSION['code_expires'], $_SESSION['code_attempts']);
                 $success = 'Account created! You can now log in.';
                 $mode    = 'login';
             }
         }
 
-    // ── Resend code ───────────────────────────────────────────────────────────
     } elseif ($mode === 'resend') {
         if (!isset($_SESSION['pending_register'])) {
             $error = 'Session expired. Please register again.';
@@ -168,44 +135,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             sendEmail(
                 $email,
                 $email,
-                'Your new GameHub verification code 🎮',
+                'Your new GameHub verification code',
                 "
                 <div style='font-family: Arial, sans-serif; max-width: 500px; margin: auto; padding: 20px;'>
                     <div style='text-align:center; margin-bottom: 24px;'>
-                        <div style='display:inline-block; background:#1a1a1a; color:white;
-                                    font-size:22px; font-weight:bold; padding:10px 24px;
-                                    border-radius:8px; letter-spacing:2px;'>
-                            Ghos
-                        </div>
+                        <div style='display:inline-block; background:#1a1a1a; color:white; font-size:22px; font-weight:bold; padding:10px 24px; border-radius:8px; letter-spacing:2px;'>Ghos</div>
                     </div>
                     <h2 style='color:#1a1a1a;'>New Verification Code</h2>
                     <p style='color:#555; font-size:15px;'>Here is your new code. It expires in <strong>10 minutes</strong>.</p>
                     <div style='text-align:center; margin: 28px 0;'>
-                        <div style='display:inline-block; background:#f4f4f4; border:2px dashed #ccc;
-                                    border-radius:12px; padding:18px 36px;'>
-                            <span style='font-size:36px; font-weight:bold; letter-spacing:10px; color:#1a1a1a;'>
-                                $code
-                            </span>
+                        <div style='display:inline-block; background:#f4f4f4; border:2px dashed #ccc; border-radius:12px; padding:18px 36px;'>
+                            <span style='font-size:36px; font-weight:bold; letter-spacing:10px; color:#1a1a1a;'>$code</span>
                         </div>
                     </div>
                     <hr style='border:none; border-top:1px solid #e0e0e0; margin:28px 0 16px;'>
-                    <p style='font-size:12px; color:#999; margin:0;'>
-                        GameHub Online Store — <a href='https://ghos.shop' style='color:#999;'>ghos.shop</a>
-                    </p>
-                </div>
-                "
+                    <p style='font-size:12px; color:#999; margin:0;'>GameHub Online Store — <a href='https://ghos.shop' style='color:#999;'>ghos.shop</a></p>
+                </div>"
             );
 
             $success = 'A new code has been sent to your email.';
             $mode    = 'verify';
         }
 
-    // ── LOGIN ─────────────────────────────────────────────────────────────────
-        $stmt = $pdo->prepare('
-    SELECT id, email, password, role, is_active, `2fa_enable`
-    FROM Users
-    WHERE email = ?
-');
     } elseif ($mode === 'login') {
         $email = trim($_POST['email'] ?? '');
         $pass  = $_POST['password'] ?? '';
@@ -213,57 +164,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (empty($email) || empty($pass)) {
             $error = 'Email and password are required.';
         } else {
-            $stmt = $pdo->prepare('SELECT id, email, password, role, is_active FROM Users WHERE email = ?');
+            $stmt = $pdo->prepare('SELECT id, email, password, role, is_active, 2fa_enabled FROM Users WHERE email = ?');
             $stmt->execute([$email]);
             $user = $stmt->fetch();
 
-           if ($user && password_verify($pass, $user['password'])) {
+            if ($user && password_verify($pass, $user['password'])) {
+                if ((int)$user['is_active'] === 0) {
+                    $error = 'Your account has been suspended. Please contact us via Discord or email.';
+                } else {
+                    if (!empty($user['2fa_enabled']) && (int)$user['2fa_enabled'] === 1) {
+                        $code = generateCode();
+                        $_SESSION['2fa_user'] = [
+                            'id'    => $user['id'],
+                            'email' => $user['email'],
+                            'role'  => $user['role']
+                        ];
+                        $_SESSION['2fa_code'] = $code;
+                        $_SESSION['2fa_expires'] = time() + 600;
+                        $_SESSION['2fa_attempts'] = 0;
 
-    if ((int)$user['is_active'] === 0) {
-
-        $error = 'Your account has been suspended. Please contact us via Discord or email.';
-
-    } else {
-
-        //  CHECK 2FA
-        if ((int)$user['2fa_enable'] === 1) {
-
-            $code = generateCode();
-
-            $_SESSION['2fa_user'] = [
-                'id'    => $user['id'],
-                'email' => $user['email'],
-                'role'  => $user['role']
-            ];
-
-            $_SESSION['2fa_code'] = $code;
-            $_SESSION['2fa_expires'] = time() + 600;
-            $_SESSION['2fa_attempts'] = 0;
-
-            sendEmail(
-                $user['email'],
-                $user['email'],
-                'Your Login Verification Code',
-                "<h2>Your login code is:</h2>
-                 <h1>$code</h1>
-                 <p>Expires in 10 minutes.</p>"
-            );
-            $mode = 'login_verify';
-
-        } else {
-
-            $_SESSION['user_id']    = $user['id'];
-            $_SESSION['user_email'] = $user['email'];
-            $_SESSION['role']       = $user['role'];
-            header('Location: index.php');
-            exit;
-        }
-    }
-
-} else {
-
-    $error = 'Invalid email or password.';
-}
+                        sendEmail(
+                            $user['email'],
+                            $user['email'],
+                            'Your Login Verification Code',
+                            "<h2>Your login code is:</h2><h1>$code</h1><p>Expires in 10 minutes.</p>"
+                        );
+                        $mode = 'login_verify';
+                    } else {
+                        $_SESSION['user_id']    = $user['id'];
+                        $_SESSION['user_email'] = $user['email'];
+                        $_SESSION['role']       = $user['role'];
+                        header('Location: index.php');
+                        exit;
+                    }
+                }
+            } else {
+                $error = 'Invalid email or password.';
             }
         }
     }
@@ -277,118 +213,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <title>GameHub — Sign In / Register</title>
 <link rel="stylesheet" href="css/auth.css">
 <style>
-    .tabs {
-        display: flex;
-        border: 1px solid #e0e0e0;
-        border-radius: 8px;
-        overflow: hidden;
-        margin-bottom: 20px;
-    }
-    .tab-btn {
-        flex: 1;
-        padding: 9px;
-        border: none;
-        background: #f9f9f9;
-        font-size: 13px;
-        font-weight: bold;
-        color: #777777;
-        cursor: pointer;
-    }
-    .tab-btn.active {
-        background: #1a1a1a;
-        color: white;
-    }
-    .alert {
-        font-size: 13px;
-        padding: 10px 12px;
-        border-radius: 8px;
-        margin-bottom: 14px;
-    }
+    .tabs { display: flex; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden; margin-bottom: 20px; }
+    .tab-btn { flex: 1; padding: 9px; border: none; background: #f9f9f9; font-size: 13px; font-weight: bold; color: #777777; cursor: pointer; }
+    .tab-btn.active { background: #1a1a1a; color: white; }
+    .alert { font-size: 13px; padding: 10px 12px; border-radius: 8px; margin-bottom: 14px; }
     .alert-error   { background: #fff0f0; border: 1px solid #fca5a5; color: #b91c1c; }
     .alert-success { background: #f0fdf4; border: 1px solid #86efac; color: #15803d; }
     .form-section        { display: none; }
     .form-section.active { display: block; }
-
-    /* Password Strength Meter */
     .strength-wrap { margin-top: -8px; margin-bottom: 16px; }
-    .strength-bar-track {
-        height: 5px;
-        background: #e0e0e0;
-        border-radius: 99px;
-        overflow: hidden;
-        margin-bottom: 6px;
-    }
-    .strength-bar-fill {
-        height: 100%;
-        width: 0%;
-        border-radius: 99px;
-        transition: width 0.3s ease, background-color 0.3s ease;
-    }
-    .strength-label {
-        font-size: 12px;
-        font-weight: bold;
-        margin-bottom: 6px;
-        color: #999;
-    }
+    .strength-bar-track { height: 5px; background: #e0e0e0; border-radius: 99px; overflow: hidden; margin-bottom: 6px; }
+    .strength-bar-fill { height: 100%; width: 0%; border-radius: 99px; transition: width 0.3s ease, background-color 0.3s ease; }
+    .strength-label { font-size: 12px; font-weight: bold; margin-bottom: 6px; color: #999; }
     .strength-hints { display: flex; flex-wrap: wrap; gap: 5px; }
-    .hint {
-        font-size: 11px;
-        padding: 3px 8px;
-        border-radius: 99px;
-        background: #f0f0f0;
-        color: #999;
-        transition: all 0.2s;
-    }
+    .hint { font-size: 11px; padding: 3px 8px; border-radius: 99px; background: #f0f0f0; color: #999; transition: all 0.2s; }
     .hint.met { background: #dcfce7; color: #15803d; }
-
-    /* Code input */
-    .code-input-wrap {
-        display: flex;
-        gap: 8px;
-        justify-content: center;
-        margin: 20px 0;
-    }
-    .code-digit {
-        width: 44px;
-        height: 52px;
-        text-align: center;
-        font-size: 22px;
-        font-weight: bold;
-        border: 2px solid #e0e0e0;
-        border-radius: 8px;
-        outline: none;
-        transition: border-color 0.2s;
-    }
+    .code-input-wrap { display: flex; gap: 8px; justify-content: center; margin: 20px 0; }
+    .code-digit { width: 44px; height: 52px; text-align: center; font-size: 22px; font-weight: bold; border: 2px solid #e0e0e0; border-radius: 8px; outline: none; transition: border-color 0.2s; }
     .code-digit:focus { border-color: #1a1a1a; }
-    .code-meta {
-        text-align: center;
-        font-size: 13px;
-        color: #888;
-        margin-bottom: 16px;
-    }
-    .resend-link {
-        background: none;
-        border: none;
-        color: #555;
-        font-size: 13px;
-        cursor: pointer;
-        text-decoration: underline;
-        padding: 0;
-    }
+    .code-meta { text-align: center; font-size: 13px; color: #888; margin-bottom: 16px; }
+    .resend-link { background: none; border: none; color: #555; font-size: 13px; cursor: pointer; text-decoration: underline; padding: 0; }
     .resend-link:hover { color: #1a1a1a; }
     #countdown { font-weight: bold; color: #1a1a1a; }
+
+    .password-wrap { position: relative; display: flex; align-items: center; }
+    .password-wrap input { width: 100%; padding-right: 50px; box-sizing: border-box; }
+    .toggle-password { position: absolute; right: 10px; background: none; border: none; color: #555; font-size: 12px; font-weight: bold; cursor: pointer; padding: 5px; }
+    .toggle-password:hover { color: #1a1a1a; }
 </style>
 </head>
 <body>
 
 <?php if ($error && strpos($error, 'suspended') !== false): ?>
-<div style="position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;
-            align-items:center;justify-content:center;z-index:9999;">
+<div style="position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex; align-items:center;justify-content:center;z-index:9999;">
     <div style="background:white;padding:20px;border-radius:10px;text-align:center;width:300px;">
         <h3>Account Suspended</h3>
         <p style="font-size:14px;">Please contact us via Discord or email.</p>
-        <button onclick="this.closest('div').parentElement.remove()"
-                style="margin-top:10px;padding:6px 15px;">OK</button>
+        <button onclick="this.closest('div').parentElement.remove()" style="margin-top:10px;padding:6px 15px;">OK</button>
     </div>
 </div>
 <?php endif; ?>
@@ -399,15 +260,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <?= $mode === 'register' ? 'Create Account' : ($mode === 'verify' ? 'Verify Email' : 'Welcome Back') ?>
     </h1>
     <p id="page-sub">
-        <?= $mode === 'register' ? 'Join GameHub Online Store today' :
-           ($mode === 'verify'   ? 'Enter the code sent to your email' :
-                                   'Sign in to your GameHub account') ?>
+        <?= $mode === 'register' ? 'Join GameHub Online Store today' : ($mode === 'verify' ? 'Enter the code sent to your email' : 'Sign in to your GameHub account') ?>
     </p>
 </div>
 
 <div class="auth-card">
-
-    <!-- Tabs (hidden during verify step) -->
     <?php if ($mode !== 'verify'): ?>
     <div class="tabs">
         <button class="tab-btn <?= $mode === 'login'    ? 'active' : '' ?>" onclick="switchMode('login')"    type="button" id="tab-login">Login</button>
@@ -418,35 +275,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <?php if ($error):   ?><div class="alert alert-error"  ><?= htmlspecialchars($error)   ?></div><?php endif; ?>
     <?php if ($success): ?><div class="alert alert-success"><?= htmlspecialchars($success) ?></div><?php endif; ?>
 
-    <!-- ── LOGIN ── -->
     <div class="form-section <?= $mode === 'login' ? 'active' : '' ?>" id="panel-login">
         <form method="POST" action="auth.php">
             <input type="hidden" name="mode" value="login">
             <label>Email</label>
-            <input type="email" name="email" placeholder="your.email@example.com" required
-                   value="<?= $mode === 'login' ? htmlspecialchars($_POST['email'] ?? '') : '' ?>">
+            <input type="email" name="email" placeholder="your.email@example.com" required value="<?= $mode === 'login' ? htmlspecialchars($_POST['email'] ?? '') : '' ?>">
+            
             <label>Password</label>
-            <input type="password" name="password" placeholder="••••••••" required>
+            <div class="password-wrap">
+                <input type="password" name="password" placeholder="••••••••" required>
+                <button type="button" class="toggle-password" onclick="togglePass(this)">Show</button>
+            </div>
+
             <button class="auth-btn" type="submit">Login</button>
         </form>
         <div class="auth-link">Don't have an account? <a onclick="switchMode('register')" href="#">Register here</a></div>
-        <div class="demo-box">
-            <strong>Demo Credentials</strong>
-            <p>Admin: <code>admin@gamestore.com</code> / <code>admin123</code><br>
-               User: Register a new account</p>
-        </div>
     </div>
 
-    <!-- ── REGISTER ── -->
     <div class="form-section <?= $mode === 'register' ? 'active' : '' ?>" id="panel-register">
         <form method="POST" action="auth.php">
             <input type="hidden" name="mode" value="register">
             <label>Email</label>
-            <input type="email" name="email" placeholder="your.email@example.com" required
-                   value="<?= $mode === 'register' ? htmlspecialchars($_POST['email'] ?? '') : '' ?>">
+            <input type="email" name="email" placeholder="your.email@example.com" required value="<?= $mode === 'register' ? htmlspecialchars($_POST['email'] ?? '') : '' ?>">
+            
             <label>Password</label>
-            <input type="password" name="password" id="reg-password" placeholder="Min. 8 characters" required oninput="checkStrength(this.value)">
-            <div class="strength-wrap">
+            <div class="password-wrap">
+                <input type="password" name="password" id="reg-password" placeholder="Min. 8 characters" required oninput="checkStrength(this.value)">
+                <button type="button" class="toggle-password" onclick="togglePass(this)">Show</button>
+            </div>
+            
+            <div class="strength-wrap" style="margin-top: 8px;">
                 <div class="strength-bar-track">
                     <div class="strength-bar-fill" id="strength-bar"></div>
                 </div>
@@ -458,14 +316,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <span class="hint" id="hint-upper">Uppercase</span>
                 </div>
             </div>
+            
             <label>Repeat Password</label>
-            <input type="password" name="repeat_password" placeholder="••••••••" required>
-            <button class="auth-btn" type="submit">Send Verification Code</button>
+            <div class="password-wrap">
+                <input type="password" name="repeat_password" placeholder="••••••••" required>
+                <button type="button" class="toggle-password" onclick="togglePass(this)">Show</button>
+            </div>
+
+            <button class="auth-btn" type="submit" style="margin-top: 15px;">Send Verification Code</button>
         </form>
         <div class="auth-link">Already have an account? <a onclick="switchMode('login')" href="#">Login here</a></div>
     </div>
 
-    <!-- ── VERIFY CODE ── -->
     <?php if ($mode === 'verify'): ?>
     <div class="form-section active" id="panel-verify">
         <p style="text-align:center; font-size:14px; color:#555; margin-bottom:4px;">
@@ -505,12 +367,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <a href="index.php" class="back-link">← Back to Store</a>
 
 <script>
-// ── Tab switching ────────────────────────────────────────────────────────────
-const labels = {
-    login:    { h1: 'Welcome Back',   p: 'Sign in to your GameHub account' },
-    register: { h1: 'Create Account', p: 'Join GameHub Online Store today'  }
-};
 function switchMode(mode) {
+    const labels = {
+        login:    { h1: 'Welcome Back',   p: 'Sign in to your GameHub account' },
+        register: { h1: 'Create Account', p: 'Join GameHub Online Store today'  }
+    };
     ['login','register'].forEach(m => {
         document.getElementById('panel-' + m)?.classList.toggle('active', m === mode);
         document.getElementById('tab-'   + m)?.classList.toggle('active', m === mode);
@@ -519,7 +380,6 @@ function switchMode(mode) {
     document.getElementById('page-sub').textContent   = labels[mode].p;
 }
 
-// ── Password strength ────────────────────────────────────────────────────────
 function checkStrength(val) {
     const bar   = document.getElementById('strength-bar');
     const label = document.getElementById('strength-label');
@@ -534,10 +394,10 @@ function checkStrength(val) {
     const score  = [hasLength, hasNumber, hasSpecial, hasUpper].filter(Boolean).length;
     const levels = [
         { pct: '0%',   color: '#e0e0e0', text: 'Enter a password', textColor: '#999'    },
-        { pct: '25%',  color: '#ef4444', text: '🔴 Weak',          textColor: '#ef4444' },
-        { pct: '50%',  color: '#f97316', text: '🟠 Fair',          textColor: '#f97316' },
-        { pct: '75%',  color: '#eab308', text: '🟡 Medium',        textColor: '#eab308' },
-        { pct: '100%', color: '#22c55e', text: '🟢 Strong',        textColor: '#22c55e' },
+        { pct: '25%',  color: '#ef4444', text: 'Weak',             textColor: '#ef4444' },
+        { pct: '50%',  color: '#f97316', text: 'Fair',             textColor: '#f97316' },
+        { pct: '75%',  color: '#eab308', text: 'Medium',           textColor: '#eab308' },
+        { pct: '100%', color: '#22c55e', text: 'Strong',           textColor: '#22c55e' },
     ];
     const level = val.length === 0 ? levels[0] : levels[score];
     bar.style.width           = level.pct;
@@ -546,7 +406,17 @@ function checkStrength(val) {
     label.style.color         = level.textColor;
 }
 
-// ── Code input boxes ─────────────────────────────────────────────────────────
+function togglePass(btn) {
+    const input = btn.previousElementSibling;
+    if (input.type === 'password') {
+        input.type = 'text';
+        btn.textContent = 'Hide';
+    } else {
+        input.type = 'password';
+        btn.textContent = 'Show';
+    }
+}
+
 const digits  = document.querySelectorAll('.code-digit');
 const hidden  = document.getElementById('code-hidden');
 const btn     = document.getElementById('verify-btn');
@@ -563,8 +433,7 @@ if (digits.length) {
         });
         el.addEventListener('paste', e => {
             e.preventDefault();
-            const pasted = (e.clipboardData || window.clipboardData)
-                           .getData('text').replace(/[^0-9]/g, '').slice(0, 6);
+            const pasted = (e.clipboardData || window.clipboardData).getData('text').replace(/[^0-9]/g, '').slice(0, 6);
             [...pasted].forEach((ch, j) => { if (digits[j]) digits[j].value = ch; });
             if (digits[pasted.length - 1]) digits[pasted.length - 1].focus();
             syncCode();
@@ -578,7 +447,6 @@ if (digits.length) {
     }
 }
 
-// ── Countdown timer ───────────────────────────────────────────────────────────
 const countdownEl = document.getElementById('countdown');
 if (countdownEl) {
     const expires = <?= isset($_SESSION['code_expires']) ? (int)$_SESSION['code_expires'] : 0 ?>;
