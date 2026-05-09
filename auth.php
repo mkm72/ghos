@@ -124,7 +124,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $error = "Wrong code. $left attempt(s) remaining.";
             $mode  = 'verify';
         } else {
-            //  Code correct — now save to DB
+            // ✅ Code correct — now save to DB
             $pending = $_SESSION['pending_register'];
             $email   = $pending['email'];
             $hash    = $pending['hash'];
@@ -201,35 +201,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
     // ── LOGIN ─────────────────────────────────────────────────────────────────
-$stmt = $pdo->prepare('
+        $stmt = $pdo->prepare('
     SELECT id, email, password, role, is_active, `2fa_enable`
     FROM Users
     WHERE email = ?
 ');
- } elseif ($mode === 'login') {
+    } elseif ($mode === 'login') {
+        $email = trim($_POST['email'] ?? '');
+        $pass  = $_POST['password'] ?? '';
 
-    $email = trim($_POST['email'] ?? '');
-    $pass  = $_POST['password'] ?? '';
-
-    if (empty($email) || empty($pass)) {
-
-        $error = 'Email and password are required.';
-
-    } else {
-
-        $stmt = $pdo->prepare('
-            SELECT id, email, password, role, is_active, `2fa_enable`
-            FROM Users
-            WHERE email = ?
-        ');
-
-        $stmt->execute([$email]);
-        $user = $stmt->fetch();
+        if (empty($email) || empty($pass)) {
+            $error = 'Email and password are required.';
+        } else {
+            $stmt = $pdo->prepare('SELECT id, email, password, role, is_active FROM Users WHERE email = ?');
+            $stmt->execute([$email]);
+            $user = $stmt->fetch();
 
            if ($user && password_verify($pass, $user['password'])) {
 
     if ((int)$user['is_active'] === 0) {
+
         $error = 'Your account has been suspended. Please contact us via Discord or email.';
+
     } else {
 
         //  CHECK 2FA
