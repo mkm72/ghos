@@ -288,7 +288,7 @@ function togglePass(id, btn) {
     const input = document.getElementById(id);
     const show  = input.type === 'password';
     input.type  = show ? 'text' : 'password';
-    btn.textContent = show ? '🙈' : '👁';
+    btn.textContent = show ? '︶' : '👁';
 }
 </script>
 </body>
