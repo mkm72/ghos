@@ -235,11 +235,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     .resend-link { background: none; border: none; color: #555; font-size: 13px; cursor: pointer; text-decoration: underline; padding: 0; }
     .resend-link:hover { color: #1a1a1a; }
     #countdown { font-weight: bold; color: #1a1a1a; }
-
-    .password-wrap { position: relative; display: flex; align-items: center; }
-    .password-wrap input { width: 100%; padding-right: 50px; box-sizing: border-box; }
-    .toggle-password { position: absolute; right: 10px; background: none; border: none; color: #555; font-size: 12px; font-weight: bold; cursor: pointer; padding: 5px; }
-    .toggle-password:hover { color: #1a1a1a; }
 </style>
 </head>
 <body>
@@ -284,7 +279,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <label>Password</label>
             <div class="password-wrap">
                 <input type="password" name="password" placeholder="••••••••" required>
-                <button type="button" class="toggle-password" onclick="togglePass(this)">Show</button>
+                <button type="button" class="toggle-password" onclick="togglePass(this)">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                </button>
             </div>
 
             <button class="auth-btn" type="submit">Login</button>
@@ -301,7 +298,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <label>Password</label>
             <div class="password-wrap">
                 <input type="password" name="password" id="reg-password" placeholder="Min. 8 characters" required oninput="checkStrength(this.value)">
-                <button type="button" class="toggle-password" onclick="togglePass(this)">Show</button>
+                <button type="button" class="toggle-password" onclick="togglePass(this)">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                </button>
             </div>
             
             <div class="strength-wrap" style="margin-top: 8px;">
@@ -320,7 +319,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <label>Repeat Password</label>
             <div class="password-wrap">
                 <input type="password" name="repeat_password" placeholder="••••••••" required>
-                <button type="button" class="toggle-password" onclick="togglePass(this)">Show</button>
+                <button type="button" class="toggle-password" onclick="togglePass(this)">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                </button>
             </div>
 
             <button class="auth-btn" type="submit" style="margin-top: 15px;">Send Verification Code</button>
@@ -406,14 +407,17 @@ function checkStrength(val) {
     label.style.color         = level.textColor;
 }
 
+const eyeOpen = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
+const eyeClosed = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`;
+
 function togglePass(btn) {
     const input = btn.previousElementSibling;
     if (input.type === 'password') {
         input.type = 'text';
-        btn.textContent = 'Hide';
+        btn.innerHTML = eyeClosed;
     } else {
         input.type = 'password';
-        btn.textContent = 'Show';
+        btn.innerHTML = eyeOpen;
     }
 }
 
