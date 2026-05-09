@@ -174,6 +174,30 @@ if ($action === 'update_order_status' && $_SERVER['REQUEST_METHOD'] === 'POST') 
     header('Location: admin.php?section=section-orders&flash='.urlencode($flash)); exit;
 }
 
+// ── Create Business_Applications table if not exists ──
+try {
+    $pdo->exec('CREATE TABLE IF NOT EXISTS Business_Applications (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT NOT NULL,
+        business_name VARCHAR(200) NOT NULL,
+        reason TEXT,
+        status ENUM("pending","approved","rejected") DEFAULT "pending",
+        created_at DATETIME DEFAULT NOW(),
+        reviewed_at DATETIME NULL,
+        FOREIGN KEY (user_id) REFERENCES Users(id) ON DELETE CASCADE
+    )');
+} catch (\PDOException $e) { /* already exists */ }
+
+// ── Fetch Business Applications ────────────────
+try {
+    $biz_apps = $pdo->query("
+        SELECT ba.*, u.email AS user_email
+        FROM Business_Applications ba
+        JOIN Users u ON ba.user_id = u.id
+        ORDER BY FIELD(ba.status,'pending','approved','rejected'), ba.created_at DESC
+    ")->fetchAll();
+} catch (\PDOException $e) { $biz_apps = []; }
+
 // ── Flash from redirect ───────────────────────
 if (isset($_GET['flash'])) { $flash = $_GET['flash']; $flash_type = $_GET['flash_type'] ?? 'success'; }
 
