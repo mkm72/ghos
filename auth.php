@@ -157,6 +157,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $mode    = 'verify';
         }
 
+    } elseif ($mode === 'login_verify') {
+        $entered = trim($_POST['code'] ?? '');
+
+        if (!isset($_SESSION['2fa_user'])) {
+            $error = 'Session expired. Please log in again.';
+            $mode  = 'login';
+        } elseif (!isset($_SESSION['2fa_expires']) || time() > $_SESSION['2fa_expires']) {
+            unset($_SESSION['2fa_user'], $_SESSION['2fa_code'], $_SESSION['2fa_expires'], $_SESSION['2fa_attempts']);
+            $error = 'Code expired. Please log in again.';
+            $mode  = 'login';
+        } elseif ($_SESSION['2fa_attempts'] >= 5) {
+            unset($_SESSION['2fa_user'], $_SESSION['2fa_code'], $_SESSION['2fa_expires'], $_SESSION['2fa_attempts']);
+            $error = 'Too many wrong attempts. Please log in again.';
+            $mode  = 'login';
+        } elseif ($entered !== $_SESSION['2fa_code']) {
+            $_SESSION['2fa_attempts']++;
+            $left  = 5 - $_SESSION['2fa_attempts'];
+            $error = "Wrong code. $left attempt(s) remaining.";
+            $mode  = 'login_verify';
+        } else {
+            $user = $_SESSION['2fa_user'];
+            $_SESSION['user_id']    = $user['id'];
+            $_SESSION['user_email'] = $user['email'];
+            $_SESSION['role']       = $user['role'];
+            unset($_SESSION['2fa_user'], $_SESSION['2fa_code'], $_SESSION['2fa_expires'], $_SESSION['2fa_attempts']);
+            header('Location: index.php');
+            exit;
+        }
+
     } elseif ($mode === 'login') {
         $email = trim($_POST['email'] ?? '');
         $pass  = $_POST['password'] ?? '';
@@ -256,15 +285,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <div class="auth-logo">
     <div class="logo-box">Ghos</div>
     <h1 id="page-title">
-        <?= $mode === 'register' ? 'Create Account' : ($mode === 'verify' ? 'Verify Email' : 'Welcome Back') ?>
+        <?= $mode === 'register' ? 'Create Account' : ($mode === 'verify' ? 'Verify Email' : ($mode === 'login_verify' ? 'Two-Factor Auth' : 'Welcome Back')) ?>
     </h1>
     <p id="page-sub">
-        <?= $mode === 'register' ? 'Join GameHub Online Store today' : ($mode === 'verify' ? 'Enter the code sent to your email' : 'Sign in to your GameHub account') ?>
+        <?= $mode === 'register' ? 'Join GameHub Online Store today' : ($mode === 'verify' ? 'Enter the code sent to your email' : ($mode === 'login_verify' ? 'Enter the code sent to your email' : 'Sign in to your GameHub account')) ?>
     </p>
 </div>
 
 <div class="auth-card">
-    <?php if ($mode !== 'verify'): ?>
+    <?php if ($mode !== 'verify' && $mode !== 'login_verify'): ?>
     <div class="tabs">
         <button class="tab-btn <?= $mode === 'login'    ? 'active' : '' ?>" onclick="switchMode('login')"    type="button" id="tab-login">Login</button>
         <button class="tab-btn <?= $mode === 'register' ? 'active' : '' ?>" onclick="switchMode('register')" type="button" id="tab-register">Register</button>
@@ -332,6 +361,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </form>
         <div class="auth-link">Already have an account? <a onclick="switchMode('login')" href="#">Login here</a></div>
     </div>
+
+    <?php if ($mode === 'login_verify'): ?>
+    <div class="form-section active" id="panel-login-verify">
+        <p style="text-align:center; font-size:14px; color:#555; margin-bottom:4px;">
+            Code sent to <strong><?= htmlspecialchars($_SESSION['2fa_user']['email'] ?? '') ?></strong>
+        </p>
+        <div class="code-meta">
+            Expires in <span id="countdown"></span>
+        </div>
+
+        <form method="POST" action="auth.php" id="login-verify-form">
+            <input type="hidden" name="mode" value="login_verify">
+            <input type="hidden" name="code" id="code-hidden">
+            <div class="code-input-wrap">
+                <input class="code-digit" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]">
+                <input class="code-digit" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]">
+                <input class="code-digit" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]">
+                <input class="code-digit" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]">
+                <input class="code-digit" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]">
+                <input class="code-digit" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]">
+            </div>
+            <button class="auth-btn" type="submit" id="verify-btn" disabled>Verify &amp; Login</button>
+        </form>
+
+        <div style="text-align:center; margin-top:14px;">
+            <a href="auth.php" style="font-size:13px; color:#555;">← Back to Login</a>
+        </div>
+    </div>
+    <?php endif; ?>
 
     <?php if ($mode === 'verify'): ?>
     <div class="form-section active" id="panel-verify">
