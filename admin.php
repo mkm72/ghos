@@ -146,6 +146,23 @@ if ($action === 'delete_user' && isset($_GET['id'])) {
     header('Location: admin.php?section=section-users&flash='.urlencode($flash).'&flash_type='.$flash_type); exit;
 }
 
+// ── Approve/Reject Business Application ──────
+if ( === 'review_app' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $app_id    = (int)($_POST['app_id'] ?? 0);
+    $decision  = $_POST['decision'] ?? '';
+    $user_id   = (int)($_POST['user_id'] ?? 0);
+    if (in_array($decision, ['approved','rejected'])) {
+        $pdo->prepare('UPDATE Business_Applications SET status=?, reviewed_at=NOW() WHERE id=?')
+            ->execute([$decision, $app_id]);
+        if ($decision === 'approved' && $user_id) {
+            $pdo->prepare('UPDATE Users SET role=? WHERE id=?')->execute(['business', $user_id]);
+        }
+        $flash = $decision === 'approved' ? 'Application approved. User is now a seller.' : 'Application rejected.';
+        $flash_type = $decision === 'approved' ? 'success' : 'error';
+    }
+    header('Location: admin.php?section=section-business-apps&flash='.urlencode($flash).'&flash_type='.$flash_type); exit;
+}
+
 // ── Update Order Status ───────────────────────
 if ($action === 'update_order_status' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $id     = (int)($_POST['order_id'] ?? 0);
@@ -331,6 +348,7 @@ function roleBadge(string $r): string {
     <a href="#" class="sidebar-link" data-section="section-games">🎮 Games</a>
     <a href="#" class="sidebar-link" data-section="section-users">👥 Users</a>
     <a href="#" class="sidebar-link" data-section="section-add-game">➕ Add Game</a>
+    <a href="#" class="sidebar-link" data-section="section-business-apps">🏢 Business Apps</a>
     <hr class="sidebar-divider">
     <a href="index.php" class="sidebar-back">← Back to Store</a>
     <a href="?logout=1" class="sidebar-back" style="color:#ef4444;margin-top:8px;">🚪 Logout</a>
@@ -589,6 +607,68 @@ function roleBadge(string $r): string {
     </div>
 </div>
 
+
+<!-- ══════════════ BUSINESS APPLICATIONS ══════════════ -->
+<div id="section-business-apps" class="admin-section panel" style="margin-top:0;">
+    <div class="panel-header">
+        <span class="panel-title">Business Applications (<span id="appsCount">0</span>)</span>
+        <div style="display:flex;gap:8px;">
+            <button class="order-filter-tab active" data-filter-apps="all">All</button>
+            <button class="order-filter-tab" data-filter-apps="pending">Pending</button>
+            <button class="order-filter-tab" data-filter-apps="approved">Approved</button>
+            <button class="order-filter-tab" data-filter-apps="rejected">Rejected</button>
+        </div>
+    </div>
+    <table class="data-table">
+        <thead><tr>
+            <th>#</th>
+            <th>Applicant</th>
+            <th>Business Name</th>
+            <th>Reason</th>
+            <th>Date</th>
+            <th>Status</th>
+            <th>Actions</th>
+        </tr></thead>
+        <tbody id="appsTableBody">
+        <?php if(empty($biz_apps)): ?>
+            <tr><td colspan="7" style="text-align:center;color:#888;padding:30px;">No applications yet.</td></tr>
+        <?php else: foreach($biz_apps as $app):
+            $sl = $app["status"];
+        ?>
+            <tr data-status-app="<?= htmlspecialchars($sl) ?>">
+                <td><?= $app["id"] ?></td>
+                <td><?= htmlspecialchars($app["user_email"]) ?></td>
+                <td><strong><?= htmlspecialchars($app["business_name"]) ?></strong></td>
+                <td style="max-width:200px;font-size:12px;color:#666;"><?= htmlspecialchars($app["reason"]) ?></td>
+                <td style="font-size:12px;"><?= date("M j, Y", strtotime($app["created_at"])) ?></td>
+                <td>
+                    <?php if($sl === "pending"): ?>
+                        <span class="badge-blue">Pending</span>
+                    <?php elseif($sl === "approved"): ?>
+                        <span class="badge-green">Approved</span>
+                    <?php else: ?>
+                        <span class="badge-red">Rejected</span>
+                    <?php endif; ?>
+                </td>
+                <td>
+                    <?php if($sl === "pending"): ?>
+                    <form method="POST" action="admin.php" style="display:inline;">
+                        <input type="hidden" name="action" value="review_app">
+                        <input type="hidden" name="app_id" value="<?= $app["id"] ?>">
+                        <input type="hidden" name="user_id" value="<?= $app["user_id"] ?>">
+                        <button type="submit" name="decision" value="approved" class="act-btn act-green">Approve</button>
+                        <button type="submit" name="decision" value="rejected" class="act-btn act-delete">Reject</button>
+                    </form>
+                    <?php else: ?>
+                        <span style="font-size:12px;color:#aaa;">Reviewed</span>
+                    <?php endif; ?>
+                </td>
+            </tr>
+        <?php endforeach; endif; ?>
+        </tbody>
+    </table>
+</div>
+
 </main>
 
 <!-- ══════════════ EDIT GAME MODAL ══════════════ -->
@@ -656,6 +736,27 @@ if (urlSection) {
     document.querySelectorAll('.sidebar-link[data-section]').forEach(l =>
         l.classList.toggle('active', l.dataset.section === urlSection));
 }
+
+// ── Business apps count + filter ─────────────
+(function() {
+    const rows = document.querySelectorAll('#appsTableBody tr[data-status-app]');
+    document.getElementById('appsCount').textContent = rows.length;
+
+    document.querySelectorAll('[data-filter-apps]').forEach(tab => {
+        tab.addEventListener('click', () => {
+            document.querySelectorAll('[data-filter-apps]').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            const f = tab.dataset.filterApps;
+            let vis = 0;
+            rows.forEach(r => {
+                const show = f === 'all' || r.dataset.statusApp === f;
+                r.style.display = show ? '' : 'none';
+                if (show) vis++;
+            });
+            document.getElementById('appsCount').textContent = vis;
+        });
+    });
+})();
 
 // Auto-dismiss flash
 setTimeout(() => document.getElementById('flashAlert')?.remove(), 4000);
