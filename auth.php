@@ -199,6 +199,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
     // ── LOGIN ─────────────────────────────────────────────────────────────────
+        $stmt = $pdo->prepare('
+    SELECT id, email, password, role, is_active, `2fa_enable`
+    FROM Users
+    WHERE email = ?
+');
     } elseif ($mode === 'login') {
         $email = trim($_POST['email'] ?? '');
         $pass  = $_POST['password'] ?? '';
@@ -210,18 +215,53 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->execute([$email]);
             $user = $stmt->fetch();
 
-            if ($user && password_verify($pass, $user['password'])) {
-                if ((int)$user['is_active'] === 0) {
-                    $error = 'Your account has been suspended. Please contact us via Discord or email.';
-                } else {
-                    $_SESSION['user_id']    = $user['id'];
-                    $_SESSION['user_email'] = $user['email'];
-                    $_SESSION['role']       = $user['role'];
-                    header('Location: index.php');
-                    exit;
-                }
-            } else {
-                $error = 'Invalid email or password.';
+           if ($user && password_verify($pass, $user['password'])) {
+
+    if ((int)$user['is_active'] === 0) {
+
+        $error = 'Your account has been suspended. Please contact us via Discord or email.';
+
+    } else {
+
+        //  CHECK 2FA
+        if ((int)$user['2fa_enable'] === 1) {
+
+            $code = generateCode();
+
+            $_SESSION['2fa_user'] = [
+                'id'    => $user['id'],
+                'email' => $user['email'],
+                'role'  => $user['role']
+            ];
+
+            $_SESSION['2fa_code'] = $code;
+            $_SESSION['2fa_expires'] = time() + 600;
+            $_SESSION['2fa_attempts'] = 0;
+
+            sendEmail(
+                $user['email'],
+                $user['email'],
+                'Your Login Verification Code',
+                "<h2>Your login code is:</h2>
+                 <h1>$code</h1>
+                 <p>Expires in 10 minutes.</p>"
+            );
+            $mode = 'login_verify';
+
+        } else {
+
+            $_SESSION['user_id']    = $user['id'];
+            $_SESSION['user_email'] = $user['email'];
+            $_SESSION['role']       = $user['role'];
+            header('Location: index.php');
+            exit;
+        }
+    }
+
+} else {
+
+    $error = 'Invalid email or password.';
+}
             }
         }
     }
