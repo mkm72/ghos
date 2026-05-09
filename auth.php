@@ -8,8 +8,7 @@ require_once 'sendEMail.php';
 
 $error   = '';
 $success = '';
-$mode    = $_SESSION['pending_register'] ? 'verify' : 'login';
-
+$mode = isset($_SESSION['pending_register']) && $_SESSION['pending_register'] ? 'verify' : 'login';
 // ─── HELPERS ────────────────────────────────────────────────────────────────
 
 function generateCode() {
@@ -61,7 +60,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_SESSION['code_attempts']  = 0;
 
                 // Send the code
-                sendEmail(
+               sendEmail(
                     $email,
                     $email,
                     'Your GameHub verification code',
