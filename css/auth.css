@@ -162,8 +162,6 @@ body {
 /* --- Password Toggle Styling --- */
 .password-wrap {
     position: relative;
-    display: flex;
-    align-items: center;
     width: 100%;
     margin-bottom: 16px;
 }
@@ -171,22 +169,26 @@ body {
 .password-wrap input {
     margin-bottom: 0;
     padding-right: 42px;
+    width: 100%;
 }
 
 .toggle-password {
     position: absolute;
     right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
     background: none;
     border: none;
-    color: #888888;
+    color: #aaaaaa;
     cursor: pointer;
     padding: 0;
     display: flex;
     align-items: center;
     justify-content: center;
     transition: color 0.2s;
+    line-height: 0;
 }
 
 .toggle-password:hover {
-    color: #1a1a1a;
+    color: #555555;
 }
