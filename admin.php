@@ -60,7 +60,9 @@ if ($action === 'add_game' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 // ── Delete Game ───────────────────────────────
 if ($action === 'delete_game' && isset($_GET['id'])) {
     $id = (int)$_GET['id'];
-    $pdo->prepare('DELETE FROM Games WHERE id = ?')->execute([$id]);
+    $pdo->prepare('DELETE FROM Game_Images WHERE game_id = ?')->execute([$id]);
+    $pdo->prepare('DELETE FROM Game_Keys  WHERE game_id = ?')->execute([$id]);
+    $pdo->prepare('DELETE FROM Games      WHERE id = ?'     )->execute([$id]);
     $flash = 'Game deleted.'; $flash_type = 'error';
     header('Location: admin.php?section=section-games&flash='.urlencode($flash).'&flash_type=error'); exit;
 }
@@ -431,7 +433,7 @@ function roleBadge(string $r): string {
                     </div>
                 </td>
                 <td><?= stockBadge((int)$g['stock_count']) ?></td>
-                <td><a href="?action=view_keys_redirect&id=<?=$g['id']?>" class="act-green act-btn" onclick="event.preventDefault();openAddKeys(<?=$g['id']?>,<?=htmlspecialchars(json_encode($g['name']))?>')">➕ Add Keys</a></td>
+                <td><a href="?action=view_keys_redirect&id=<?=$g['id']?>" class="act-green act-btn" onclick="event.preventDefault();openAddKeys(<?=$g['id']?>,<?=htmlspecialchars(json_encode($g['name']))?> )">➕ Add Keys</a></td>
             </tr>
             <?php endforeach; ?>
             </tbody>
@@ -529,7 +531,7 @@ function roleBadge(string $r): string {
                 <td><?= stockBadge($stock) ?></td>
                 <td>
                     <button class="act-btn act-edit" onclick="openEditGame(<?= htmlspecialchars(json_encode($game)) ?>)">Edit</button>
-                    <button class="act-btn act-green" onclick="openAddKeys(<?=$game['id']?>,<?=htmlspecialchars(json_encode($game['name']))?>')">Keys</button>
+                    <button class="act-btn act-green" onclick="openAddKeys(<?=$game['id']?>,<?=htmlspecialchars(json_encode($game['name']))?> )">Keys</button>
                     <a href="admin.php?action=delete_game&id=<?=$game['id']?>" class="act-btn act-delete" data-confirm="Delete \"<?= htmlspecialchars($game['name']) ?>\"? This cannot be undone.">Delete</a>
                 </td>
             </tr>
