@@ -166,10 +166,12 @@ body {
     margin-bottom: 16px;
 }
 
-.password-wrap input {
-    margin-bottom: 0;
-    padding-right: 42px;
+/* Higher specificity to override .auth-card input */
+.auth-card .password-wrap input {
+    margin-bottom: 0 !important;
+    padding-right: 42px !important;
     width: 100%;
+    box-sizing: border-box;
 }
 
 .toggle-password {
@@ -177,18 +179,23 @@ body {
     right: 12px;
     top: 50%;
     transform: translateY(-50%);
-    background: none;
-    border: none;
+    background: none !important;
+    border: none !important;
     color: #aaaaaa;
     cursor: pointer;
-    padding: 0;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: auto !important;
     display: flex;
     align-items: center;
     justify-content: center;
     transition: color 0.2s;
     line-height: 0;
+    box-shadow: none !important;
+    border-radius: 0 !important;
 }
 
 .toggle-password:hover {
     color: #555555;
+    background: none !important;
 }
