@@ -47,7 +47,7 @@ if ($is_logged_in) {
         <?php endif; ?>
 
         <?php if ($user_role === 'business'): ?>
-            <a href="business-dashboard.html">Your Business</a>
+            <a href="business-dashboard.php">Your Business</a>
         <?php endif; ?>
 
         <a href="business.html">Business Service</a>
