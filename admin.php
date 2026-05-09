@@ -219,18 +219,18 @@ $orders = $pdo->query("
     JOIN Users u ON o.user_id=u.id
     JOIN Order_Items oi ON o.id=oi.order_id
     JOIN Games g ON oi.game_id=g.id
-    GROUP BY o.id ORDER BY o.order_date DESC
+    GROUP BY o.id, u.email, o.total_price, o.order_date, o.status ORDER BY o.order_date DESC
 ")->fetchAll();
 
 // Games with stock
 $games = $pdo->query("
     SELECT g.id, g.name, g.price, g.platform, g.genres, g.description,
-           i.filename AS cover_image,
+           ANY_VALUE(i.filename) AS cover_image,
            COUNT(k.id) AS stock_count
     FROM Games g
     LEFT JOIN Game_Images i ON g.id=i.game_id AND i.is_cover=1
     LEFT JOIN Game_Keys k ON g.id=k.game_id AND k.is_sold=0
-    GROUP BY g.id ORDER BY g.name ASC
+    GROUP BY g.id, g.name, g.price, g.platform, g.genres, g.description ORDER BY g.name ASC
 ")->fetchAll();
 
 // Users
@@ -409,11 +409,11 @@ function roleBadge(string $r): string {
     <!-- Low stock quick list -->
     <?php
     $low_games = $pdo->query("
-        SELECT g.id, g.name, g.price, i.filename AS cover_image, COUNT(k.id) AS stock_count
+        SELECT g.id, g.name, g.price, ANY_VALUE(i.filename) AS cover_image, COUNT(k.id) AS stock_count
         FROM Games g
         LEFT JOIN Game_Images i ON g.id=i.game_id AND i.is_cover=1
         LEFT JOIN Game_Keys k ON g.id=k.game_id AND k.is_sold=0
-        GROUP BY g.id HAVING stock_count < 5 ORDER BY stock_count ASC LIMIT 5
+        GROUP BY g.id, g.name, g.price HAVING stock_count < 5 ORDER BY stock_count ASC LIMIT 5
     ")->fetchAll();
     if ($low_games):
     ?>
