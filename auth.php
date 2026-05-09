@@ -237,7 +237,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     #countdown { font-weight: bold; color: #1a1a1a; }
     .toggle-password { position:absolute; right:12px; top:50%; transform:translateY(-50%); background:none !important; border:none !important; color:#aaaaaa; cursor:pointer; padding:0 !important; margin:0 !important; width:auto !important; display:flex; align-items:center; line-height:0; box-shadow:none !important; font-size:inherit; border-radius:0 !important; }
     .toggle-password:hover { color:#555555; background:none !important; }
-    .password-wrap { position:relative; width:100%; margin-bottom:16px; }
+    .password-wrap { position:relative; margin-bottom:16px; }
     .auth-card .password-wrap input { margin-bottom:0 !important; padding-right:42px !important; }
 </style>
 </head>
