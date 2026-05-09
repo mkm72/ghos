@@ -3,6 +3,8 @@ session_start();
 require_once 'php/db_connect.php';
 require_once 'sendEMail.php';
 
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
 $error   = '';
 $success = '';
 $mode    = $_SESSION['pending_register'] ? 'verify' : 'login';
