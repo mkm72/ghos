@@ -60,8 +60,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if (!password_verify($current, $row['password'])) {
             $error = 'Current password is incorrect.';
-        } elseif (strlen($new_pass) < 6) {
-            $error = 'New password must be at least 6 characters.';
+        } elseif (strlen($new_pass) < 8) {
+            $error = 'New password must be at least 8 characters.';
         } elseif ($new_pass !== $repeat) {
             $error = 'New passwords do not match.';
         } else {
@@ -261,7 +261,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="form-group">
                     <label>New Password</label>
                     <div class="pass-wrap">
-                        <input type="password" name="new_password" id="cp2" placeholder="Min. 6 characters" required>
+                        <input type="password" name="new_password" id="cp2" placeholder="Min. 8 characters" required>
                         <button type="button" class="pass-toggle" onclick="togglePass('cp2',this)">👁</button>
                     </div>
                 </div>
