@@ -11,7 +11,7 @@ if (strlen($query) < 1) {
 $stmt = $pdo->prepare("
     SELECT g.id, g.name, g.price, gi.filename AS cover_image
     FROM Games g
-    LEFT JOIN Game_Images gi ON gi.game_id = g.id AND gi.is_cover = 1
+    // LEFT JOIN Game_Images gi ON gi.game_id = g.id AND gi.is_cover = 1
     WHERE g.name LIKE ?
     LIMIT 8
 ");
