@@ -594,12 +594,8 @@ function roleBadge(string $r): string {
                     </form>
                 </td>
                 <td style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
-                    <?php 
-                    $suspend_text = $u['role'] === 'business' ? 'Block Seller' : 'Suspend Account';
-                    $enable_text  = $u['role'] === 'business' ? 'Unblock Seller' : 'Enable Account';
-                    ?>
                     <a href="admin.php?action=toggle_user&id=<?=$u['id']?>&section=section-users" class="act-btn <?= $u['is_active']?'act-orange':'act-green' ?>">
-                        <?= $u['is_active'] ? $suspend_text : $enable_text ?>
+                        <?= $u['is_active'] ? 'Block' : 'Unblock' ?>
                     </a>
                     <?php if($u['id'] !== (int)$_SESSION['user_id']): ?>
                     <a href="admin.php?action=delete_user&id=<?=$u['id']?>" class="act-btn act-delete" data-confirm="Delete user <?= htmlspecialchars($u['email']) ?>? This cannot be undone.">Delete</a>
