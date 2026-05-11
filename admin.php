@@ -60,9 +60,7 @@ if ($action === 'add_game' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 // ── Delete Game ───────────────────────────────
 if ($action === 'delete_game' && isset($_GET['id'])) {
     $id = (int)$_GET['id'];
-    $pdo->prepare('DELETE FROM Game_Images WHERE game_id = ?')->execute([$id]);
-    $pdo->prepare('DELETE FROM Game_Keys  WHERE game_id = ?')->execute([$id]);
-    $pdo->prepare('DELETE FROM Games      WHERE id = ?'     )->execute([$id]);
+    $pdo->prepare('DELETE FROM Games WHERE id = ?')->execute([$id]);
     $flash = 'Game deleted.'; $flash_type = 'error';
     header('Location: admin.php?section=section-games&flash='.urlencode($flash).'&flash_type=error'); exit;
 }
@@ -149,7 +147,7 @@ if ($action === 'delete_user' && isset($_GET['id'])) {
 }
 
 // ── Approve/Reject Business Application ──────
-if ($action === 'review_app' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+if ( === 'review_app' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $app_id    = (int)($_POST['app_id'] ?? 0);
     $decision  = $_POST['decision'] ?? '';
     $user_id   = (int)($_POST['user_id'] ?? 0);
@@ -182,6 +180,12 @@ try {
         id INT AUTO_INCREMENT PRIMARY KEY,
         user_id INT NOT NULL,
         business_name VARCHAR(200) NOT NULL,
+        first_name VARCHAR(100),
+        last_name VARCHAR(100),
+        business_email VARCHAR(200),
+        website VARCHAR(300),
+        sales_volume VARCHAR(100),
+        key_source VARCHAR(100),
         reason TEXT,
         status ENUM("pending","approved","rejected") DEFAULT "pending",
         created_at DATETIME DEFAULT NOW(),
@@ -221,18 +225,18 @@ $orders = $pdo->query("
     JOIN Users u ON o.user_id=u.id
     JOIN Order_Items oi ON o.id=oi.order_id
     JOIN Games g ON oi.game_id=g.id
-    GROUP BY o.id, u.email, o.total_price, o.order_date, o.status ORDER BY o.order_date DESC
+    GROUP BY o.id ORDER BY o.order_date DESC
 ")->fetchAll();
 
 // Games with stock
 $games = $pdo->query("
     SELECT g.id, g.name, g.price, g.platform, g.genres, g.description,
-           ANY_VALUE(i.filename) AS cover_image,
+           i.filename AS cover_image,
            COUNT(k.id) AS stock_count
     FROM Games g
     LEFT JOIN Game_Images i ON g.id=i.game_id AND i.is_cover=1
     LEFT JOIN Game_Keys k ON g.id=k.game_id AND k.is_sold=0
-    GROUP BY g.id, g.name, g.price, g.platform, g.genres, g.description ORDER BY g.name ASC
+    GROUP BY g.id ORDER BY g.name ASC
 ")->fetchAll();
 
 // Users
@@ -411,11 +415,11 @@ function roleBadge(string $r): string {
     <!-- Low stock quick list -->
     <?php
     $low_games = $pdo->query("
-        SELECT g.id, g.name, g.price, ANY_VALUE(i.filename) AS cover_image, COUNT(k.id) AS stock_count
+        SELECT g.id, g.name, g.price, i.filename AS cover_image, COUNT(k.id) AS stock_count
         FROM Games g
         LEFT JOIN Game_Images i ON g.id=i.game_id AND i.is_cover=1
         LEFT JOIN Game_Keys k ON g.id=k.game_id AND k.is_sold=0
-        GROUP BY g.id, g.name, g.price HAVING stock_count < 5 ORDER BY stock_count ASC LIMIT 5
+        GROUP BY g.id HAVING stock_count < 5 ORDER BY stock_count ASC LIMIT 5
     ")->fetchAll();
     if ($low_games):
     ?>
@@ -433,7 +437,7 @@ function roleBadge(string $r): string {
                     </div>
                 </td>
                 <td><?= stockBadge((int)$g['stock_count']) ?></td>
-                <td><a href="?action=view_keys_redirect&id=<?=$g['id']?>" class="act-green act-btn" onclick="event.preventDefault();openAddKeys(<?=$g['id']?>,<?=htmlspecialchars(json_encode($g['name']))?> )">➕ Add Keys</a></td>
+                <td><a href="?action=view_keys_redirect&id=<?=$g['id']?>" class="act-green act-btn" onclick="event.preventDefault();openAddKeys(<?=$g['id']?>,<?=htmlspecialchars(json_encode($g['name']))?>')">➕ Add Keys</a></td>
             </tr>
             <?php endforeach; ?>
             </tbody>
@@ -531,7 +535,7 @@ function roleBadge(string $r): string {
                 <td><?= stockBadge($stock) ?></td>
                 <td>
                     <button class="act-btn act-edit" onclick="openEditGame(<?= htmlspecialchars(json_encode($game)) ?>)">Edit</button>
-                    <button class="act-btn act-green" onclick="openAddKeys(<?=$game['id']?>,<?=htmlspecialchars(json_encode($game['name']))?> )">Keys</button>
+                    <button class="act-btn act-green" onclick="openAddKeys(<?=$game['id']?>,<?=htmlspecialchars(json_encode($game['name']))?>')">Keys</button>
                     <a href="admin.php?action=delete_game&id=<?=$game['id']?>" class="act-btn act-delete" data-confirm="Delete \"<?= htmlspecialchars($game['name']) ?>\"? This cannot be undone.">Delete</a>
                 </td>
             </tr>
@@ -650,6 +654,8 @@ function roleBadge(string $r): string {
             <th>#</th>
             <th>Applicant</th>
             <th>Business Name</th>
+            <th>Contact</th>
+            <th>Volume</th>
             <th>Reason</th>
             <th>Date</th>
             <th>Status</th>
@@ -663,9 +669,18 @@ function roleBadge(string $r): string {
         ?>
             <tr data-status-app="<?= htmlspecialchars($sl) ?>">
                 <td><?= $app["id"] ?></td>
-                <td><?= htmlspecialchars($app["user_email"]) ?></td>
-                <td><strong><?= htmlspecialchars($app["business_name"]) ?></strong></td>
-                <td style="max-width:200px;font-size:12px;color:#666;"><?= htmlspecialchars($app["reason"]) ?></td>
+                <td>
+                    <?= htmlspecialchars($app["user_email"]) ?><br>
+                    <span style="font-size:11px;color:#888;"><?= htmlspecialchars(($app["first_name"]??'').' '.($app["last_name"]??'')) ?></span>
+                </td>
+                <td><strong><?= htmlspecialchars($app["business_name"]) ?></strong><br>
+                    <?php if(!empty($app["website"])): ?><a href="<?=htmlspecialchars($app["website"])?>" target="_blank" style="font-size:11px;color:#2563eb;">🔗 Website</a><?php endif; ?>
+                </td>
+                <td style="font-size:12px;">
+                    <?= htmlspecialchars($app["business_email"]??'') ?>
+                </td>
+                <td style="font-size:12px;color:#666;"><?= htmlspecialchars($app["sales_volume"]??'—') ?></td>
+                <td style="max-width:160px;font-size:12px;color:#666;"><?= htmlspecialchars($app["reason"]) ?></td>
                 <td style="font-size:12px;"><?= date("M j, Y", strtotime($app["created_at"])) ?></td>
                 <td>
                     <?php if($sl === "pending"): ?>
