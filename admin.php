@@ -112,7 +112,14 @@ if ($action === 'add_key' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $keys = array_filter(array_map('trim', explode("\n", $keys_raw)));
     $added = 0;
     $stmt  = $pdo->prepare('INSERT IGNORE INTO Game_Keys (game_id, key_code) VALUES (?,?)');
-    foreach ($keys as $k) { if ($k) { $stmt->execute([$game_id, $k]); $added++; } }
+    foreach ($keys as $k) { 
+        if ($k) { 
+            $stmt->execute([$game_id, $k]); 
+            if ($stmt->rowCount() > 0) {
+                $added++; 
+            }
+        } 
+    }
     $flash = "$added key(s) added successfully!";
     header('Location: admin.php?section=section-games&flash='.urlencode($flash)); exit;
 }
@@ -586,16 +593,16 @@ function roleBadge(string $r): string {
                         <button type="submit" class="act-btn act-green">Save</button>
                     </form>
                 </td>
-                <td>
+                <td style="display:flex;flex-direction:column;gap:6px;">
                     <?php 
                     $suspend_text = $u['role'] === 'business' ? 'Block Seller' : 'Suspend Account';
                     $enable_text  = $u['role'] === 'business' ? 'Unblock Seller' : 'Enable Account';
                     ?>
-                    <a href="admin.php?action=toggle_user&id=<?=$u['id']?>&section=section-users" class="act-btn <?= $u['is_active']?'act-orange':'act-green' ?>">
+                    <a href="admin.php?action=toggle_user&id=<?=$u['id']?>&section=section-users" class="act-btn <?= $u['is_active']?'act-orange':'act-green' ?>" style="text-align:center;">
                         <?= $u['is_active'] ? $suspend_text : $enable_text ?>
                     </a>
                     <?php if($u['id'] !== (int)$_SESSION['user_id']): ?>
-                    <a href="admin.php?action=delete_user&id=<?=$u['id']?>" class="act-btn act-delete" data-confirm="Delete user <?= htmlspecialchars($u['email']) ?>? This cannot be undone.">Delete</a>
+                    <a href="admin.php?action=delete_user&id=<?=$u['id']?>" class="act-btn act-delete" data-confirm="Delete user <?= htmlspecialchars($u['email']) ?>? This cannot be undone." style="text-align:center;">Delete</a>
                     <?php endif; ?>
                 </td>
             </tr>

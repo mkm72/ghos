@@ -177,12 +177,12 @@ $total_games     = count($listings);
         <div class="panel-header">
             <span class="panel-title">Game Listings (<?= $total_games ?>)</span>
         </div>
-        <table class="data-table">
+        <table class="data-table" data-sortable>
             <thead>
                 <tr>
                     <th>Game</th>
-                    <th>Price</th>
-                    <th>Stock</th>
+                    <th data-col="price">Price</th>
+                    <th data-col="stock">Stock</th>
                     <th>Platform</th>
                     <th>Status</th>
                 </tr>
@@ -207,8 +207,8 @@ $total_games     = count($listings);
                                 <span class="mini-name"><?= htmlspecialchars($game['name']) ?></span>
                             </div>
                         </td>
-                        <td>$<?= number_format((float)$game['price'], 2) ?></td>
-                        <td>
+                        <td data-col="price" data-val="<?= (float)$game['price'] ?>">$<?= number_format((float)$game['price'], 2) ?></td>
+                        <td data-col="stock" data-val="<?= $stock ?>">
                             <?php if ($stock === 0): ?>
                                 <span style="color:#dc2626;font-weight:bold;">0</span>
                             <?php elseif ($isLow): ?>
@@ -263,5 +263,44 @@ $total_games     = count($listings);
     </div>
 
 </main>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // Make table headers sortable
+    document.querySelectorAll('table[data-sortable]').forEach(table => {
+        const headers = table.querySelectorAll('th[data-col]');
+        let lastCol   = null;
+        let ascending = true;
+
+        headers.forEach(th => {
+            th.style.cursor = 'pointer';
+            th.title = 'Click to sort';
+
+            th.addEventListener('click', () => {
+                const col  = th.dataset.col;
+                ascending  = lastCol === col ? !ascending : true;
+                lastCol    = col;
+
+                const tbody = table.querySelector('tbody');
+                const rows  = Array.from(tbody.querySelectorAll('tr'));
+
+                rows.sort((a, b) => {
+                    const aCell = a.querySelector(`td[data-col="${col}"]`);
+                    const bCell = b.querySelector(`td[data-col="${col}"]`);
+                    if (!aCell || !bCell) return 0;
+
+                    const aNum = parseFloat(aCell.dataset.val);
+                    const bNum = parseFloat(bCell.dataset.val);
+
+                    if (!isNaN(aNum) && !isNaN(bNum)) return ascending ? aNum - bNum : bNum - aNum;
+                    return 0;
+                });
+
+                rows.forEach(r => tbody.appendChild(r));
+            });
+        });
+    });
+});
+</script>
 </body>
 </html>
