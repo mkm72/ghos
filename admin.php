@@ -212,55 +212,50 @@ if (isset($_GET['flash'])) { $flash = $_GET['flash']; $flash_type = $_GET['flash
 // ═══════════════════════════════════════════════
 
 // Stats
-$total_revenue   = (float)$pdo->query("SELECT COALESCE(SUM(total_price),0) FROM Orders WHERE status IN ('delivered','completed')")->fetchColumn();
-$total_users     = (int)$pdo->query("SELECT COUNT(*) FROM Users")->fetchColumn();
-$total_orders    = (int)$pdo->query("SELECT COUNT(*) FROM Orders")->fetchColumn();
-$low_stock_count = (int)$pdo->query("SELECT COUNT(*) FROM (SELECT g.id FROM Games g LEFT JOIN Game_Keys k ON g.id=k.game_id AND k.is_sold=0 GROUP BY g.id HAVING COUNT(k.id)<5) x")->fetchColumn();
+try { $total_revenue = (float)$pdo->query("SELECT COALESCE(SUM(total_price),0) FROM Orders WHERE status IN ('delivered','completed')")->fetchColumn(); } catch(\PDOException $e) { $total_revenue = 0; }
+try { $total_users = (int)$pdo->query("SELECT COUNT(*) FROM Users")->fetchColumn(); } catch(\PDOException $e) { $total_users = 0; }
+try { $total_orders = (int)$pdo->query("SELECT COUNT(*) FROM Orders")->fetchColumn(); } catch(\PDOException $e) { $total_orders = 0; }
+try { $low_stock_count = (int)$pdo->query("SELECT COUNT(*) FROM (SELECT g.id FROM Games g LEFT JOIN Game_Keys k ON g.id=k.game_id AND k.is_sold=0 GROUP BY g.id HAVING COUNT(k.id)<5) x")->fetchColumn(); } catch(\PDOException $e) { $low_stock_count = 0; }
 
 // Orders
-$orders = $pdo->query("
-    SELECT o.id, u.email AS user_email, o.total_price, o.order_date, o.status,
-           GROUP_CONCAT(g.name SEPARATOR ', ') AS game_names
-    FROM Orders o
-    JOIN Users u ON o.user_id=u.id
-    JOIN Order_Items oi ON o.id=oi.order_id
-    JOIN Games g ON oi.game_id=g.id
-    GROUP BY o.id ORDER BY o.order_date DESC
-")->fetchAll();
+try {
+    $orders = $pdo->query("
+        SELECT o.id, u.email AS user_email, o.total_price, o.order_date, o.status,
+               GROUP_CONCAT(g.name SEPARATOR ', ') AS game_names
+        FROM Orders o
+        JOIN Users u ON o.user_id=u.id
+        JOIN Order_Items oi ON o.id=oi.order_id
+        JOIN Games g ON oi.game_id=g.id
+        GROUP BY o.id ORDER BY o.order_date DESC
+    ")->fetchAll();
+} catch(\PDOException $e) { $orders = []; error_log('Orders query: '.$e->getMessage()); }
 
 // Games with stock
-$games = $pdo->query("
-    SELECT g.id, g.name, g.price, g.platform, g.genres, g.description,
-           i.filename AS cover_image,
-           COUNT(k.id) AS stock_count
-    FROM Games g
-    LEFT JOIN Game_Images i ON g.id=i.game_id AND i.is_cover=1
-    LEFT JOIN Game_Keys k ON g.id=k.game_id AND k.is_sold=0
-    GROUP BY g.id ORDER BY g.name ASC
-")->fetchAll();
+try {
+    $games = $pdo->query("
+        SELECT g.id, g.name, g.price, g.platform, g.genres, g.description,
+               i.filename AS cover_image,
+               COUNT(k.id) AS stock_count
+        FROM Games g
+        LEFT JOIN Game_Images i ON g.id=i.game_id AND i.is_cover=1
+        LEFT JOIN Game_Keys k ON g.id=k.game_id AND k.is_sold=0
+        GROUP BY g.id ORDER BY g.name ASC
+    ")->fetchAll();
+} catch(\PDOException $e) { $games = []; error_log('Games query: '.$e->getMessage()); }
 
 // Users
-$users = $pdo->query("SELECT id, email, role, is_active FROM Users ORDER BY id ASC")->fetchAll();
+try {
+    $users = $pdo->query("SELECT id, email, role, is_active FROM Users ORDER BY id ASC")->fetchAll();
+} catch(\PDOException $e) { $users = []; }
 
 // Get edit game if requested
 $edit_game = null;
 if (isset($_GET['edit_game'])) {
-    $stmt = $pdo->prepare("SELECT g.*, i.filename AS cover_image FROM Games g LEFT JOIN Game_Images i ON g.id=i.game_id AND i.is_cover=1 WHERE g.id=?");
-    $stmt->execute([(int)$_GET['edit_game']]);
-    $edit_game = $stmt->fetch();
-}
-
-// Get keys for a game if requested
-$view_keys_game = null;
-$game_keys = [];
-if (isset($_GET['view_keys'])) {
-    $gid = (int)$_GET['view_keys'];
-    $stmt = $pdo->prepare("SELECT id, name FROM Games WHERE id=?");
-    $stmt->execute([$gid]);
-    $view_keys_game = $stmt->fetch();
-    $stmt = $pdo->prepare("SELECT * FROM Game_Keys WHERE game_id=? ORDER BY is_sold ASC, id DESC");
-    $stmt->execute([$gid]);
-    $game_keys = $stmt->fetchAll();
+    try {
+        $stmt = $pdo->prepare("SELECT g.*, i.filename AS cover_image FROM Games g LEFT JOIN Game_Images i ON g.id=i.game_id AND i.is_cover=1 WHERE g.id=?");
+        $stmt->execute([(int)$_GET['edit_game']]);
+        $edit_game = $stmt->fetch();
+    } catch(\PDOException $e) {}
 }
 
 $active_section = $_GET['section'] ?? 'section-dashboard';
@@ -414,13 +409,13 @@ function roleBadge(string $r): string {
 
     <!-- Low stock quick list -->
     <?php
-    $low_games = $pdo->query("
+    try { $low_games = $pdo->query("
         SELECT g.id, g.name, g.price, i.filename AS cover_image, COUNT(k.id) AS stock_count
         FROM Games g
         LEFT JOIN Game_Images i ON g.id=i.game_id AND i.is_cover=1
         LEFT JOIN Game_Keys k ON g.id=k.game_id AND k.is_sold=0
         GROUP BY g.id HAVING stock_count < 5 ORDER BY stock_count ASC LIMIT 5
-    ")->fetchAll();
+    ")->fetchAll(); } catch(\PDOException $e) { $low_games = []; }
     if ($low_games):
     ?>
     <div class="panel" style="margin-top:0;">
