@@ -64,20 +64,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $is_logged_in && !$already_business
                             $field_errors['business_email'] = 'Please enter a valid email.';
         if (!$sales_volume) $field_errors['sales_volume']   = 'Please select a sales volume.';
         if (!$key_source)   $field_errors['key_source']     = 'Please select a key source.';
-        if ($field_errors) { $error = 'Please fix the errors below.'; }
-        else {
-        try {
-            $ins = $pdo->prepare('INSERT INTO Business_Applications
-                (user_id, business_name, first_name, last_name, business_email, website, sales_volume, key_source, reason)
-                VALUES (?,?,?,?,?,?,?,?,?)');
-            $ins->execute([
-                $_SESSION['user_id'], $business_name, $first_name, $last_name,
-                $biz_email, $website, $sales_volume, $key_source, $reason
-            ]);
-            $success = 'Your application has been submitted! We will review it within 24-48 hours.';
-            $already_applied = 'pending';
-        } catch (\PDOException $e) {
-            $error = 'Database error: ' . $e->getMessage();
+
+        if ($field_errors) {
+            $error = 'Please fix the errors below.';
+        } else {
+            try {
+                $ins = $pdo->prepare('INSERT INTO Business_Applications
+                    (user_id, business_name, first_name, last_name, business_email, website, sales_volume, key_source, reason)
+                    VALUES (?,?,?,?,?,?,?,?,?)');
+                $ins->execute([
+                    $_SESSION['user_id'], $business_name, $first_name, $last_name,
+                    $biz_email, $website, $sales_volume, $key_source, $reason
+                ]);
+                $success = 'Your application has been submitted! We will review it within 24-48 hours.';
+                $already_applied = 'pending';
+            } catch (\PDOException $e) {
+                $error = 'Database error: ' . $e->getMessage();
+            }
         }
     }
 }
