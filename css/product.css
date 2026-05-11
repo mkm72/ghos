@@ -45,6 +45,7 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
+    display: block;
 }
 
 /* Small thumbnail images below the main image */
