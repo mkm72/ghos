@@ -123,9 +123,17 @@ $genres = array_filter(array_map('trim', explode(',', $game['genres'])));
                     <div class="quantity-control">
                         <button class="qty-btn" type="button" onclick="document.getElementById('qtyInput').stepDown()" <?php echo !$in_stock ? 'disabled style="opacity: 0.5; cursor: not-allowed;"' : ''; ?>>−</button>
                         
-                        <!-- Added name="quantity" so PHP can grab this value -->
-                        <input type="number" name="quantity" id="qtyInput" class="qty-input" value="1" min="1" max="<?php echo $game['stock_count'] > 0 ? $game['stock_count'] : 1; ?>" <?php echo !$in_stock ? 'disabled' : ''; ?>>
-                        
+                        <!-- Added name="quantity" so PHP can grab this value --> (update??)
+                        <input type="number" 
+                            name="quantity" 
+                            id="qtyInput" 
+                            class="qty-input" 
+                            value="1" 
+                            min="1" 
+                            max="<?php echo $game['stock_count'] > 0 ? $game['stock_count'] : 1; ?>" 
+                            <?php echo !$in_stock ? 'disabled' : ''; ?>
+                            oninput="if(parseInt(this.value) > parseInt(this.max)) this.value = this.max;"
+                        >
                         <button class="qty-btn" type="button" onclick="document.getElementById('qtyInput').stepUp()" <?php echo !$in_stock ? 'disabled style="opacity: 0.5; cursor: not-allowed;"' : ''; ?>>+</button>
                     </div>
                 </div>

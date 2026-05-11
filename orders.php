@@ -116,7 +116,7 @@ if ($user_id) {
             const keyVal = body.querySelector('.key-value');
             if (keyVal.classList.contains('key-hidden')) {
                 keyVal.classList.remove('key-hidden');
-                e.target.textContent = '🙈 Hide Key';
+                e.target.textContent = ' Hide Key';
             } else {
                 keyVal.classList.add('key-hidden');
                 e.target.textContent = '👁️ Reveal Key';

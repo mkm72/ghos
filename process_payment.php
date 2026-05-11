@@ -4,6 +4,8 @@ error_reporting(E_ALL);
 
 session_start();
 require_once 'php/db_connect.php';
+// Include your email sending function
+require_once 'sendEMail.php'; 
 
 $user_id = $_SESSION['user_id'] ?? null;
 $session_id = session_id();
@@ -29,13 +31,11 @@ if ($method === 'card') {
 $guest_email = filter_var($_POST['email'] ?? '', FILTER_VALIDATE_EMAIL);
 
 if (!$user_id) {
-    // 1. Ensure they provided an email
     if (!$guest_email) {
         $_SESSION['pay_error'] = 'A valid email address is required for guest checkout.';
         header('Location: checkout.php'); exit;
     }
 
-    // 2. NEW LOGIC: Check if the email already belongs to a registered user
     $check_email = $pdo->prepare('SELECT id FROM Users WHERE email = ?');
     $check_email->execute([$guest_email]);
     if ($check_email->fetch()) {
@@ -73,8 +73,11 @@ try {
     $order_id = (int)$pdo->lastInsertId();
 
     $item_stmt = $pdo->prepare('INSERT INTO Order_Items (order_id, game_id, key_id, quantity, unit_price) VALUES (?, ?, ?, ?, ?)');
-    $key_fetch_stmt = $pdo->prepare('SELECT id FROM Game_Keys WHERE game_id = ? AND is_sold = 0 LIMIT 1 FOR UPDATE');
+    // UPDATE: Fetch the 'key_code' along with the 'id'
+    $key_fetch_stmt = $pdo->prepare('SELECT id, key_code FROM Game_Keys WHERE game_id = ? AND is_sold = 0 LIMIT 1 FOR UPDATE');
     $key_update_stmt = $pdo->prepare('UPDATE Game_Keys SET is_sold = 1 WHERE id = ?');
+
+    $purchased_keys = []; // Array to hold the keys for the email
 
     foreach ($cart_items as $item) {
         for ($i = 0; $i < $item['quantity']; $i++) {
@@ -87,6 +90,12 @@ try {
 
             $key_update_stmt->execute([$key['id']]);
             $item_stmt->execute([$order_id, $item['game_id'], $key['id'], 1, $item['price']]);
+
+            // Save the game name and key code for the email body
+            $purchased_keys[] = [
+                'game_name' => $item['name'],
+                'key_code' => $key['key_code']
+            ];
         }
     }
 
@@ -94,6 +103,54 @@ try {
     $clear_stmt->execute(['identifier' => $identifier]);
 
     $pdo->commit();
+
+    // ── Send Emails ───────────────────────────────────────────
+    $recipient_email = $user_id ? ($_SESSION['user_email'] ?? '') : $guest_email;
+
+    if ($recipient_email) {
+        // Email 1: Order Confirmation
+        $subject_conf = "Order Confirmation #$order_id — GameHub";
+        $body_conf = "
+            <div style='font-family:Arial,sans-serif;padding:20px;max-width:600px;'>
+                <div style='background:#1a1a1a;color:white;padding:10px 20px;border-radius:8px;display:inline-block;margin-bottom:20px;'>
+                    <strong>Ghos</strong>
+                </div>
+                <h2>Thank you for your order!</h2>
+                <p>Your payment of <strong>$" . number_format($total, 2) . "</strong> has been successfully processed.</p>
+                <p><strong>Order ID:</strong> #$order_id</p>
+                <p style='color:#555;'>We will send your game activation keys in a separate email shortly.</p>
+            </div>
+        ";
+        sendEmail($recipient_email, $recipient_email, $subject_conf, $body_conf);
+
+        // Email 2: Game Keys
+        $subject_keys = "Your Game Keys (Order #$order_id) — GameHub";
+        $body_keys = "
+            <div style='font-family:Arial,sans-serif;padding:20px;max-width:600px;'>
+                <div style='background:#1a1a1a;color:white;padding:10px 20px;border-radius:8px;display:inline-block;margin-bottom:20px;'>
+                    <strong>Ghos</strong>
+                </div>
+                <h2>Your Digital Keys</h2>
+                <p>Here are the activation codes for your recent purchase:</p>
+                <ul style='list-style:none;padding:0;'>
+        ";
+        
+        foreach ($purchased_keys as $pk) {
+            $body_keys .= "
+                <li style='margin-bottom:15px;background:#f9f9f9;padding:15px;border:1px solid #e0e0e0;border-radius:8px;'>
+                    <strong style='display:block;margin-bottom:5px;'>" . htmlspecialchars($pk['game_name']) . "</strong>
+                    <code style='font-size:18px;color:#2563eb;letter-spacing:1px;font-weight:bold;'>" . htmlspecialchars($pk['key_code']) . "</code>
+                </li>
+            ";
+        }
+        
+        $body_keys .= "
+                </ul>
+                <p style='color:#555;margin-top:20px;'>Keep these keys safe and activate them on the corresponding platforms. Enjoy your games!</p>
+            </div>
+        ";
+        sendEmail($recipient_email, $recipient_email, $subject_keys, $body_keys);
+    }
 
 } catch (Exception $e) {
     $pdo->rollBack();
@@ -106,7 +163,7 @@ if ($user_id) {
     $_SESSION['success'] = 'Payment successful! Your keys are ready.';
     header('Location: orders.php?new=1');
 } else {
-    $_SESSION['guest_success'] = 'We will email you with the activation code shortly.';
+    $_SESSION['guest_success'] = 'We have emailed you the order confirmation and activation codes.';
     header('Location: index.php');
 }
 exit;

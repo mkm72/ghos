@@ -1,5 +1,6 @@
 <?php
 ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 session_start();
 
@@ -71,9 +72,7 @@ if ($action === 'add_game' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 // ── Delete Game ───────────────────────────────
 if ($action === 'delete_game' && isset($_GET['id'])) {
     $id = (int)$_GET['id'];
-    $pdo->prepare('DELETE FROM Game_Images WHERE game_id = ?')->execute([$id]);
-    $pdo->prepare('DELETE FROM Game_Keys  WHERE game_id = ?')->execute([$id]);
-    $pdo->prepare('DELETE FROM Games      WHERE id = ?'     )->execute([$id]);
+    $pdo->prepare('DELETE FROM Games WHERE id = ?')->execute([$id]);
     $flash = 'Game deleted.'; $flash_type = 'error';
     header('Location: admin.php?section=section-games&flash='.urlencode($flash).'&flash_type=error'); exit;
 }
@@ -193,6 +192,12 @@ try {
         id INT AUTO_INCREMENT PRIMARY KEY,
         user_id INT NOT NULL,
         business_name VARCHAR(200) NOT NULL,
+        first_name VARCHAR(100),
+        last_name VARCHAR(100),
+        business_email VARCHAR(200),
+        website VARCHAR(300),
+        sales_volume VARCHAR(100),
+        key_source VARCHAR(100),
         reason TEXT,
         status ENUM("pending","approved","rejected") DEFAULT "pending",
         created_at DATETIME DEFAULT NOW(),
@@ -219,55 +224,50 @@ if (isset($_GET['flash'])) { $flash = $_GET['flash']; $flash_type = $_GET['flash
 // ═══════════════════════════════════════════════
 
 // Stats
-$total_revenue   = (float)$pdo->query("SELECT COALESCE(SUM(total_price),0) FROM Orders WHERE status IN ('delivered','completed')")->fetchColumn();
-$total_users     = (int)$pdo->query("SELECT COUNT(*) FROM Users")->fetchColumn();
-$total_orders    = (int)$pdo->query("SELECT COUNT(*) FROM Orders")->fetchColumn();
-$low_stock_count = (int)$pdo->query("SELECT COUNT(*) FROM (SELECT g.id FROM Games g LEFT JOIN Game_Keys k ON g.id=k.game_id AND k.is_sold=0 GROUP BY g.id HAVING COUNT(k.id)<5) x")->fetchColumn();
+try { $total_revenue = (float)$pdo->query("SELECT COALESCE(SUM(total_price),0) FROM Orders WHERE status IN ('delivered','completed')")->fetchColumn(); } catch(\PDOException $e) { $total_revenue = 0; }
+try { $total_users = (int)$pdo->query("SELECT COUNT(*) FROM Users")->fetchColumn(); } catch(\PDOException $e) { $total_users = 0; }
+try { $total_orders = (int)$pdo->query("SELECT COUNT(*) FROM Orders")->fetchColumn(); } catch(\PDOException $e) { $total_orders = 0; }
+try { $low_stock_count = (int)$pdo->query("SELECT COUNT(*) FROM (SELECT g.id FROM Games g LEFT JOIN Game_Keys k ON g.id=k.game_id AND k.is_sold=0 GROUP BY g.id HAVING COUNT(k.id)<5) x")->fetchColumn(); } catch(\PDOException $e) { $low_stock_count = 0; }
 
 // Orders
-$orders = $pdo->query("
-    SELECT o.id, u.email AS user_email, o.total_price, o.order_date, o.status,
-           GROUP_CONCAT(g.name SEPARATOR ', ') AS game_names
-    FROM Orders o
-    JOIN Users u ON o.user_id=u.id
-    JOIN Order_Items oi ON o.id=oi.order_id
-    JOIN Games g ON oi.game_id=g.id
-    GROUP BY o.id, u.email, o.total_price, o.order_date, o.status ORDER BY o.order_date DESC
-")->fetchAll();
+try {
+    $orders = $pdo->query("
+        SELECT o.id, u.email AS user_email, o.total_price, o.order_date, o.status,
+               GROUP_CONCAT(g.name SEPARATOR ', ') AS game_names
+        FROM Orders o
+        JOIN Users u ON o.user_id=u.id
+        JOIN Order_Items oi ON o.id=oi.order_id
+        JOIN Games g ON oi.game_id=g.id
+        GROUP BY o.id ORDER BY o.order_date DESC
+    ")->fetchAll();
+} catch(\PDOException $e) { $orders = []; error_log('Orders query: '.$e->getMessage()); }
 
 // Games with stock
-$games = $pdo->query("
-    SELECT g.id, g.name, g.price, g.platform, g.genres, g.description,
-           ANY_VALUE(i.filename) AS cover_image,
-           COUNT(k.id) AS stock_count
-    FROM Games g
-    LEFT JOIN Game_Images i ON g.id=i.game_id AND i.is_cover=1
-    LEFT JOIN Game_Keys k ON g.id=k.game_id AND k.is_sold=0
-    GROUP BY g.id, g.name, g.price, g.platform, g.genres, g.description ORDER BY g.name ASC
-")->fetchAll();
+try {
+    $games = $pdo->query("
+        SELECT g.id, g.name, g.price, g.platform, g.genres, g.description,
+               i.filename AS cover_image,
+               COUNT(k.id) AS stock_count
+        FROM Games g
+        LEFT JOIN Game_Images i ON g.id=i.game_id AND i.is_cover=1
+        LEFT JOIN Game_Keys k ON g.id=k.game_id AND k.is_sold=0
+        GROUP BY g.id ORDER BY g.name ASC
+    ")->fetchAll();
+} catch(\PDOException $e) { $games = []; error_log('Games query: '.$e->getMessage()); }
 
 // Users
-$users = $pdo->query("SELECT id, email, role, is_active FROM Users ORDER BY id ASC")->fetchAll();
+try {
+    $users = $pdo->query("SELECT id, email, role, is_active FROM Users ORDER BY id ASC")->fetchAll();
+} catch(\PDOException $e) { $users = []; }
 
 // Get edit game if requested
 $edit_game = null;
 if (isset($_GET['edit_game'])) {
-    $stmt = $pdo->prepare("SELECT g.*, i.filename AS cover_image FROM Games g LEFT JOIN Game_Images i ON g.id=i.game_id AND i.is_cover=1 WHERE g.id=?");
-    $stmt->execute([(int)$_GET['edit_game']]);
-    $edit_game = $stmt->fetch();
-}
-
-// Get keys for a game if requested
-$view_keys_game = null;
-$game_keys = [];
-if (isset($_GET['view_keys'])) {
-    $gid = (int)$_GET['view_keys'];
-    $stmt = $pdo->prepare("SELECT id, name FROM Games WHERE id=?");
-    $stmt->execute([$gid]);
-    $view_keys_game = $stmt->fetch();
-    $stmt = $pdo->prepare("SELECT * FROM Game_Keys WHERE game_id=? ORDER BY is_sold ASC, id DESC");
-    $stmt->execute([$gid]);
-    $game_keys = $stmt->fetchAll();
+    try {
+        $stmt = $pdo->prepare("SELECT g.*, i.filename AS cover_image FROM Games g LEFT JOIN Game_Images i ON g.id=i.game_id AND i.is_cover=1 WHERE g.id=?");
+        $stmt->execute([(int)$_GET['edit_game']]);
+        $edit_game = $stmt->fetch();
+    } catch(\PDOException $e) {}
 }
 
 $active_section = $_GET['section'] ?? 'section-dashboard';
@@ -421,13 +421,13 @@ function roleBadge(string $r): string {
 
     <!-- Low stock quick list -->
     <?php
-    $low_games = $pdo->query("
-        SELECT g.id, g.name, g.price, ANY_VALUE(i.filename) AS cover_image, COUNT(k.id) AS stock_count
+    try { $low_games = $pdo->query("
+        SELECT g.id, g.name, g.price, i.filename AS cover_image, COUNT(k.id) AS stock_count
         FROM Games g
         LEFT JOIN Game_Images i ON g.id=i.game_id AND i.is_cover=1
         LEFT JOIN Game_Keys k ON g.id=k.game_id AND k.is_sold=0
-        GROUP BY g.id, g.name, g.price HAVING stock_count < 5 ORDER BY stock_count ASC LIMIT 5
-    ")->fetchAll();
+        GROUP BY g.id HAVING stock_count < 5 ORDER BY stock_count ASC LIMIT 5
+    ")->fetchAll(); } catch(\PDOException $e) { $low_games = []; }
     if ($low_games):
     ?>
     <div class="panel" style="margin-top:0;">
@@ -444,7 +444,7 @@ function roleBadge(string $r): string {
                     </div>
                 </td>
                 <td><?= stockBadge((int)$g['stock_count']) ?></td>
-                <td><a href="?action=view_keys_redirect&id=<?=$g['id']?>" class="act-green act-btn" onclick="event.preventDefault();openAddKeys(<?=$g['id']?>,<?=htmlspecialchars(json_encode($g['name']))?> )">➕ Add Keys</a></td>
+                <td><a href="?action=view_keys_redirect&id=<?=$g['id']?>" class="act-green act-btn" onclick="event.preventDefault();openAddKeys(<?=$g['id']?>,<?=htmlspecialchars(json_encode($g['name']))?>')">➕ Add Keys</a></td>
             </tr>
             <?php endforeach; ?>
             </tbody>
@@ -542,7 +542,7 @@ function roleBadge(string $r): string {
                 <td><?= stockBadge($stock) ?></td>
                 <td>
                     <button class="act-btn act-edit" onclick="openEditGame(<?= htmlspecialchars(json_encode($game)) ?>)">Edit</button>
-                    <button class="act-btn act-green" onclick="openAddKeys(<?=$game['id']?>,<?=htmlspecialchars(json_encode($game['name']))?> )">Keys</button>
+                    <button class="act-btn act-green" onclick="openAddKeys(<?=$game['id']?>,<?=htmlspecialchars(json_encode($game['name']))?>')">Keys</button>
                     <a href="admin.php?action=delete_game&id=<?=$game['id']?>" class="act-btn act-delete" data-confirm="Delete \"<?= htmlspecialchars($game['name']) ?>\"? This cannot be undone.">Delete</a>
                 </td>
             </tr>
@@ -661,6 +661,8 @@ function roleBadge(string $r): string {
             <th>#</th>
             <th>Applicant</th>
             <th>Business Name</th>
+            <th>Contact</th>
+            <th>Volume</th>
             <th>Reason</th>
             <th>Date</th>
             <th>Status</th>
@@ -674,9 +676,18 @@ function roleBadge(string $r): string {
         ?>
             <tr data-status-app="<?= htmlspecialchars($sl) ?>">
                 <td><?= $app["id"] ?></td>
-                <td><?= htmlspecialchars($app["user_email"]) ?></td>
-                <td><strong><?= htmlspecialchars($app["business_name"]) ?></strong></td>
-                <td style="max-width:200px;font-size:12px;color:#666;"><?= htmlspecialchars($app["reason"]) ?></td>
+                <td>
+                    <?= htmlspecialchars($app["user_email"]) ?><br>
+                    <span style="font-size:11px;color:#888;"><?= htmlspecialchars(($app["first_name"]??'').' '.($app["last_name"]??'')) ?></span>
+                </td>
+                <td><strong><?= htmlspecialchars($app["business_name"]) ?></strong><br>
+                    <?php if(!empty($app["website"])): ?><a href="<?=htmlspecialchars($app["website"])?>" target="_blank" style="font-size:11px;color:#2563eb;">🔗 Website</a><?php endif; ?>
+                </td>
+                <td style="font-size:12px;">
+                    <?= htmlspecialchars($app["business_email"]??'') ?>
+                </td>
+                <td style="font-size:12px;color:#666;"><?= htmlspecialchars($app["sales_volume"]??'—') ?></td>
+                <td style="max-width:160px;font-size:12px;color:#666;"><?= htmlspecialchars($app["reason"]) ?></td>
                 <td style="font-size:12px;"><?= date("M j, Y", strtotime($app["created_at"])) ?></td>
                 <td>
                     <?php if($sl === "pending"): ?>
