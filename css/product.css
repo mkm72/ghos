@@ -78,7 +78,7 @@
     margin: 0 auto;
     padding: 10px 20px 60px;
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: 50px;
     align-items: start;
 }
