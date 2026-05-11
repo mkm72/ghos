@@ -444,7 +444,7 @@ function roleBadge(string $r): string {
                     </div>
                 </td>
                 <td><?= stockBadge((int)$g['stock_count']) ?></td>
-                <td><a href="?action=view_keys_redirect&id=<?=$g['id']?>" class="act-green act-btn" onclick="event.preventDefault();openAddKeys(<?=$g['id']?>,<?=htmlspecialchars(json_encode($g['name']))?>')">➕ Add Keys</a></td>
+                <td><a href="?action=view_keys_redirect&id=<?=$g['id']?>" class="act-green act-btn" onclick="event.preventDefault();openAddKeys(<?=$g['id']?>,<?=htmlspecialchars(json_encode($g['name']))?> )">➕ Add Keys</a></td>
             </tr>
             <?php endforeach; ?>
             </tbody>
@@ -542,7 +542,7 @@ function roleBadge(string $r): string {
                 <td><?= stockBadge($stock) ?></td>
                 <td>
                     <button class="act-btn act-edit" onclick="openEditGame(<?= htmlspecialchars(json_encode($game)) ?>)">Edit</button>
-                    <button class="act-btn act-green" onclick="openAddKeys(<?=$game['id']?>,<?=htmlspecialchars(json_encode($game['name']))?>')">Keys</button>
+                    <button class="act-btn act-green" onclick="openAddKeys(<?=$game['id']?>,<?=htmlspecialchars(json_encode($game['name']))?> )">Keys</button>
                     <a href="admin.php?action=delete_game&id=<?=$game['id']?>" class="act-btn act-delete" data-confirm="Delete \"<?= htmlspecialchars($game['name']) ?>\"? This cannot be undone.">Delete</a>
                 </td>
             </tr>
