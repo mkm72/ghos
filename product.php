@@ -123,7 +123,7 @@ $genres = array_filter(array_map('trim', explode(',', $game['genres'])));
                     <div class="quantity-control">
                         <button class="qty-btn" type="button" onclick="document.getElementById('qtyInput').stepDown()" <?php echo !$in_stock ? 'disabled style="opacity: 0.5; cursor: not-allowed;"' : ''; ?>>−</button>
                         
-                        <!-- Added name="quantity" so PHP can grab this value -->
+                        <!-- Added name="quantity" so PHP can grab this value --> (update??)
                         <input type="number" 
                             name="quantity" 
                             id="qtyInput" 
