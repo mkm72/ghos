@@ -515,7 +515,7 @@ if (digits.length) {
 
 const countdownEl = document.getElementById('countdown');
 if (countdownEl) {
-    const expires = <?= isset($_SESSION['code_expires']) ? (int)$_SESSION['code_expires'] : 0 ?>;
+    const expires = <?= isset($_SESSION['code_expires']) ? (int)$_SESSION['code_expires'] : (isset($_SESSION['2fa_expires']) ? (int)$_SESSION['2fa_expires'] : 0) ?>;
     function tick() {
         const left = expires - Math.floor(Date.now() / 1000);
         if (left <= 0) {
