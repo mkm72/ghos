@@ -6,6 +6,17 @@ session_start();
 
 if (isset($_GET['logout'])) { session_unset(); session_destroy(); header('Location: index.php'); exit; }
 
+// ── Local dev bypass ─────────────────────────
+// On localhost: auto-set admin session so you can develop without logging in
+$is_local = in_array($_SERVER['REMOTE_ADDR'] ?? '', ['127.0.0.1', '::1']);
+if ($is_local && !isset($_SESSION['user_id'])) {
+    $_SESSION['user_id']    = 1;
+    $_SESSION['user_email'] = 'admin@ghos.com';
+    $_SESSION['role']       = 'admin';
+    $_SESSION['user_role']  = 'admin';
+}
+// ─────────────────────────────────────────────
+
 if (!isset($_SESSION['user_id']) || ($_SESSION['role'] ?? '') !== 'admin') {
     http_response_code(403);
     echo '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Access Denied</title><link rel="stylesheet" href="css/navbar.css"></head><body>';
@@ -148,7 +159,7 @@ if ($action === 'delete_user' && isset($_GET['id'])) {
 }
 
 // ── Approve/Reject Business Application ──────
-if ( === 'review_app' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+if ($action === 'review_app' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $app_id    = (int)($_POST['app_id'] ?? 0);
     $decision  = $_POST['decision'] ?? '';
     $user_id   = (int)($_POST['user_id'] ?? 0);
