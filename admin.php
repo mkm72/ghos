@@ -593,7 +593,7 @@ function roleBadge(string $r): string {
                         <button type="submit" class="act-btn act-green">Save</button>
                     </form>
                 </td>
-                <td style="display:flex;flex-direction:column;gap:4px;align-items:flex-start;">
+                <td style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
                     <?php 
                     $suspend_text = $u['role'] === 'business' ? 'Block Seller' : 'Suspend Account';
                     $enable_text  = $u['role'] === 'business' ? 'Unblock Seller' : 'Enable Account';
