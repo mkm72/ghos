@@ -238,7 +238,7 @@ try {
         JOIN Users u ON o.user_id=u.id
         JOIN Order_Items oi ON o.id=oi.order_id
         JOIN Games g ON oi.game_id=g.id
-        GROUP BY o.id ORDER BY o.order_date DESC
+        GROUP BY o.id, u.email, o.total_price, o.order_date, o.status ORDER BY o.order_date DESC
     ")->fetchAll();
 } catch(\PDOException $e) { $orders = []; error_log('Orders query: '.$e->getMessage()); }
 
@@ -246,12 +246,12 @@ try {
 try {
     $games = $pdo->query("
         SELECT g.id, g.name, g.price, g.platform, g.genres, g.description,
-               i.filename AS cover_image,
+               ANY_VALUE(i.filename) AS cover_image,
                COUNT(k.id) AS stock_count
         FROM Games g
         LEFT JOIN Game_Images i ON g.id=i.game_id AND i.is_cover=1
         LEFT JOIN Game_Keys k ON g.id=k.game_id AND k.is_sold=0
-        GROUP BY g.id ORDER BY g.name ASC
+        GROUP BY g.id, g.name, g.price, g.platform, g.genres, g.description ORDER BY g.name ASC
     ")->fetchAll();
 } catch(\PDOException $e) { $games = []; error_log('Games query: '.$e->getMessage()); }
 
@@ -422,11 +422,11 @@ function roleBadge(string $r): string {
     <!-- Low stock quick list -->
     <?php
     try { $low_games = $pdo->query("
-        SELECT g.id, g.name, g.price, i.filename AS cover_image, COUNT(k.id) AS stock_count
+        SELECT g.id, g.name, g.price, ANY_VALUE(i.filename) AS cover_image, COUNT(k.id) AS stock_count
         FROM Games g
         LEFT JOIN Game_Images i ON g.id=i.game_id AND i.is_cover=1
         LEFT JOIN Game_Keys k ON g.id=k.game_id AND k.is_sold=0
-        GROUP BY g.id HAVING stock_count < 5 ORDER BY stock_count ASC LIMIT 5
+        GROUP BY g.id, g.name, g.price HAVING stock_count < 5 ORDER BY stock_count ASC LIMIT 5
     ")->fetchAll(); } catch(\PDOException $e) { $low_games = []; }
     if ($low_games):
     ?>
@@ -587,8 +587,12 @@ function roleBadge(string $r): string {
                     </form>
                 </td>
                 <td>
+                    <?php 
+                    $suspend_text = $u['role'] === 'business' ? 'Block Seller' : 'Suspend Account';
+                    $enable_text  = $u['role'] === 'business' ? 'Unblock Seller' : 'Enable Account';
+                    ?>
                     <a href="admin.php?action=toggle_user&id=<?=$u['id']?>&section=section-users" class="act-btn <?= $u['is_active']?'act-orange':'act-green' ?>">
-                        <?= $u['is_active']?'Suspend':'Enable' ?>
+                        <?= $u['is_active'] ? $suspend_text : $enable_text ?>
                     </a>
                     <?php if($u['id'] !== (int)$_SESSION['user_id']): ?>
                     <a href="admin.php?action=delete_user&id=<?=$u['id']?>" class="act-btn act-delete" data-confirm="Delete user <?= htmlspecialchars($u['email']) ?>? This cannot be undone.">Delete</a>
