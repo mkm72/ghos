@@ -776,6 +776,9 @@ function roleBadge(string $r): string {
             <div class="fg" style="margin-bottom:12px;">
                 <label>Add Keys (one per line)</label>
                 <textarea name="keys" placeholder="XXXXX-XXXXX-XXXXX&#10;YYYYY-YYYYY-YYYYY" style="min-height:100px;width:100%;padding:8px;border:1px solid #e0e0e0;border-radius:6px;font-family:monospace;font-size:13px;"></textarea>
+                <div style="font-size:12px;color:#888;margin-top:6px;">
+                    ℹ️ <b>Note:</b> Duplicate keys will be automatically ignored and will not be counted.
+                </div>
             </div>
             <div style="display:flex;justify-content:flex-end;gap:8px;">
                 <button type="button" onclick="closeModal('addKeysModal')" style="padding:8px 16px;border:1px solid #e0e0e0;border-radius:6px;background:white;cursor:pointer;">Cancel</button>
