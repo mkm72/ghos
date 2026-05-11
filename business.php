@@ -5,8 +5,9 @@ require_once 'php/db_connect.php';
 $is_logged_in = isset($_SESSION['user_id']);
 $user_role    = $_SESSION['role'] ?? $_SESSION['user_role'] ?? 'guest';
 
-$success = '';
-$error   = '';
+$success      = '';
+$error        = '';
+$field_errors = [];
 $already_applied = false;
 $already_business = false;
 
@@ -52,13 +53,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $is_logged_in && !$already_business
     $key_source   = trim($_POST['key_source'] ?? '');
     $reason       = trim($_POST['reason'] ?? '');
 
-    if (!$first_name || !$last_name || !$business_name || !$biz_email || !$sales_volume || !$key_source) {
-        $error = 'Please fill in all required fields.';
-    } elseif (!filter_var($biz_email, FILTER_VALIDATE_EMAIL)) {
-        $error = 'Please enter a valid business email.';
-    } elseif ($already_applied === 'pending') {
+    if ($already_applied === 'pending') {
         $error = 'You already have a pending application.';
     } else {
+        if (!$first_name)   $field_errors['first_name']     = 'First name is required.';
+        if (!$last_name)    $field_errors['last_name']      = 'Last name is required.';
+        if (!$business_name)$field_errors['business_name']  = 'Company name is required.';
+        if (!$biz_email)    $field_errors['business_email'] = 'Business email is required.';
+        elseif (!filter_var($biz_email, FILTER_VALIDATE_EMAIL))
+                            $field_errors['business_email'] = 'Please enter a valid email.';
+        if (!$sales_volume) $field_errors['sales_volume']   = 'Please select a sales volume.';
+        if (!$key_source)   $field_errors['key_source']     = 'Please select a key source.';
+        if ($field_errors) { $error = 'Please fix the errors below.'; }
+        else {
         try {
             $ins = $pdo->prepare('INSERT INTO Business_Applications
                 (user_id, business_name, first_name, last_name, business_email, website, sales_volume, key_source, reason)
@@ -70,7 +77,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $is_logged_in && !$already_business
             $success = 'Your application has been submitted! We will review it within 24-48 hours.';
             $already_applied = 'pending';
         } catch (\PDOException $e) {
-            $error = 'Something went wrong. Please try again.';
+            $error = 'Database error: ' . $e->getMessage();
         }
     }
 }
@@ -83,6 +90,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $is_logged_in && !$already_business
     <title>Register Your Business — GameHub Online Store</title>
     <link rel="stylesheet" href="css/navbar.css">
     <link rel="stylesheet" href="css/business.css">
+    <style>
+        .input-error { border: 2px solid #ef4444 !important; background: #fff5f5 !important; }
+        .field-error { color: #dc2626; font-size: 12px; margin-top: 4px; font-weight: 500; }
+        input.input-error:focus, select.input-error:focus { outline-color: #ef4444; }
+    </style>
 </head>
 <body>
 
@@ -239,22 +251,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $is_logged_in && !$already_business
             <div class="form-row">
                 <div class="form-group">
                     <label>First Name *</label>
-                    <input type="text" name="first_name" placeholder="Mohammed" required value="<?= htmlspecialchars($_POST['first_name'] ?? '') ?>">
+                    <input type="text" name="first_name" placeholder="Mohammed" required value="<?= htmlspecialchars($_POST['first_name'] ?? '') ?>" class="<?= isset($field_errors['first_name']) ? 'input-error' : '' ?>">
+                    <?php if(isset($field_errors['first_name'])): ?><div class="field-error"><?= $field_errors['first_name'] ?></div><?php endif; ?>
                 </div>
                 <div class="form-group">
                     <label>Last Name *</label>
-                    <input type="text" name="last_name" placeholder="AlRashed" required value="<?= htmlspecialchars($_POST['last_name'] ?? '') ?>">
+                    <input type="text" name="last_name" placeholder="AlRashed" required value="<?= htmlspecialchars($_POST['last_name'] ?? '') ?>" class="<?= isset($field_errors['last_name']) ? 'input-error' : '' ?>">
+                    <?php if(isset($field_errors['last_name'])): ?><div class="field-error"><?= $field_errors['last_name'] ?></div><?php endif; ?>
                 </div>
             </div>
 
             <div class="form-row">
                 <div class="form-group">
                     <label>Company Name *</label>
-                    <input type="text" name="business_name" placeholder="Sony" required value="<?= htmlspecialchars($_POST['business_name'] ?? '') ?>">
+                    <input type="text" name="business_name" placeholder="Sony" required value="<?= htmlspecialchars($_POST['business_name'] ?? '') ?>" class="<?= isset($field_errors['business_name']) ? 'input-error' : '' ?>">
+                    <?php if(isset($field_errors['business_name'])): ?><div class="field-error"><?= $field_errors['business_name'] ?></div><?php endif; ?>
                 </div>
                 <div class="form-group">
                     <label>Business Email *</label>
-                    <input type="email" name="business_email" placeholder="you@company.com" required value="<?= htmlspecialchars($_POST['business_email'] ?? '') ?>">
+                    <input type="email" name="business_email" placeholder="you@company.com" required value="<?= htmlspecialchars($_POST['business_email'] ?? '') ?>" class="<?= isset($field_errors['business_email']) ? 'input-error' : '' ?>">
+                    <?php if(isset($field_errors['business_email'])): ?><div class="field-error"><?= $field_errors['business_email'] ?></div><?php endif; ?>
                 </div>
             </div>
 
@@ -268,21 +284,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $is_logged_in && !$already_business
             <div class="form-row">
                 <div class="form-group">
                     <label>Expected Monthly Sales Volume *</label>
-                    <select name="sales_volume" required>
+                    <select name="sales_volume" required class="<?= isset($field_errors['sales_volume']) ? 'input-error' : '' ?>">
                         <option value="">Select volume...</option>
                         <?php foreach(['Less than $1,000','$1,000 - $10,000','$10,000 - $50,000','More than $50,000'] as $v): ?>
                             <option value="<?=$v?>" <?= ($_POST['sales_volume'] ?? '') === $v ? 'selected' : '' ?>><?=$v?></option>
                         <?php endforeach; ?>
                     </select>
+                    <?php if(isset($field_errors['sales_volume'])): ?><div class="field-error"><?= $field_errors['sales_volume'] ?></div><?php endif; ?>
                 </div>
                 <div class="form-group">
                     <label>Primary Source of Keys *</label>
-                    <select name="key_source" required>
+                    <select name="key_source" required class="<?= isset($field_errors['key_source']) ? 'input-error' : '' ?>">
                         <option value="">Select source...</option>
                         <?php foreach(['Official Publisher / Developer','Authorized Distributor','Retail Box Scans','Other'] as $s): ?>
                             <option value="<?=$s?>" <?= ($_POST['key_source'] ?? '') === $s ? 'selected' : '' ?>><?=$s?></option>
                         <?php endforeach; ?>
                     </select>
+                    <?php if(isset($field_errors['key_source'])): ?><div class="field-error"><?= $field_errors['key_source'] ?></div><?php endif; ?>
                 </div>
             </div>
 
