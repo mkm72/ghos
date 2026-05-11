@@ -593,16 +593,16 @@ function roleBadge(string $r): string {
                         <button type="submit" class="act-btn act-green">Save</button>
                     </form>
                 </td>
-                <td style="display:flex;flex-direction:column;gap:6px;">
+                <td style="display:flex;flex-direction:column;gap:4px;align-items:flex-start;">
                     <?php 
                     $suspend_text = $u['role'] === 'business' ? 'Block Seller' : 'Suspend Account';
                     $enable_text  = $u['role'] === 'business' ? 'Unblock Seller' : 'Enable Account';
                     ?>
-                    <a href="admin.php?action=toggle_user&id=<?=$u['id']?>&section=section-users" class="act-btn <?= $u['is_active']?'act-orange':'act-green' ?>" style="text-align:center;">
+                    <a href="admin.php?action=toggle_user&id=<?=$u['id']?>&section=section-users" class="act-btn <?= $u['is_active']?'act-orange':'act-green' ?>">
                         <?= $u['is_active'] ? $suspend_text : $enable_text ?>
                     </a>
                     <?php if($u['id'] !== (int)$_SESSION['user_id']): ?>
-                    <a href="admin.php?action=delete_user&id=<?=$u['id']?>" class="act-btn act-delete" data-confirm="Delete user <?= htmlspecialchars($u['email']) ?>? This cannot be undone." style="text-align:center;">Delete</a>
+                    <a href="admin.php?action=delete_user&id=<?=$u['id']?>" class="act-btn act-delete" data-confirm="Delete user <?= htmlspecialchars($u['email']) ?>? This cannot be undone.">Delete</a>
                     <?php endif; ?>
                 </td>
             </tr>
