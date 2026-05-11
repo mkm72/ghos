@@ -44,6 +44,7 @@
 .product-main-image img {
     width: 100%;
     height: 100%;
+    object-fit: cover;
 }
 
 /* Small thumbnail images below the main image */
