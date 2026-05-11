@@ -148,7 +148,7 @@ if ($action === 'delete_user' && isset($_GET['id'])) {
 }
 
 // ── Approve/Reject Business Application ──────
-if ( === 'review_app' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+if ($action === 'review_app' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $app_id    = (int)($_POST['app_id'] ?? 0);
     $decision  = $_POST['decision'] ?? '';
     $user_id   = (int)($_POST['user_id'] ?? 0);
