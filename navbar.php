@@ -50,7 +50,7 @@ if ($is_logged_in) {
             <a href="business-dashboard.php">Your Business</a>
         <?php endif; ?>
 
-        <a href="business.html">Business Service</a>
+        <a href="business.php">Business Service</a>
 
         <?php if ($is_logged_in): ?>
             <div class="profile-dropdown">
