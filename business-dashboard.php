@@ -150,6 +150,28 @@ $total_games     = count($listings);
         </div>
     </div>
 
+    <!-- LOW STOCK ALERT BANNER -->
+    <?php
+    $low_stock_games = array_filter($listings, fn($l) => (int)$l['stock'] < 5);
+    if (!empty($low_stock_games)):
+    ?>
+    <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:14px 20px;margin-bottom:20px;display:flex;align-items:flex-start;gap:14px;">
+        <div style="font-size:22px;line-height:1;">⚠️</div>
+        <div>
+            <div style="font-weight:bold;color:#92400e;font-size:14px;margin-bottom:4px;">
+                Low Stock Warning — <?= count($low_stock_games) ?> game<?= count($low_stock_games) > 1 ? 's' : '' ?> running low
+            </div>
+            <div style="font-size:13px;color:#78350f;">
+                <?php foreach($low_stock_games as $lg): ?>
+                    <span style="display:inline-block;background:#fef3c7;border:1px solid #fcd34d;border-radius:20px;padding:2px 10px;font-size:12px;font-weight:bold;margin:2px 4px 2px 0;">
+                        <?= htmlspecialchars($lg['name']) ?> — <?= (int)$lg['stock'] ?> key<?= (int)$lg['stock'] !== 1 ? 's' : '' ?> left
+                    </span>
+                <?php endforeach; ?>
+            </div>
+        </div>
+    </div>
+    <?php endif; ?>
+
     <!-- GAME LISTINGS TABLE -->
     <div class="panel" style="margin-top:0;">
         <div class="panel-header">
@@ -169,9 +191,12 @@ $total_games     = count($listings);
                 <?php if (empty($listings)): ?>
                     <tr><td colspan="5" style="text-align:center;color:#888;padding:30px;">No game listings yet.</td></tr>
                 <?php else: foreach ($listings as $game):
-                    $img = ltrim($game['cover_image'] ?? '', '/');
+                    $img      = ltrim($game['cover_image'] ?? '', '/');
+                    $stock    = (int)$game['stock'];
+                    $isLow    = $stock < 5;
+                    $rowStyle = $isLow ? 'background:#fffbeb;' : '';
                 ?>
-                    <tr>
+                    <tr style="<?= $rowStyle ?>">
                         <td>
                             <div class="game-cell">
                                 <div class="mini-img bg-dark">
@@ -183,12 +208,22 @@ $total_games     = count($listings);
                             </div>
                         </td>
                         <td>$<?= number_format((float)$game['price'], 2) ?></td>
-                        <td><?= (int)$game['stock'] ?></td>
+                        <td>
+                            <?php if ($stock === 0): ?>
+                                <span style="color:#dc2626;font-weight:bold;">0</span>
+                            <?php elseif ($isLow): ?>
+                                <span class="stock-low"><?= $stock ?></span>
+                            <?php else: ?>
+                                <?= $stock ?>
+                            <?php endif; ?>
+                        </td>
                         <td><?= htmlspecialchars($game['platform']) ?></td>
                         <td>
-                            <?php if ($game['stock'] > 0): ?>
+                            <?php if ($stock > 0 && !$isLow): ?>
                                 <span class="badge-green">Active</span>
-                            <?php elseif ($game['stock'] === 0): ?>
+                            <?php elseif ($stock > 0 && $isLow): ?>
+                                <span class="badge-orange">Low Stock</span>
+                            <?php else: ?>
                                 <span class="badge-red">Out of Stock</span>
                             <?php endif; ?>
                         </td>
