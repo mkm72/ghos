@@ -179,7 +179,7 @@ $current_sort_label = $sort_options[$current_sort] ?? 'Top Rated';
                     $in_stock = $game['stock_count'] > 0;
                     $current_bg = $bg_colors[$color_index % count($bg_colors)];
                     $color_index++;
-                    $image_path = ltrim($game['cover_image'], '/');
+                    $image_path = ltrim($game['cover_image'] ?? '', '/');
                     $hidden_class = $index >= 16 ? 'hidden-game' : '';
             ?>
             <a href="product.php?id=<?php echo $game['id']; ?>" class="game-card <?php echo $hidden_class; ?>">
