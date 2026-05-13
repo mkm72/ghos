@@ -34,34 +34,27 @@ unset($g);
 $categories = ['Action', 'RPG', 'Shooter', 'Adventure', 'Strategy', 'Indie', 'Platformer'];
 
 $grid_query = "
-    SELECT 
-        MIN(g.id) AS id, 
-        g.name, 
-        MIN(g.price) AS price, 
-        MIN(g.platform) AS platform, 
-        MIN(g.genres) AS genres,
-        MAX(i.filename) AS cover_image,
-        (SELECT COUNT(*) 
-         FROM Game_Keys k 
-         JOIN Games g2 ON k.game_id = g2.id 
-         WHERE g2.name = g.name AND k.is_sold = 0) AS stock_count
-    FROM Games g
-    LEFT JOIN Game_Images i ON g.id = i.game_id AND i.is_cover = 1
+    SELECT t.* FROM (
+        SELECT 
+            g.id, 
+            g.name, 
+            g.price, 
+            g.platform, 
+            g.genres,
+            i.filename AS cover_image,
+            (SELECT COUNT(*) FROM Game_Keys k JOIN Games g2 ON k.game_id = g2.id WHERE g2.name = g.name AND k.is_sold = 0) AS stock_count,
+            ROW_NUMBER() OVER(PARTITION BY g.name ORDER BY g.price ASC, g.id ASC) as rn
+        FROM Games g
+        LEFT JOIN Game_Images i ON g.id = i.game_id AND i.is_cover = 1
+        " . ($current_category !== 'All Games' ? "WHERE g.genres LIKE :category" : "") . "
+    ) t WHERE t.rn = 1
+    $order_by
 ";
 
-if ($current_category !== 'All Games') {
-    $grid_query .= " WHERE g.genres LIKE :category ";
-}
-
-$grid_query .= " GROUP BY g.name ";
-$grid_query .= " $order_by";
-
 $stmt_games = $pdo->prepare($grid_query);
-
 if ($current_category !== 'All Games') {
     $stmt_games->bindValue(':category', '%' . $current_category . '%');
 }
-
 $stmt_games->execute();
 $games = $stmt_games->fetchAll();
 

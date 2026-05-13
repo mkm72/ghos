@@ -13,17 +13,17 @@ if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
 
 $game_id = (int)$_GET['id'];
 
+// Improved query to get the approved business name
 $stmt = $pdo->prepare("
     SELECT g.*, 
            (SELECT COUNT(*) FROM Game_Keys k WHERE k.game_id = g.id AND k.is_sold = 0) AS stock_count,
            ba.business_name AS seller_name
     FROM Games g
-    LEFT JOIN Business_Applications ba ON g.seller_id = ba.user_id
+    LEFT JOIN Business_Applications ba ON g.seller_id = ba.user_id AND ba.status = 'approved'
     WHERE g.id = :id
 ");
 $stmt->execute(['id' => $game_id]);
 $game = $stmt->fetch();
-
 if (!$game) {
     die("<h2 style='text-align:center; padding: 50px; font-family: Arial;'>Game not found. <a href='index.php'>Return to store</a></h2>");
 }
@@ -126,8 +126,10 @@ $other_sellers = $stmt_others->fetchAll();
             </form>
 
             <div class="trust-row">
-                <div class="trust-item">Sold by: <?php echo htmlspecialchars($game['seller_name'] ?? 'GameHub Official'); ?></div>
-                <div class="trust-item">Official Keys</div>
+<div class="trust-item">
+    Sold by: <?php echo htmlspecialchars($game['seller_name'] ?? 'GameHub Official'); ?>
+</div>                
+<div class="trust-item">Official Keys</div>
                 <div class="trust-item">Secure Payment</div>
             </div>
 
