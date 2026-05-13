@@ -9,10 +9,10 @@ $current_category = isset($_GET['category']) ? trim($_GET['category']) : 'All Ga
 $current_sort = $_GET['sort'] ?? 'rating';
 
 $order_by = match($current_sort) {
-    'price_asc'  => 'ORDER BY g.price ASC',
-    'price_desc' => 'ORDER BY g.price DESC',
-    'name'       => 'ORDER BY g.name ASC',
-    default      => 'ORDER BY g.id DESC',
+    'price_asc'  => 'ORDER BY price ASC',
+    'price_desc' => 'ORDER BY price DESC',
+    'name'       => 'ORDER BY name ASC',
+    default      => 'ORDER BY id DESC',
 };
 
 $stmt_featured = $pdo->prepare("
@@ -54,10 +54,11 @@ if ($current_category !== 'All Games') {
 }
 
 $grid_query .= " GROUP BY g.name ";
-$grid_query .= " " . str_replace('g.', '', $order_by); // Sort by the aggregated values
+$grid_query .= " $order_by";
 
 $stmt_games = $pdo->prepare($grid_query);
 
+if ($current_category !== 'All Games') {
     $stmt_games->bindValue(':category', '%' . $current_category . '%');
 }
 
