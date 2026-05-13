@@ -15,13 +15,9 @@ if (!isset($_SESSION['user_id']) || ($_SESSION['role'] ?? '') !== 'business') {
 $user_id    = (int)$_SESSION['user_id'];
 $user_email = $_SESSION['user_email'] ?? '';
 
-try {
-    $pdo->exec("ALTER TABLE Games ADD COLUMN seller_id INT DEFAULT NULL");
-    $pdo->exec("ALTER TABLE Games ADD CONSTRAINT fk_games_seller FOREIGN KEY (seller_id) REFERENCES Users(id) ON DELETE CASCADE");
-} catch (\PDOException $e) {}
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
+    
     if ($action === 'add_game') {
         $name = trim($_POST['name'] ?? '');
         $price = (float)($_POST['price'] ?? 0);
@@ -43,6 +39,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if (move_uploaded_file($file['tmp_name'], $dir.$fname)) {
                     $pdo->prepare('INSERT INTO Game_Images (game_id, filename, is_cover) VALUES (?,?,1)')->execute([$game_id, $dir.$fname]);
                 }
+            }
+        }
+        header('Location: business-dashboard.php');
+        exit;
+    }
+
+    if ($action === 'add_existing_game') {
+        $base_game_id = (int)($_POST['base_game_id'] ?? 0);
+        $my_price = (float)($_POST['price'] ?? 0);
+        
+        $stmt = $pdo->prepare("SELECT * FROM Games WHERE id = ?");
+        $stmt->execute([$base_game_id]);
+        $base = $stmt->fetch();
+        
+        if ($base) {
+            $ins = $pdo->prepare('INSERT INTO Games (name, description, price, platform, genres, seller_id) VALUES (?,?,?,?,?,?)');
+            $ins->execute([$base['name'], $base['description'], $my_price, $base['platform'], $base['genres'], $user_id]);
+            $new_game_id = $pdo->lastInsertId();
+            
+            $stmt_img = $pdo->prepare("SELECT filename FROM Game_Images WHERE game_id = ? AND is_cover = 1 LIMIT 1");
+            $stmt_img->execute([$base_game_id]);
+            $img = $stmt_img->fetch();
+            if ($img) {
+                $pdo->prepare('INSERT INTO Game_Images (game_id, filename, is_cover) VALUES (?,?,1)')->execute([$new_game_id, $img['filename']]);
             }
         }
         header('Location: business-dashboard.php');
@@ -100,6 +120,11 @@ try {
     $recent_sales = $stmt_sales->fetchAll();
 } catch (\PDOException $e) { $recent_sales = []; }
 
+try {
+    $stmt_global = $pdo->query("SELECT id, name FROM Games GROUP BY name ORDER BY name ASC");
+    $global_games = $stmt_global->fetchAll();
+} catch (\PDOException $e) { $global_games = []; }
+
 $total_revenue   = array_sum(array_column($recent_sales, 'amount'));
 $active_listings = count(array_filter($listings, fn($l) => $l['stock'] > 0));
 $total_sales     = count($recent_sales);
@@ -128,6 +153,9 @@ $total_games     = count($listings);
         .form-row.full { grid-template-columns:1fr; }
         .fg label { display:block;font-size:12px;font-weight:bold;color:#666;text-transform:uppercase;margin-bottom:5px; }
         .fg input, .fg select, .fg textarea { width:100%;padding:8px 12px;border:1px solid #e0e0e0;border-radius:6px;font-size:14px;box-sizing:border-box; }
+        .header-actions { display:flex; gap:10px; }
+        .btn-white { background: white; border: 1px solid #ccc; color: #333; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; }
+        .btn-white:hover { background: #f9f9f9; }
     </style>
 </head>
 <body>
@@ -142,7 +170,6 @@ $total_games     = count($listings);
         <span><?= htmlspecialchars($user_email) ?></span>
     </div>
     <a href="business-dashboard.php" class="sidebar-link active">Dashboard</a>
-    <a href="javascript:void(0)" class="sidebar-link" onclick="document.getElementById('addGameModal').classList.add('open')">Add New Game</a>
     <hr class="sidebar-divider">
     <a href="index.php" class="sidebar-back">Back to Store</a>
     <a href="auth.php?logout=1" class="sidebar-back" style="color:#ef4444;margin-top:8px;">Logout</a>
@@ -168,7 +195,10 @@ $total_games     = count($listings);
     <div class="panel">
         <div class="panel-header">
             <span class="panel-title">Game Listings (<?= $total_games ?>)</span>
-            <button class="btn-blue" onclick="document.getElementById('addGameModal').classList.add('open')">Add Game</button>
+            <div class="header-actions">
+                <button class="btn-white" onclick="document.getElementById('addExistingGameModal').classList.add('open')">Sell Existing Game</button>
+                <button class="btn-blue" onclick="document.getElementById('addGameModal').classList.add('open')">Add New Game</button>
+            </div>
         </div>
         <table class="data-table">
             <thead>
@@ -229,9 +259,33 @@ $total_games     = count($listings);
     </div>
 </main>
 
+<div class="modal-overlay" id="addExistingGameModal">
+    <div class="modal-box">
+        <div class="modal-title">Sell an Existing Game <button class="modal-close" onclick="document.getElementById('addExistingGameModal').classList.remove('open')">×</button></div>
+        <form method="POST" action="business-dashboard.php">
+            <input type="hidden" name="action" value="add_existing_game">
+            <div class="form-row full">
+                <div class="fg">
+                    <label>Select Game *</label>
+                    <select name="base_game_id" required>
+                        <option value="">-- Choose a game from the catalog --</option>
+                        <?php foreach ($global_games as $gg): ?>
+                            <option value="<?= $gg['id'] ?>"><?= htmlspecialchars($gg['name']) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+            </div>
+            <div class="form-row full">
+                <div class="fg"><label>Your Price *</label><input type="number" name="price" step="0.01" required></div>
+            </div>
+            <div style="text-align:right;"><button type="submit" class="btn-blue">Add to My Store</button></div>
+        </form>
+    </div>
+</div>
+
 <div class="modal-overlay" id="addGameModal">
     <div class="modal-box">
-        <div class="modal-title">Add New Game <button class="modal-close" onclick="document.getElementById('addGameModal').classList.remove('open')">×</button></div>
+        <div class="modal-title">Add New Custom Game <button class="modal-close" onclick="document.getElementById('addGameModal').classList.remove('open')">×</button></div>
         <form method="POST" action="business-dashboard.php" enctype="multipart/form-data">
             <input type="hidden" name="action" value="add_game">
             <div class="form-row">
@@ -248,7 +302,7 @@ $total_games     = count($listings);
             <div class="form-row full">
                 <div class="fg"><label>Cover Image</label><input type="file" name="cover_image" accept="image/*"></div>
             </div>
-            <div style="text-align:right;"><button type="submit" class="btn-blue">Add Game</button></div>
+            <div style="text-align:right;"><button type="submit" class="btn-blue">Create Game</button></div>
         </form>
     </div>
 </div>
