@@ -120,11 +120,18 @@ try {
     $recent_sales = $stmt_sales->fetchAll();
 } catch (\PDOException $e) { $recent_sales = []; }
 
+// Fetch unique games by name, picking the lowest ID for each title
 try {
-    $stmt_global = $pdo->query("SELECT id, name FROM Games GROUP BY name ORDER BY name ASC");
+    $stmt_global = $pdo->query("
+        SELECT MIN(id) as id, name 
+        FROM Games 
+        GROUP BY name 
+        ORDER BY name ASC
+    ");
     $global_games = $stmt_global->fetchAll();
-} catch (\PDOException $e) { $global_games = []; }
-
+} catch (\PDOException $e) { 
+    $global_games = []; 
+}
 $total_revenue   = array_sum(array_column($recent_sales, 'amount'));
 $active_listings = count(array_filter($listings, fn($l) => $l['stock'] > 0));
 $total_sales     = count($recent_sales);
