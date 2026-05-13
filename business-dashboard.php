@@ -88,11 +88,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 if (isset($_GET['action']) && $_GET['action'] === 'delete_game') {
     $game_id = (int)$_GET['id'];
-    $pdo->prepare('DELETE FROM Games WHERE id=? AND seller_id=?')->execute([$game_id, $user_id]);
-    header('Location: business-dashboard.php');
-    exit;
+    
+    try {
+        // 1. Check if the game has any sales history
+        $chk_sales = $pdo->prepare('SELECT id FROM Order_Items WHERE game_id=? LIMIT 1');
+        $chk_sales->execute([$game_id]);
+        if ($chk_sales->fetch()) {
+            // Has orders, don't delete to preserve order history
+            echo "<script>alert('Cannot delete this game because it has already been sold to customers. Please delete its keys to mark it Out of Stock instead.'); window.location.href='business-dashboard.php';</script>";
+            exit;
+        }
+        
+        // 2. Safely delete child records first to prevent Database Constraint 500 errors
+        $pdo->prepare('DELETE FROM Game_Images WHERE game_id=?')->execute([$game_id]);
+        $pdo->prepare('DELETE FROM Game_Keys WHERE game_id=?')->execute([$game_id]);
+        $pdo->prepare('DELETE FROM Cart WHERE game_id=?')->execute([$game_id]);
+        
+        // 3. Finally, delete the game
+        $pdo->prepare('DELETE FROM Games WHERE id=? AND seller_id=?')->execute([$game_id, $user_id]);
+        
+        header('Location: business-dashboard.php');
+        exit;
+        
+    } catch (\PDOException $e) {
+        echo "<script>alert('Database error during deletion. Please contact support.'); window.location.href='business-dashboard.php';</script>";
+        exit;
+    }
 }
-
 try {
     $stmt_listings = $pdo->prepare("
         SELECT g.id, g.name, g.price, g.platform, g.genres,
