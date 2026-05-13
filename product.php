@@ -1,164 +1,262 @@
 <?php
 session_start();
-
 require_once 'php/db_connect.php';
 
-$user_role = isset($_SESSION['user_role']) ? $_SESSION['user_role'] : 'guest';
+$user_role = $_SESSION['user_role'] ?? 'guest';
 $is_logged_in = isset($_SESSION['user_id']);
 
-if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
-    header("Location: index.php");
-    exit;
+$current_category = isset($_GET['category']) ? trim($_GET['category']) : 'All Games';
+$current_sort = $_GET['sort'] ?? 'rating';
+
+$order_by = match($current_sort) {
+    'price_asc'  => 'ORDER BY price ASC',
+    'price_desc' => 'ORDER BY price DESC',
+    'name'       => 'ORDER BY name ASC',
+    default      => 'ORDER BY id DESC',
+};
+
+$stmt_featured = $pdo->prepare("
+    SELECT MIN(g.id) AS id, g.name, MIN(g.price) AS price, MAX(i.filename) AS cover_image
+    FROM Games g
+    JOIN Game_Images i ON g.id = i.game_id AND i.is_cover = 1
+    GROUP BY g.name
+    ORDER BY RAND()
+    LIMIT 3
+");
+$stmt_featured->execute();
+$featured_games = $stmt_featured->fetchAll();
+
+foreach ($featured_games as &$g) {
+    $g['price'] = (float)($g['price'] ?? 0);
+}
+unset($g);
+
+$categories = ['Action', 'RPG', 'Shooter', 'Adventure', 'Strategy', 'Indie', 'Platformer'];
+
+$grid_query = "
+    SELECT 
+        MIN(g.id) AS id, 
+        g.name, 
+        MIN(g.price) AS price, 
+        MIN(g.platform) AS platform, 
+        MIN(g.genres) AS genres,
+        MAX(i.filename) AS cover_image,
+        (SELECT COUNT(*) 
+         FROM Game_Keys k 
+         JOIN Games g2 ON k.game_id = g2.id 
+         WHERE g2.name = g.name AND k.is_sold = 0) AS stock_count
+    FROM Games g
+    LEFT JOIN Game_Images i ON g.id = i.game_id AND i.is_cover = 1
+";
+
+if ($current_category !== 'All Games') {
+    $grid_query .= " WHERE g.genres LIKE :category ";
 }
 
-$game_id = (int)$_GET['id'];
+$grid_query .= " GROUP BY g.name ";
+$grid_query .= " $order_by";
 
-$stmt = $pdo->prepare("
-    SELECT g.*, 
-           (SELECT COUNT(*) FROM Game_Keys k WHERE k.game_id = g.id AND k.is_sold = 0) AS stock_count,
-           ba.business_name AS seller_name
-    FROM Games g
-    LEFT JOIN Business_Applications ba ON g.seller_id = ba.user_id
-    WHERE g.id = :id
-");
-$stmt->execute(['id' => $game_id]);
-$game = $stmt->fetch();
+$stmt_games = $pdo->prepare($grid_query);
 
-if (!$game) {
-    die("<h2 style='text-align:center; padding: 50px; font-family: Arial;'>Game not found. <a href='index.php'>Return to store</a></h2>");
+if ($current_category !== 'All Games') {
+    $stmt_games->bindValue(':category', '%' . $current_category . '%');
 }
 
-$stmt_img = $pdo->prepare("SELECT filename, is_cover FROM Game_Images WHERE game_id = :id ORDER BY is_cover DESC");
-$stmt_img->execute(['id' => $game_id]);
-$images = $stmt_img->fetchAll();
+$stmt_games->execute();
+$games = $stmt_games->fetchAll();
 
-$main_image = !empty($images) ? ltrim($images[0]['filename'], '/') : '';
-$in_stock = $game['stock_count'] > 0;
-$old_price = $game['price'] * 1.20; 
+foreach ($games as &$g) {
+    $g['price'] = (float)($g['price'] ?? 0);
+}
+unset($g);
 
-$platforms = array_filter(array_map('trim', explode(',', $game['platform'])));
-$genres = array_filter(array_map('trim', explode(',', $game['genres'])));
+$bg_colors = ['bg-purple', 'bg-green', 'bg-dark', 'bg-blue', 'bg-red', 'bg-navy', 'bg-black', 'bg-forest'];
 
-// Fetch other sellers that sell the exact same game name
-$stmt_others = $pdo->prepare("
-    SELECT g.id, g.price, COALESCE(ba.business_name, 'GameHub Official') AS seller_name
-    FROM Games g
-    LEFT JOIN Business_Applications ba ON g.seller_id = ba.user_id
-    WHERE g.name = :name AND g.id != :id
-");
-$stmt_others->execute(['name' => $game['name'], 'id' => $game_id]);
-$other_sellers = $stmt_others->fetchAll();
+$sort_options = [
+    'rating'     => 'Top Rated',
+    'price_asc'  => 'Price: Low to High',
+    'price_desc' => 'Price: High to Low',
+    'name'       => 'Name: A–Z',
+];
+$current_sort_label = $sort_options[$current_sort] ?? 'Top Rated';
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo htmlspecialchars($game['name']); ?> — GameHub Online Store</title>
+    <title>GameHub Online Store - Home</title>
     <link rel="stylesheet" href="css/navbar.css">
-    <link rel="stylesheet" href="css/product.css">
+    <link rel="stylesheet" href="css/index.css">
 </head>
 <body>
+
     <?php include 'navbar.php'; ?>
-    <div class="breadcrumb">
-        <a href="index.php">Back to Store</a>
-    </div>
-    <div class="product-layout">
-        <div>
-            <div class="product-main-image bg-dark">
-                <?php if ($main_image): ?>
-                    <img src="<?php echo htmlspecialchars($main_image); ?>" alt="<?php echo htmlspecialchars($game['name']); ?>">
-                <?php else: ?>
-                    <span style="color: white; font-size: 20px;">No Image</span>
-                <?php endif; ?>
-            </div>
-            <div class="thumbnail-row">
-                <?php foreach ($images as $img): ?>
-                    <div class="thumbnail">
-                        <img src="<?php echo htmlspecialchars(ltrim($img['filename'], '/')); ?>" alt="Thumbnail">
-                    </div>
-                <?php endforeach; ?>
+
+    <?php if (isset($_SESSION['guest_success'])): ?>
+        <div id="guestPopup" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.7); z-index: 9999; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(3px);">
+            <div style="background: white; padding: 30px; border-radius: 12px; text-align: center; max-width: 400px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+                <h2 style="margin-top: 0; color: #0f172a; font-size: 1.5rem;">Order Confirmed!</h2>
+                <p style="color: #475569; font-size: 1.1rem; line-height: 1.5; margin-bottom: 20px;">
+                    <?= htmlspecialchars($_SESSION['guest_success']) ?>
+                </p>
+                <button onclick="document.getElementById('guestPopup').style.display='none'" 
+                        style="width: 100%; padding: 12px; background: #8b5cf6; color: white; border: none; border-radius: 6px; font-weight: bold; font-size: 1rem; cursor: pointer;">
+                    Continue Shopping
+                </button>
             </div>
         </div>
-        <div class="product-details">
-            <h1 class="product-title"><?php echo htmlspecialchars($game['name']); ?></h1>
-            <div class="product-tags">
-                <?php foreach ($platforms as $platform): ?>
-                    <span class="product-tag"><?php echo htmlspecialchars($platform); ?></span>
-                <?php endforeach; ?>
-                <?php foreach ($genres as $genre): ?>
-                    <span class="product-tag" style="background-color: #e0e7ff; border-color: #c7d2fe; color: #3730a3;"><?php echo htmlspecialchars($genre); ?></span>
-                <?php endforeach; ?>
-            </div>
-            <div class="product-price">
-                <span class="price-display" data-usd="<?php echo $game['price']; ?>">$<?php echo number_format($game['price'], 2); ?></span>
-                <s><span class="price-display" style="font-size: 0.6em; color: #888;" data-usd="<?php echo $old_price; ?>">$<?php echo number_format($old_price, 2); ?></span></s>
-                <span class="discount">-20%</span>
-            </div>
-            <?php if ($in_stock): ?>
-                <span class="stock-status stock-available">Available — <?php echo $game['stock_count']; ?> in stock</span>
-            <?php else: ?>
-                <span class="stock-status stock-out">Not Available</span>
-            <?php endif; ?>
+        <?php unset($_SESSION['guest_success']); ?>
+    <?php endif; ?>
 
-            <form action="cart.php" method="POST">
-                <input type="hidden" name="game_id" value="<?php echo $game['id']; ?>">
-                <div>
-                    <div class="quantity-label">Quantity</div>
-                    <div class="quantity-control">
-                        <button class="qty-btn" type="button" onclick="document.getElementById('qtyInput').stepDown()" <?php echo !$in_stock ? 'disabled style="opacity: 0.5; cursor: not-allowed;"' : ''; ?>>-</button>
-                        <input type="number" name="quantity" id="qtyInput" class="qty-input" value="1" min="1" max="<?php echo $game['stock_count'] > 0 ? $game['stock_count'] : 1; ?>" <?php echo !$in_stock ? 'disabled' : ''; ?> oninput="if(parseInt(this.value) > parseInt(this.max)) this.value = this.max;">
-                        <button class="qty-btn" type="button" onclick="document.getElementById('qtyInput').stepUp()" <?php echo !$in_stock ? 'disabled style="opacity: 0.5; cursor: not-allowed;"' : ''; ?>>+</button>
+    <div class="hero-carousel">
+        <button class="carousel-btn prev-btn" onclick="moveSlide(-1)">❮</button>
+        <button class="carousel-btn next-btn" onclick="moveSlide(1)">❯</button>
+
+        <div class="hero-slides-container" id="carouselWrapper">
+            <?php foreach ($featured_games as $index => $hero): ?>
+            <div class="hero-slide" style="background-image: linear-gradient(rgba(26, 26, 46, 0.7), rgba(26, 26, 46, 0.9)), url('<?php echo htmlspecialchars(ltrim($hero['cover_image'], '/')); ?>');">
+                <div class="featured-product-inner">
+                    <div class="featured-product-badge">
+                        <?php echo $index === 0 ? 'Hot Deal' : 'Top Rated'; ?>
                     </div>
+                    <h1><?php echo htmlspecialchars($hero['name']); ?></h1>
+                    <p class="featured-product-promo">Epic adventures await. Buy now and play instantly!</p>
+                    <div class="featured-product-price price-display" data-usd="<?php echo $hero['price']; ?>">
+                        $<?php echo number_format($hero['price'], 2); ?>
+                    </div>
+                    <a href="product.php?id=<?php echo $hero['id']; ?>" class="btn-blue">Get Key</a>
                 </div>
-                <div class="delivery-box">
-                    <div class="delivery-title">Instant Digital Delivery</div>
-                    <div class="delivery-text">Receive your game key immediately after purchase</div>
+            </div>
+            <?php endforeach; ?>
+        </div>
+    </div>
+
+    <div class="games-section">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+            <h2 class="section-title" style="margin-bottom: 0;">Browse Games</h2>
+
+            <div class="custom-select-wrapper" id="sortDropdown">
+                <div class="custom-select-trigger" onclick="toggleSortDropdown(event)">
+                    <span id="sort-label"><?php echo htmlspecialchars($current_sort_label); ?></span>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                         stroke="#555555" stroke-width="2.5"
+                         stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
                 </div>
-                <div class="action-buttons">
-                    <?php if ($in_stock): ?>
-                        <button type="submit" name="action" value="buy_now" class="btn-blue" style="border: none; cursor: pointer; font-family: inherit; font-size: inherit;">Buy Now</button>
-                        <button type="submit" name="action" value="add_cart" class="btn-white" style="border: 1px solid #ccc; cursor: pointer; font-family: inherit; font-size: inherit;">Add to Cart</button>
+                <div class="custom-select-options">
+                    <?php foreach ($sort_options as $value => $label): ?>
+                        <div class="custom-option <?php echo $current_sort === $value ? 'selected' : ''; ?>"
+                             onclick="applySort('<?php echo $value; ?>')">
+                            <?php echo htmlspecialchars($label); ?>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+        </div>
+
+        <div class="category-bar">
+            <a href="index.php" class="category-pill <?php echo $current_category === 'All Games' ? 'active' : ''; ?>">All Games</a>
+            
+            <?php foreach ($categories as $cat): ?>
+                <a href="index.php?category=<?php echo urlencode($cat); ?>" class="category-pill <?php echo $current_category === $cat ? 'active' : ''; ?>">
+                    <?php echo htmlspecialchars($cat); ?>
+                </a>
+            <?php endforeach; ?>
+        </div>
+
+        <div class="games-grid">
+            <?php 
+            if (count($games) === 0): ?>
+                <div style="grid-column: 1 / -1; padding: 40px; text-align: center; color: #888;">
+                    No games found in the "<?php echo htmlspecialchars($current_category); ?>" category.
+                </div>
+            <?php 
+            else:
+                $color_index = 0;
+                foreach ($games as $index => $game): 
+                    $in_stock = $game['stock_count'] > 0;
+                    $current_bg = $bg_colors[$color_index % count($bg_colors)];
+                    $color_index++;
+                    $image_path = ltrim($game['cover_image'] ?? '', '/');
+                    $hidden_class = $index >= 16 ? 'hidden-game' : '';
+            ?>
+            <a href="product.php?id=<?php echo $game['id']; ?>" class="game-card <?php echo $hidden_class; ?>">
+                <div class="game-image <?php echo $current_bg; ?>" <?php echo !$in_stock ? 'style="position: relative;"' : ''; ?>>
+                    <?php if ($image_path): ?>
+                        <img src="<?php echo htmlspecialchars($image_path); ?>" alt="<?php echo htmlspecialchars($game['name']); ?> Cover">
                     <?php else: ?>
-                        <a href="#" class="btn-gray" style="grid-column: 1 / -1; text-align: center;">Currently Unavailable</a>
+                        <span style="color:white; font-size:14px;">No Image</span>
+                    <?php endif; ?>
+                    
+                    <?php if (!$in_stock): ?>
+                    <div class="out-of-stock-overlay">
+                        <span class="out-of-stock-label">Out of Stock</span>
+                    </div>
                     <?php endif; ?>
                 </div>
-            </form>
 
-            <div class="trust-row">
-                <div class="trust-item">Sold by: <?php echo htmlspecialchars($game['seller_name'] ?? 'GameHub Official'); ?></div>
-                <div class="trust-item">Official Keys</div>
-                <div class="trust-item">Secure Payment</div>
-            </div>
-
-            <?php if (!empty($other_sellers)): ?>
-            <div style="margin-top:20px; padding:15px; border:1px solid #e0e0e0; border-radius:8px;">
-                <h3 style="font-size:16px; margin-bottom:12px;">Other Sellers</h3>
-                <ul style="list-style:none; padding:0; margin:0;">
-                    <?php foreach ($other_sellers as $os): ?>
-                    <li style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid #f0f0f0;">
-                        <span style="font-weight:bold;"><?php echo htmlspecialchars($os['seller_name']); ?></span>
-                        <div style="display:flex; align-items:center; gap:12px;">
-                            <span style="color:#2563eb; font-weight:bold;">$<?php echo number_format($os['price'], 2); ?></span>
-                            <a href="product.php?id=<?php echo $os['id']; ?>" class="btn-dark" style="padding:6px 12px; font-size:12px;">View</a>
-                        </div>
-                    </li>
-                    <?php endforeach; ?>
-                </ul>
-            </div>
-            <?php endif; ?>
-
-            <hr class="divider">
-            <div>
-                <div class="description-title">Description</div>
-                <p class="description-text" style="white-space: pre-wrap; margin-top: 10px;"><?php echo htmlspecialchars($game['description'] ? $game['description'] : 'No description available for this game.'); ?></p>
-            </div>
-            <div>
-                <div class="description-title">System Requirements</div>
-                <p class="description-text">OS: Windows 10/11 · Processor: Intel Core i5-8600K or equivalent · Memory: 8 GB RAM · Graphics: DirectX 11 Compatible GPU</p>
-            </div>
+                <div class="game-info">
+                    <div class="game-name"><?php echo htmlspecialchars($game['name']); ?></div>
+                    <div class="game-genre">
+                        <?php 
+                            $genres_array = explode(',', $game['genres']);
+                            echo htmlspecialchars(trim($genres_array[0])); 
+                        ?>
+                    </div>
+                    <div class="game-platform"><?php echo htmlspecialchars($game['platform']); ?></div>
+                    <div class="game-footer" style="margin-top: 10px;">
+                        <span class="game-price price-display" data-usd="<?php echo $game['price']; ?>">$<?php echo number_format($game['price'], 2); ?></span>
+                        
+                        <?php if ($in_stock): ?>
+                            <span class="btn-dark">View</span>
+                        <?php else: ?>
+                            <span class="btn-gray">Unavailable</span>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </a>
+            <?php 
+                endforeach; 
+            endif;
+            ?>
         </div>
+
+        <?php if (count($games) > 16): ?>
+        <div style="text-align: center; margin-top: 40px;">
+            <button id="loadMoreBtn" onclick="loadMoreGames()" class="btn-white" style="padding: 12px 30px; font-size: 15px;">
+                Load More Games
+            </button>
+        </div>
+        <?php endif; ?>
+
     </div>
-    <div class="footer">© 2026 GameHub Online Store. All rights reserved.</div>
+
+    <div class="footer">
+        © 2026 GameHub Online Store. All rights reserved.
+    </div>
+
+    <script src="js/index.js"></script>
+
+    <script>
+        const currentCategory = <?php echo json_encode($current_category); ?>;
+
+        function toggleSortDropdown(e) {
+            e.stopPropagation();
+            document.getElementById('sortDropdown').classList.toggle('open');
+        }
+
+        function applySort(value) {
+            const url = new URL(window.location.href);
+            url.searchParams.set('sort', value);
+            window.location.href = url.toString();
+        }
+
+        document.addEventListener('click', function () {
+            const dropdown = document.getElementById('sortDropdown');
+            if (dropdown) dropdown.classList.remove('open');
+        });
+    </script>
 </body>
 </html>
