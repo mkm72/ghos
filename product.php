@@ -82,6 +82,12 @@ $other_sellers = $stmt_others->fetchAll();
         </div>
         <div class="product-details">
             <h1 class="product-title"><?php echo htmlspecialchars($game['name']); ?></h1>
+            <div class="product-stars" style="color: #f59e0b; display: flex; gap: 4px; margin-top: -10px;">
+                <?php for($i=0; $i<5; $i++): ?>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                <?php endfor; ?>
+                <span style="color: #888; font-size: 14px; margin-left: 8px; font-weight: 500;">(4.9 Rating)</span>
+            </div>
             <div class="product-tags">
                 <?php foreach ($platforms as $platform): ?>
                     <span class="product-tag"><?php echo htmlspecialchars($platform); ?></span>

@@ -80,7 +80,7 @@ $current_sort_label = $sort_options[$current_sort] ?? 'Top Rated';
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GameHub Online Store - Home</title>
     <link rel="stylesheet" href="css/navbar.css?v=1.1">
-    <link rel="stylesheet" href="css/index.css?v=1.3">
+    <link rel="stylesheet" href="css/index.css?v=1.4">
 </head>
 <body>
 
@@ -102,14 +102,21 @@ $current_sort_label = $sort_options[$current_sort] ?? 'Top Rated';
     <?php endif; ?>
 
     <div class="hero-carousel">
-        <button class="carousel-btn prev-btn" onclick="moveSlide(-1)">❮</button>
-        <button class="carousel-btn next-btn" onclick="moveSlide(1)">❯</button>
+        <button class="carousel-btn prev-btn" onclick="moveSlide(-1)">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+        </button>
+        <button class="carousel-btn next-btn" onclick="moveSlide(1)">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </button>
 
         <div class="hero-slides-container" id="carouselWrapper">
             <?php foreach ($featured_games as $index => $hero): ?>
             <div class="hero-slide <?php echo $index === 0 ? 'active' : ''; ?>" style="background-image: linear-gradient(rgba(26, 26, 46, 0.7), rgba(26, 26, 46, 0.9)), url('<?php echo htmlspecialchars(ltrim($hero['cover_image'], '/')); ?>');">
                 <div class="featured-product-inner">
                     <div class="featured-product-badge">
+                        <?php if ($index !== 0): ?>
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" style="vertical-align: middle; margin-right: 2px;"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                        <?php endif; ?>
                         <?php echo $index === 0 ? 'Hot Deal' : 'Top Rated'; ?>
                     </div>
                     <h1><?php echo htmlspecialchars($hero['name']); ?></h1>
@@ -141,6 +148,9 @@ $current_sort_label = $sort_options[$current_sort] ?? 'Top Rated';
                     <?php foreach ($sort_options as $value => $label): ?>
                         <div class="custom-option <?php echo $current_sort === $value ? 'selected' : ''; ?>"
                              onclick="applySort('<?php echo $value; ?>')">
+                            <?php if ($value === 'rating'): ?>
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" style="vertical-align: middle; margin-right: 4px; color: #f59e0b;"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                            <?php endif; ?>
                             <?php echo htmlspecialchars($label); ?>
                         </div>
                     <?php endforeach; ?>
@@ -191,6 +201,11 @@ $current_sort_label = $sort_options[$current_sort] ?? 'Top Rated';
 
                 <div class="game-info">
                     <div class="game-name"><?php echo htmlspecialchars($game['name']); ?></div>
+                    <div class="game-stars" style="color: #f59e0b; display: flex; gap: 2px; margin-bottom: 6px;">
+                        <?php for($i=0; $i<5; $i++): ?>
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                        <?php endfor; ?>
+                    </div>
                     <div class="game-genre">
                         <?php 
                             $genres_array = explode(',', $game['genres']);

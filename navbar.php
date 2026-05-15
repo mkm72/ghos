@@ -43,7 +43,7 @@ if ($is_logged_in) {
 
         <select id="currencySelector" class="currency-select">
             <option value="USD">USD ($)</option>
-            <option value="SAR">SAR (ر.س)</option>
+            <option value="SAR">SAR (﷼)</option>
         </select>
 
         <?php if ($user_role === 'admin'): ?>
@@ -99,4 +99,4 @@ if ($is_logged_in) {
     </div>
 </div>
 
-<script src="js/navbar.js"></script>
+<script src="js/navbar.js?v=1.3"></script>
