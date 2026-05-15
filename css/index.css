@@ -295,32 +295,38 @@
 }
 
 .reveal-animation {
-    animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    opacity: 0;
+    animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 /* Hero Content Animations */
+.hero-slide .featured-product-badge,
+.hero-slide h1,
+.hero-slide .featured-product-promo,
+.hero-slide .featured-product-price,
+.hero-slide .btn-blue {
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
 .hero-slide.active .featured-product-badge {
-    animation: fadeInRight 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation: fadeInRight 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .hero-slide.active h1 {
-    animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.1s forwards;
-    opacity: 0;
+    animation: fadeInUp 1s cubic-bezier(0.16, 1, 0.3, 1) 0.2s forwards;
 }
 
 .hero-slide.active .featured-product-promo {
-    animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.2s forwards;
-    opacity: 0;
+    animation: fadeInUp 1s cubic-bezier(0.16, 1, 0.3, 1) 0.4s forwards;
 }
 
 .hero-slide.active .featured-product-price {
-    animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.3s forwards;
-    opacity: 0;
+    animation: fadeInUp 1s cubic-bezier(0.16, 1, 0.3, 1) 0.6s forwards;
 }
 
 .hero-slide.active .btn-blue {
-    animation: scaleIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.4s forwards;
-    opacity: 0;
+    animation: scaleIn 1s cubic-bezier(0.16, 1, 0.3, 1) 0.8s forwards;
 }
 
 .featured-product-badge {
@@ -354,14 +360,14 @@
 }
 
 /* Staggered Grid Entry */
-.games-grid .game-card:nth-child(1) { animation-delay: 0.05s; }
-.games-grid .game-card:nth-child(2) { animation-delay: 0.10s; }
-.games-grid .game-card:nth-child(3) { animation-delay: 0.15s; }
-.games-grid .game-card:nth-child(4) { animation-delay: 0.20s; }
-.games-grid .game-card:nth-child(5) { animation-delay: 0.25s; }
-.games-grid .game-card:nth-child(6) { animation-delay: 0.30s; }
-.games-grid .game-card:nth-child(7) { animation-delay: 0.35s; }
-.games-grid .game-card:nth-child(8) { animation-delay: 0.40s; }
+.games-grid .game-card:nth-child(1) { animation-delay: 0.1s; }
+.games-grid .game-card:nth-child(2) { animation-delay: 0.2s; }
+.games-grid .game-card:nth-child(3) { animation-delay: 0.3s; }
+.games-grid .game-card:nth-child(4) { animation-delay: 0.4s; }
+.games-grid .game-card:nth-child(5) { animation-delay: 0.5s; }
+.games-grid .game-card:nth-child(6) { animation-delay: 0.6s; }
+.games-grid .game-card:nth-child(7) { animation-delay: 0.7s; }
+.games-grid .game-card:nth-child(8) { animation-delay: 0.8s; }
 
 
 .out-of-stock-overlay {
