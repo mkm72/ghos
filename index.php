@@ -79,8 +79,8 @@ $current_sort_label = $sort_options[$current_sort] ?? 'Top Rated';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GameHub Online Store - Home</title>
-    <link rel="stylesheet" href="css/navbar.css?v=1.1">
-    <link rel="stylesheet" href="css/index.css?v=1.4">
+    <link rel="stylesheet" href="css/navbar.css?v=2026.05.15">
+    <link rel="stylesheet" href="css/index.css?v=2026.05.15">
 </head>
 <body>
 
@@ -244,7 +244,7 @@ $current_sort_label = $sort_options[$current_sort] ?? 'Top Rated';
         © 2026 GameHub Online Store. All rights reserved.
     </div>
 
-    <script src="js/index.js?v=1.2"></script>
+    <script src="js/index.js?v=2026.05.15"></script>
 
     <script>
         const currentCategory = <?php echo json_encode($current_category); ?>;

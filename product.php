@@ -55,8 +55,8 @@ $other_sellers = $stmt_others->fetchAll();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars($game['name']); ?> — GameHub Online Store</title>
-    <link rel="stylesheet" href="css/navbar.css">
-    <link rel="stylesheet" href="css/product.css">
+    <link rel="stylesheet" href="css/navbar.css?v=2026.05.15">
+    <link rel="stylesheet" href="css/product.css?v=2026.05.15">
 </head>
 <body>
     <?php include 'navbar.php'; ?>

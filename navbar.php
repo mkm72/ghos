@@ -99,4 +99,4 @@ if ($is_logged_in) {
     </div>
 </div>
 
-<script src="js/navbar.js?v=1.3"></script>
+<script src="js/navbar.js?v=final-fix-2026"></script>
