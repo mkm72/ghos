@@ -26,6 +26,7 @@ window.loadMoreGames = function() {
     // Reveal the next 16 games
     for(let i = 0; i < 16 && i < hiddenGames.length; i++) {
         hiddenGames[i].classList.remove('hidden-game');
+        hiddenGames[i].classList.add('reveal-animation');
     }
     
     // If there are no more hidden games, hide the Load More button entirely
