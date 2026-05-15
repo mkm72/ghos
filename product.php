@@ -147,7 +147,7 @@ $other_sellers = $stmt_others->fetchAll();
                     <li style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid #f0f0f0;">
                         <span style="font-weight:bold;"><?php echo htmlspecialchars($os['seller_name']); ?></span>
                         <div style="display:flex; align-items:center; gap:12px;">
-                            <span style="color:#2563eb; font-weight:bold;">$<?php echo number_format($os['price'], 2); ?></span>
+                            <span class="price-display" data-usd="<?php echo $os['price']; ?>" style="color:#2563eb; font-weight:bold;">$<?php echo number_format($os['price'], 2); ?></span>
                             <a href="product.php?id=<?php echo $os['id']; ?>" class="btn-dark" style="padding:6px 12px; font-size:12px;">View</a>
                         </div>
                     </li>
@@ -155,6 +155,13 @@ $other_sellers = $stmt_others->fetchAll();
                 </ul>
             </div>
             <?php endif; ?>
+
+            <div style="margin-top: 20px;">
+                <button type="button" class="btn-white" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; border-style: dashed; border-color: #3b82f6; color: #3b82f6;" onclick="document.getElementById('helpModal').style.display='flex'">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                    How to Order?
+                </button>
+            </div>
 
             <hr class="divider">
             <div>
@@ -168,5 +175,51 @@ $other_sellers = $stmt_others->fetchAll();
         </div>
     </div>
     <div class="footer">© 2026 GameHub Online Store. All rights reserved.</div>
+
+    <!-- Help Modal -->
+    <div id="helpModal" class="modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 9999; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+        <div style="background: white; width: 90%; max-width: 450px; border-radius: 16px; padding: 30px; position: relative; box-shadow: 0 20px 40px rgba(0,0,0,0.3);">
+            <span style="position: absolute; top: 15px; right: 20px; font-size: 28px; cursor: pointer; color: #888;" onclick="document.getElementById('helpModal').style.display='none'">&times;</span>
+            
+            <h2 style="margin-bottom: 20px; color: #1a1a1a; display: flex; align-items: center; gap: 10px;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                How to Purchase
+            </h2>
+
+            <div style="display: flex; flex-direction: column; gap: 15px;">
+                <div style="display: flex; gap: 15px;">
+                    <div style="background: #eff6ff; color: #3b82f6; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0;">1</div>
+                    <div>
+                        <div style="font-weight: bold; color: #333;">Add to Cart</div>
+                        <div style="font-size: 13px; color: #666;">Choose your quantity and click "Add to Cart" or "Buy Now".</div>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 15px;">
+                    <div style="background: #eff6ff; color: #3b82f6; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0;">2</div>
+                    <div>
+                        <div style="font-weight: bold; color: #333;">Secure Checkout</div>
+                        <div style="font-size: 13px; color: #666;">Go to your cart and proceed to checkout using your preferred payment method.</div>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 15px;">
+                    <div style="background: #eff6ff; color: #3b82f6; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0;">3</div>
+                    <div>
+                        <div style="font-weight: bold; color: #333;">Receive Your Key</div>
+                        <div style="font-size: 13px; color: #666;">Once the payment is confirmed, your game key will be sent to your email instantly.</div>
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn-blue" style="width: 100%; margin-top: 25px;" onclick="document.getElementById('helpModal').style.display='none'">Got it!</button>
+        </div>
+    </div>
+
+    <script>
+        // Close help modal on click outside
+        window.addEventListener('click', (e) => {
+            const modal = document.getElementById('helpModal');
+            if (e.target === modal) modal.style.display = 'none';
+        });
+    </script>
 </body>
 </html>
