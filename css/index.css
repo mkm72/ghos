@@ -401,14 +401,15 @@
 
 /* ---- LAYOUT UTILITIES ---- */
 .section-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 24px;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    margin-bottom: 24px !important;
+    width: 100% !important;
 }
 
 .section-header .section-title {
-    margin-bottom: 0;
+    margin-bottom: 0 !important;
 }
 
 .no-games-found {
@@ -419,12 +420,16 @@
 }
 
 .load-more-container {
-    text-align: center;
-    margin-top: 20px;
-    margin-bottom: 40px;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    width: 100% !important;
+    margin-top: 40px !important;
+    margin-bottom: 60px !important;
 }
 
 #loadMoreBtn {
     padding: 12px 30px;
     font-size: 15px;
+    width: auto !important;
 }

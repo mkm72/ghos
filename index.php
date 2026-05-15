@@ -125,8 +125,8 @@ $current_sort_label = $sort_options[$current_sort] ?? 'Top Rated';
     </div>
 
     <div class="games-section">
-        <div class="section-header">
-            <h2 class="section-title">Browse Games</h2>
+        <div class="section-header" style="display: flex !important; justify-content: space-between !important; align-items: center !important; flex-wrap: nowrap !important;">
+            <h2 class="section-title" style="margin-bottom: 0 !important;">Browse Games</h2>
 
             <div class="custom-select-wrapper" id="sortDropdown">
                 <div class="custom-select-trigger" onclick="toggleSortDropdown(event)">
@@ -216,7 +216,7 @@ $current_sort_label = $sort_options[$current_sort] ?? 'Top Rated';
         </div>
 
         <?php if (count($games) > 16): ?>
-        <div class="load-more-container">
+        <div class="load-more-container" style="display: flex !important; justify-content: center !important; width: 100% !important; margin: 40px 0 !important;">
             <button id="loadMoreBtn" onclick="loadMoreGames()" class="btn-white">
                 Load More Games
             </button>
