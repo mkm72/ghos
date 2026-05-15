@@ -21,7 +21,8 @@ if (!isset($_SESSION['user_id']) || ($_SESSION['role'] ?? '') !== 'admin') {
     http_response_code(403);
     echo '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Access Denied</title><link rel="stylesheet" href="css/navbar.css"></head><body>';
     echo '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:80vh;text-align:center;gap:16px;">';
-    echo '<div style="font-size:64px;">🚫</div><div style="font-size:28px;font-weight:bold;">Access Denied</div>';
+    echo '<img src="images/logo/logo1.png" alt="Ghos Logo" style="height: 80px; margin-bottom: 10px;">';
+    echo '<div style="font-size:28px;font-weight:bold;">Access Denied</div>';
     echo '<div style="font-size:15px;color:#888;">Admin access only.</div>';
     echo '<a href="index.php" class="btn-blue">← Back to Store</a></div></body></html>';
     exit;
@@ -430,7 +431,7 @@ function roleBadge(string $r): string {
 <!-- SIDEBAR -->
 <aside class="sidebar">
     <div class="sidebar-logo">
-        <div class="logo-box">Ghos</div>
+        <img src="images/logo/logo1.png" alt="Ghos Logo" style="height: 40px; border-radius: 8px;">
         <span class="logo-name">Admin Panel</span>
     </div>
     <a href="#" class="sidebar-link" data-section="section-dashboard">📊 Dashboard</a>
@@ -561,6 +562,7 @@ function roleBadge(string $r): string {
     <div class="panel-header">
         <span class="panel-title">Games (<span id="gamesCount"><?= count($games) ?></span>)</span>
         <div style="display:flex;gap:8px;">
+            <button class="btn-white" style="padding:6px 12px; font-size:12px; border: 1px solid #ddd;" onclick="document.getElementById('adminHelpModal').classList.add('open')">Help?</button>
             <button class="btn-blue" style="padding:6px 12px; font-size:12px;" onclick="document.getElementById('bulkPriceModal').classList.add('open')">% Discounts</button>
             <input id="gamesSearch" type="text" class="search-input" placeholder="Search games...">
         </div>
@@ -663,11 +665,11 @@ function roleBadge(string $r): string {
 <div id="section-add-game" class="admin-section">
     <h1 class="page-title">Add New Game</h1>
     <div class="panel">
-        <form method="POST" action="admin.php" enctype="multipart/form-data" class="form-panel">
+        <form id="addGameForm" method="POST" action="admin.php" enctype="multipart/form-data" class="form-panel" onsubmit="return validateAddGame()">
             <input type="hidden" name="action" value="add_game">
             <div class="form-row">
-                <div class="fg"><label>Game Name *</label><input type="text" name="name" required placeholder="e.g. Elden Ring"></div>
-                <div class="fg"><label>Price (USD) *</label><input type="number" name="price" step="0.01" min="0" required placeholder="29.99"></div>
+                <div class="fg"><label>Game Name *</label><input type="text" name="name" id="add_name" required placeholder="e.g. Elden Ring"></div>
+                <div class="fg"><label>Price (USD) *</label><input type="number" name="price" id="add_price" step="0.01" min="0" required placeholder="29.99"></div>
             </div>
             <div class="form-row">
                 <div class="fg">
@@ -777,6 +779,27 @@ function roleBadge(string $r): string {
 </div>
 
 </main>
+
+<!-- ══════════════ ADMIN HELP MODAL ══════════════ -->
+<div class="modal-overlay" id="adminHelpModal">
+    <div class="modal-box" style="max-width: 500px;">
+        <div class="modal-title">Admin Dashboard Help <button class="modal-close" onclick="closeModal('adminHelpModal')">×</button></div>
+        <div style="font-size: 14px; line-height: 1.6; color: #555;">
+            <p style="margin-bottom: 12px;">Welcome to the <strong>GameHub Admin Panel</strong>. Here's a quick guide on how to manage your store:</p>
+            <ul style="padding-left: 20px; margin-bottom: 15px;">
+                <li><strong>Games:</strong> Click "Edit" to modify details or "Delete" to remove a game (only if not sold).</li>
+                <li><strong>Stock:</strong> Use "+ Keys" to add activation codes and "View Inventory" to manage them.</li>
+                <li><strong>Users:</strong> Manage roles and account status in the Users section.</li>
+                <li><strong>Search:</strong> Use the search bars to find games or users instantly.</li>
+                <li><strong>Discounts:</strong> Use the "% Discounts" button to apply bulk price changes.</li>
+            </ul>
+            <p>For technical support, please contact the development team.</p>
+        </div>
+        <div style="text-align: right; margin-top: 20px;">
+            <button class="btn-blue" onclick="closeModal('adminHelpModal')">Got it!</button>
+        </div>
+    </div>
+</div>
 
 <!-- ══════════════ EDIT GAME MODAL ══════════════ -->
 <div class="modal-overlay" id="editGameModal">
@@ -896,6 +919,22 @@ if (urlSection) {
         });
     });
 })();
+
+// ── Validation ──────────────────────────────────
+function validateAddGame() {
+    const name = document.getElementById('add_name').value.trim();
+    const price = parseFloat(document.getElementById('add_price').value);
+    
+    if (!name) {
+        alert('Game name is required.');
+        return false;
+    }
+    if (isNaN(price) || price <= 0) {
+        alert('Please enter a valid price greater than 0.');
+        return false;
+    }
+    return true;
+}
 
 // Auto-dismiss flash
 setTimeout(() => document.getElementById('flashAlert')?.remove(), 4000);

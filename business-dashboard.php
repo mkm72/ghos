@@ -9,6 +9,7 @@ if (!isset($_SESSION['user_id']) || ($_SESSION['role'] ?? '') !== 'business') {
     http_response_code(403);
     echo '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Access Denied</title><link rel="stylesheet" href="css/navbar.css"></head><body>';
     echo '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:80vh;text-align:center;gap:16px;">';
+    echo '<img src="images/logo/logo1.png" alt="Ghos Logo" style="height: 80px; margin-bottom: 10px;">';
     echo '<div style="font-size:28px;font-weight:bold;">Access Denied</div>';
     echo '<div style="font-size:15px;color:#888;">Business seller access only.</div>';
     echo '<a href="index.php" class="btn-blue">Back to Store</a></div></body></html>';
@@ -314,7 +315,7 @@ $total_games     = (int)($stats['total_games'] ?? 0);
 
 <aside class="sidebar">
     <div class="sidebar-logo">
-        <div class="logo-box">Ghos</div>
+        <img src="images/logo/logo1.png" alt="Ghos Logo" style="height: 40px; border-radius: 8px;">
         <span class="logo-name">Seller Panel</span>
     </div>
     <div class="user-chip">

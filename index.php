@@ -246,6 +246,45 @@ $current_sort_label = $sort_options[$current_sort] ?? 'Top Rated';
 
     <script src="js/index.js?v=2026.05.15"></script>
 
+    <?php if (isset($_COOKIE['past_purchases'])): ?>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const pastIds = <?= json_encode(explode(',', $_COOKIE['past_purchases'])) ?>;
+            if (pastIds.length > 0) {
+                const response = await fetch('php/search.php?ids=' + pastIds.join(','));
+                const games = await response.json();
+                if (games && games.length > 0) {
+                    const section = document.createElement('div');
+                    section.className = 'games-section';
+                    section.style.marginTop = '40px';
+                    section.innerHTML = `
+                        <h2 class="section-title">Your Recent Purchases</h2>
+                        <div class="games-grid">
+                            ${games.map(g => `
+                                <a href="product.php?id=${g.id}" class="game-card reveal-animation">
+                                    <div class="game-image bg-dark">
+                                        <img src="${g.cover_image.replace(/^\//, '')}" alt="${g.name}">
+                                    </div>
+                                    <div class="game-info">
+                                        <div class="game-name">${g.name}</div>
+                                        <div class="game-footer">
+                                            <span class="game-price">$${parseFloat(g.price).toFixed(2)}</span>
+                                            <span class="btn-dark">Buy Again</span>
+                                        </div>
+                                    </div>
+                                </a>
+                            `).join('')}
+                        </div>
+                    `;
+                    // Insert before the footer
+                    const footer = document.querySelector('.footer');
+                    footer.parentNode.insertBefore(section, footer);
+                }
+            }
+        });
+    </script>
+    <?php endif; ?>
+
     <script>
         const currentCategory = <?php echo json_encode($current_category); ?>;
 

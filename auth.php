@@ -60,7 +60,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     "
                     <div style='font-family: Arial, sans-serif; max-width: 500px; margin: auto; padding: 20px;'>
                         <div style='text-align:center; margin-bottom: 24px;'>
-                            <div style='display:inline-block; background:#1a1a1a; color:white; font-size:22px; font-weight:bold; padding:10px 24px; border-radius:8px; letter-spacing:2px;'>Ghos</div>
+                            <img src='https://ghos.shop/images/logo/logo1.png' alt='Ghos Logo' style='height: 60px; border-radius: 8px;'>
                         </div>
                         <h2 style='color:#1a1a1a; margin-bottom:8px;'>Verify your email</h2>
                         <p style='color:#555; font-size:15px;'>Use the code below to complete your registration. It expires in <strong>10 minutes</strong>.</p>
@@ -139,7 +139,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 "
                 <div style='font-family: Arial, sans-serif; max-width: 500px; margin: auto; padding: 20px;'>
                     <div style='text-align:center; margin-bottom: 24px;'>
-                        <div style='display:inline-block; background:#1a1a1a; color:white; font-size:22px; font-weight:bold; padding:10px 24px; border-radius:8px; letter-spacing:2px;'>Ghos</div>
+                        <img src='https://ghos.shop/images/logo/logo1.png' alt='Ghos Logo' style='height: 60px; border-radius: 8px;'>
                     </div>
                     <h2 style='color:#1a1a1a;'>New Verification Code</h2>
                     <p style='color:#555; font-size:15px;'>Here is your new code. It expires in <strong>10 minutes</strong>.</p>
@@ -283,7 +283,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <?php endif; ?>
 
 <div class="auth-logo">
-    <div class="logo-box">Ghos</div>
+    <img src="images/logo/logo1.png" alt="Ghos Logo" style="height: 80px; margin-bottom: 20px; border-radius: 12px;">
     <h1 id="page-title">
         <?= $mode === 'register' ? 'Create Account' : ($mode === 'verify' ? 'Verify Email' : ($mode === 'login_verify' ? 'Two-Factor Auth' : 'Welcome Back')) ?>
     </h1>
