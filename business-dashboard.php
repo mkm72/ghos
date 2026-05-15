@@ -405,7 +405,7 @@ $total_games     = (int)($stats['total_games'] ?? 0);
                         <td>
                             <div style="display:flex; gap:5px;">
                                 <button class="btn-sm-edit" onclick="openAddKeys(<?= $game['id'] ?>)">+ Keys</button>
-                                <button class="btn-sm-edit" style="background:#6366f1;" onclick="viewKeys(<?= $game['id'] ?>, '<?= addslashes($game['name']) ?>')">View Keys</button>
+                                <button class="btn-sm-edit" style="background:#6366f1;" onclick="viewKeys(<?= $game['id'] ?>, <?= htmlspecialchars(json_encode($game['name'])) ?>)">View Keys</button>
                                 <a href="business-dashboard.php?action=delete_game&id=<?= $game['id'] ?>" class="btn-sm-delete" onclick="return confirm('Delete this game?')">Delete</a>
                             </div>
                         </td>

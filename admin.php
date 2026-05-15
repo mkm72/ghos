@@ -601,8 +601,8 @@ function roleBadge(string $r): string {
                 <td data-col="action" data-val="">
                     <button class="act-btn act-edit" onclick="openEditGame(<?= htmlspecialchars(json_encode($game)) ?>)">Edit</button>
                     <button class="act-btn act-green" onclick="openAddKeys(<?=$game['id']?>,<?=htmlspecialchars(json_encode($game['name']))?> )">+ Keys</button>
-                    <button class="act-btn act-blue" style="background:#6366f1; color:white; border:none;" onclick="viewKeys(<?=$game['id']?>, '<?=addslashes($game['name'])?>')">View Inventory</button>
-                    <a href="admin.php?action=delete_game&id=<?=$game['id']?>" class="act-btn act-delete" data-confirm="Delete \"<?= htmlspecialchars($game['name']) ?>\"? This cannot be undone.">Delete</a>
+                    <button class="act-btn act-blue" style="background:#6366f1; color:white; border:none;" onclick="viewKeys(<?=$game['id']?>, <?=htmlspecialchars(json_encode($game['name']))?>)">View Inventory</button>
+                    <a href="admin.php?action=delete_game&id=<?=$game['id']?>" class="act-btn act-delete" data-confirm="Delete '<?= htmlspecialchars($game['name']) ?>'? This cannot be undone.">Delete</a>
                 </td>
             </tr>
         <?php endforeach; endif; ?>
