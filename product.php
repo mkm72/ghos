@@ -81,7 +81,6 @@ $other_sellers = $stmt_others->fetchAll();
         <div class="product-details">
             <h1 class="product-title"><?php echo htmlspecialchars($game['name']); ?></h1>
 
-            <!-- Star rating (teammate's addition) -->
             <div class="product-stars" style="color: #f59e0b; display: flex; gap: 4px; margin-top: -10px;">
                 <?php for($i=0; $i<5; $i++): ?>
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
@@ -89,7 +88,6 @@ $other_sellers = $stmt_others->fetchAll();
                 <span style="color: #888; font-size: 14px; margin-left: 8px; font-weight: 500;">(4.9 Rating)</span>
             </div>
 
-            <!-- Tags with show more -->
             <div class="product-tags" id="tagsContainer">
                 <?php 
                 $all_tags = [];
@@ -142,9 +140,12 @@ $other_sellers = $stmt_others->fetchAll();
                 <div>
                     <div class="quantity-label">Quantity</div>
                     <div class="quantity-control">
-                        <button class="qty-btn" type="button" onclick="document.getElementById('qtyInput').stepDown()" <?php echo !$in_stock ? 'disabled style="opacity: 0.5; cursor: not-allowed;"' : ''; ?>>-</button>
-                        <input type="number" name="quantity" id="qtyInput" class="qty-input" value="1" min="1" max="<?php echo $game['stock_count'] > 0 ? $game['stock_count'] : 1; ?>" <?php echo !$in_stock ? 'disabled' : ''; ?> oninput="if(parseInt(this.value) > parseInt(this.max)) this.value = this.max;">
-                        <button class="qty-btn" type="button" onclick="document.getElementById('qtyInput').stepUp()" <?php echo !$in_stock ? 'disabled style="opacity: 0.5; cursor: not-allowed;"' : ''; ?>>+</button>
+                        <button class="qty-btn" type="button" onclick="handleQtyChange(-1)" <?php echo !$in_stock ? 'disabled style="opacity: 0.5; cursor: not-allowed;"' : ''; ?>>-</button>
+                        <input type="number" name="quantity" id="qtyInput" class="qty-input" value="1" min="1" max="<?php echo $game['stock_count'] > 0 ? $game['stock_count'] : 1; ?>" <?php echo !$in_stock ? 'disabled' : ''; ?> oninput="checkQtyLimit(this)">
+                        <button class="qty-btn" type="button" onclick="handleQtyChange(1)" <?php echo !$in_stock ? 'disabled style="opacity: 0.5; cursor: not-allowed;"' : ''; ?>>+</button>
+                    </div>
+                    <div id="qtyLimitNotice" style="display: none; margin-top: 10px;">
+                        <span class="stock-status stock-out">Limit reached — Only <?php echo $game['stock_count']; ?> in stock</span>
                     </div>
                 </div>
                 <div style="margin-top: 16px;" class="delivery-box">
@@ -204,7 +205,6 @@ $other_sellers = $stmt_others->fetchAll();
     </div>
     <div class="footer">© 2026 GameHub Online Store. All rights reserved.</div>
 
-    <!-- Help Modal -->
     <div id="helpModal" class="modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 9999; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
         <div style="background: white; width: 90%; max-width: 450px; border-radius: 16px; padding: 30px; position: relative; box-shadow: 0 20px 40px rgba(0,0,0,0.3);">
             <span style="position: absolute; top: 15px; right: 20px; font-size: 28px; cursor: pointer; color: #888;" onclick="document.getElementById('helpModal').style.display='none'">&times;</span>
@@ -253,6 +253,35 @@ $other_sellers = $stmt_others->fetchAll();
             const modal = document.getElementById('helpModal');
             if (e.target === modal) modal.style.display = 'none';
         });
+
+        function handleQtyChange(step) {
+            const input = document.getElementById('qtyInput');
+            const notice = document.getElementById('qtyLimitNotice');
+            const max = parseInt(input.max) || 1;
+            let current = parseInt(input.value) || 1;
+
+            if (step > 0 && current >= max) {
+                notice.style.display = 'block';
+                setTimeout(() => notice.style.display = 'none', 3000);
+            } else {
+                notice.style.display = 'none';
+                if (step > 0) input.stepUp();
+                else input.stepDown();
+            }
+        }
+
+        function checkQtyLimit(input) {
+            const notice = document.getElementById('qtyLimitNotice');
+            const max = parseInt(input.max) || 1;
+
+            if (parseInt(input.value) > max) {
+                input.value = max; 
+                notice.style.display = 'block';
+                setTimeout(() => notice.style.display = 'none', 3000);
+            } else {
+                notice.style.display = 'none';
+            }
+        }
     </script>
 </body>
 </html>
