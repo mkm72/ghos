@@ -211,7 +211,7 @@ foreach ($cart_items as $item) {
                                             <td>
                                                 <div class="game-cell">
                                                     <div class="game-thumb bg-purple">
-                                                        <img src="<?= htmlspecialchars($item['cover_image'] ?? '') ?>"
+                                                        <img src="<?= htmlspecialchars(ltrim($item['cover_image'] ?? '', '/')) ?>"
                                                              alt="<?= htmlspecialchars($item['name']) ?>">
                                                     </div>
                                                     <div>
