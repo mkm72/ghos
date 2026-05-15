@@ -540,3 +540,9 @@
     border-color: #2563eb;
     color: #2563eb;
 }
+
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
