@@ -149,10 +149,10 @@
 }
 
 /* Tags row (Steam, Global, etc.) */
-.product-tags {
+/* .product-tags {
     display: flex;
     gap: 8px;
-}
+} */
 
 .product-tag {
     background-color: #f0f0f0;
@@ -345,10 +345,10 @@
 }
 
 /* Tags row (Steam, Global, etc.) */
-.product-tags {
+/* .product-tags {
     display: flex;
     gap: 8px;
-}
+} */
 
 .product-tag {
     background-color: #f0f0f0;
@@ -520,4 +520,25 @@
     font-size: 14px;
     color: #555555;
     line-height: 1.7;
+}
+.product-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+}
+
+.tag-toggle {
+    background: none;
+    border: 1px dashed #aaa;
+    color: #666;
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.tag-toggle:hover {
+    border-color: #2563eb;
+    color: #2563eb;
 }

@@ -90,13 +90,28 @@ $genres = array_filter(array_map('trim', explode(',', $game['genres'])));
 
             <h1 class="product-title"><?php echo htmlspecialchars($game['name']); ?></h1>
 
-            <div class="product-tags">
-                <?php foreach ($platforms as $platform): ?>
-                    <span class="product-tag"><?php echo htmlspecialchars($platform); ?></span>
+            <div class="product-tags" id="tagsContainer">
+                <?php 
+                $all_tags = [];
+                foreach ($platforms as $p) $all_tags[] = ['label' => $p, 'type' => 'platform'];
+                foreach ($genres as $g)    $all_tags[] = ['label' => $g,  'type' => 'genre'];
+                
+                foreach ($all_tags as $i => $tag): 
+                    $style = $tag['type'] === 'genre' 
+                        ? 'background-color:#e0e7ff;border-color:#c7d2fe;color:#3730a3;' 
+                        : '';
+                    $hidden = $i >= 4 ? 'class="product-tag extra-tag" style="display:none;' . $style . '"' 
+                                    : 'class="product-tag" style="' . $style . '"';
+                ?>
+                    <span <?= $hidden ?>><?= htmlspecialchars($tag['label']) ?></span>
                 <?php endforeach; ?>
-                <?php foreach ($genres as $genre): ?>
-                    <span class="product-tag" style="background-color: #e0e7ff; border-color: #c7d2fe; color: #3730a3;"><?php echo htmlspecialchars($genre); ?></span>
-                <?php endforeach; ?>
+
+                <?php if (count($all_tags) > 4): ?>
+                    <button class="tag-toggle" onclick="
+                        document.querySelectorAll('.extra-tag').forEach(t => t.style.display = t.style.display === 'none' ? 'inline-block' : 'none');
+                        this.textContent = this.textContent === '+ more' ? '− less' : '+ more';
+                    ">+ more</button>
+                <?php endif; ?>
             </div>
 
             <div class="product-price">
