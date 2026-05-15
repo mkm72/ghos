@@ -108,7 +108,7 @@ $other_sellers = $stmt_others->fetchAll();
 
                 <?php if (count($all_tags) > 4): ?>
                     <button class="tag-toggle" onclick="
-                        document.querySelectorAll('.extra-tag').forEach(t => t.style.display = t.style.display === 'none' ? '' : 'none');
+                        document.querySelectorAll('.extra-tag').forEach(t => t.style.display = t.style.display === 'none' ? 'inline-block' : 'none');
                         this.textContent = this.textContent === '+ more' ? '− less' : '+ more';
                     ">+ more</button>
                 <?php endif; ?>

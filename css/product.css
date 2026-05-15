@@ -71,6 +71,7 @@
     flex-direction: column;
     gap: 18px;
     min-width: 0;
+    overflow-x: hidden;
 }
 
 .product-title {
@@ -85,7 +86,7 @@
     flex-wrap: wrap;
     gap: 8px;
     align-items: center;
-    width: 100%;
+    max-width: 100%;
 }
 .product-tag {
     background-color: #f0f0f0;
