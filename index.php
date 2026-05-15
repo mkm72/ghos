@@ -87,14 +87,13 @@ $current_sort_label = $sort_options[$current_sort] ?? 'Top Rated';
     <?php include 'navbar.php'; ?>
 
     <?php if (isset($_SESSION['guest_success'])): ?>
-        <div id="guestPopup" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.7); z-index: 9999; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(3px);">
-            <div style="background: white; padding: 30px; border-radius: 12px; text-align: center; max-width: 400px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
-                <h2 style="margin-top: 0; color: #0f172a; font-size: 1.5rem;">Order Confirmed!</h2>
-                <p style="color: #475569; font-size: 1.1rem; line-height: 1.5; margin-bottom: 20px;">
+        <div id="guestPopup" class="guest-popup-overlay">
+            <div class="guest-popup-card">
+                <h2 class="guest-popup-title">Order Confirmed!</h2>
+                <p class="guest-popup-text">
                     <?= htmlspecialchars($_SESSION['guest_success']) ?>
                 </p>
-                <button onclick="document.getElementById('guestPopup').style.display='none'" 
-                        style="width: 100%; padding: 12px; background: #8b5cf6; color: white; border: none; border-radius: 6px; font-weight: bold; font-size: 1rem; cursor: pointer;">
+                <button onclick="document.getElementById('guestPopup').style.display='none'" class="guest-popup-btn">
                     Continue Shopping
                 </button>
             </div>
@@ -126,8 +125,8 @@ $current_sort_label = $sort_options[$current_sort] ?? 'Top Rated';
     </div>
 
     <div class="games-section">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-            <h2 class="section-title" style="margin-bottom: 0;">Browse Games</h2>
+        <div class="section-header">
+            <h2 class="section-title">Browse Games</h2>
 
             <div class="custom-select-wrapper" id="sortDropdown">
                 <div class="custom-select-trigger" onclick="toggleSortDropdown(event)">
@@ -162,7 +161,7 @@ $current_sort_label = $sort_options[$current_sort] ?? 'Top Rated';
         <div class="games-grid">
             <?php 
             if (count($games) === 0): ?>
-                <div style="grid-column: 1 / -1; padding: 40px; text-align: center; color: #888;">
+                <div class="no-games-found">
                     No games found in the "<?php echo htmlspecialchars($current_category); ?>" category.
                 </div>
             <?php 
@@ -176,7 +175,7 @@ $current_sort_label = $sort_options[$current_sort] ?? 'Top Rated';
                     $hidden_class = $index >= 16 ? 'hidden-game' : '';
             ?>
             <a href="product.php?id=<?php echo $game['id']; ?>" class="game-card <?php echo $hidden_class; ?>">
-                <div class="game-image <?php echo $current_bg; ?>" <?php echo !$in_stock ? 'style="position: relative;"' : ''; ?>>
+                <div class="game-image <?php echo $current_bg; ?>">
                     <?php if ($image_path): ?>
                         <img src="<?php echo htmlspecialchars($image_path); ?>" alt="<?php echo htmlspecialchars($game['name']); ?> Cover">
                     <?php else: ?>
@@ -199,7 +198,7 @@ $current_sort_label = $sort_options[$current_sort] ?? 'Top Rated';
                         ?>
                     </div>
                     <div class="game-platform"><?php echo htmlspecialchars($game['platform']); ?></div>
-                    <div class="game-footer" style="margin-top: 10px;">
+                    <div class="game-footer">
                         <span class="game-price price-display" data-usd="<?php echo $game['price']; ?>">$<?php echo number_format($game['price'], 2); ?></span>
                         
                         <?php if ($in_stock): ?>
@@ -217,8 +216,8 @@ $current_sort_label = $sort_options[$current_sort] ?? 'Top Rated';
         </div>
 
         <?php if (count($games) > 16): ?>
-        <div style="text-align: center; margin-top: 40px;">
-            <button id="loadMoreBtn" onclick="loadMoreGames()" class="btn-white" style="padding: 12px 30px; font-size: 15px;">
+        <div class="load-more-container">
+            <button id="loadMoreBtn" onclick="loadMoreGames()" class="btn-white">
                 Load More Games
             </button>
         </div>
