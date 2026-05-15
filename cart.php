@@ -241,9 +241,9 @@ foreach ($cart_items as $item) {
                                                 <form action="cart.php" method="POST" style="margin:0;">
                                                     <input type="hidden" name="action" value="update_qty">
                                                     <input type="hidden" name="cart_id" value="<?= $item['cart_id'] ?>">
-                                                    <div class="qty-wrap">
+                                                    <div class="quantity-control">
                                                         <button type="button" class="qty-btn" onclick="this.nextElementSibling.stepDown(); this.form.submit();">−</button>
-                                                        <input type="number" name="quantity" class="qty-input" value="<?= $item['quantity'] ?>" min="1" max="<?= $item['stock_count'] ?>" onchange="this.form.submit();">
+                                                        <input type="number" name="quantity" class="qty-input" value="<?= $item['quantity'] ?>" min="1" max="<?= $item['stock_count'] ?>" onchange="this.form.submit();" oninput="if(parseInt(this.value) > parseInt(this.max)) this.value = this.max;">
                                                         <button type="button" class="qty-btn" onclick="this.previousElementSibling.stepUp(); this.form.submit();">+</button>
                                                     </div>
                                                 </form>
