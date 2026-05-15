@@ -107,7 +107,7 @@ $current_sort_label = $sort_options[$current_sort] ?? 'Top Rated';
 
         <div class="hero-slides-container" id="carouselWrapper">
             <?php foreach ($featured_games as $index => $hero): ?>
-            <div class="hero-slide" style="background-image: linear-gradient(rgba(26, 26, 46, 0.7), rgba(26, 26, 46, 0.9)), url('<?php echo htmlspecialchars(ltrim($hero['cover_image'], '/')); ?>');">
+            <div class="hero-slide <?php echo $index === 0 ? 'active' : ''; ?>" style="background-image: linear-gradient(rgba(26, 26, 46, 0.7), rgba(26, 26, 46, 0.9)), url('<?php echo htmlspecialchars(ltrim($hero['cover_image'], '/')); ?>');">
                 <div class="featured-product-inner">
                     <div class="featured-product-badge">
                         <?php echo $index === 0 ? 'Hot Deal' : 'Top Rated'; ?>
@@ -174,7 +174,7 @@ $current_sort_label = $sort_options[$current_sort] ?? 'Top Rated';
                     $image_path = ltrim($game['cover_image'] ?? '', '/');
                     $hidden_class = $index >= 16 ? 'hidden-game' : '';
             ?>
-            <a href="product.php?id=<?php echo $game['id']; ?>" class="game-card <?php echo $hidden_class; ?>">
+            <a href="product.php?id=<?php echo $game['id']; ?>" class="game-card <?php echo $hidden_class; ?> reveal-animation">
                 <div class="game-image <?php echo $current_bg; ?>">
                     <?php if ($image_path): ?>
                         <img src="<?php echo htmlspecialchars($image_path); ?>" alt="<?php echo htmlspecialchars($game['name']); ?> Cover">
