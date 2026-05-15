@@ -240,6 +240,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>GameHub — Sign In / Register</title>
+<link rel="icon" type="image/png" href="images/logo/logo2.png">
 <link rel="stylesheet" href="css/auth.css">
 <style>
     .tabs { display: flex; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden; margin-bottom: 20px; }

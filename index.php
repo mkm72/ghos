@@ -79,6 +79,7 @@ $current_sort_label = $sort_options[$current_sort] ?? 'Top Rated';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GameHub Online Store - Home</title>
+    <link rel="icon" type="image/png" href="images/logo/logo2.png">
     <link rel="stylesheet" href="css/navbar.css?v=2026.05.15.v2">
     <link rel="stylesheet" href="css/index.css?v=2026.05.15.v2">
 </head>

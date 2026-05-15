@@ -106,6 +106,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Settings — GameHub Online Store</title>
+    <link rel="icon" type="image/png" href="images/logo/logo2.png">
     <link rel="stylesheet" href="css/navbar.css">
     <style>
         .settings-wrap { max-width:680px;margin:40px auto;padding:0 20px 60px; }
