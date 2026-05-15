@@ -444,7 +444,7 @@ $total_games     = (int)($stats['total_games'] ?? 0);
             <div class="form-row full">
                 <div class="fg">
                     <label>Select Game *</label>
-                    <select name="base_game_id" id="existingGameSelect" required onchange="updateExistingPreview(this)">
+                    <select name="base_game_id" id="existingGameSelect" required oninput="updateExistingPreview(this)">
                         <option value="" data-img="">-- Choose a game from the catalog --</option>
                         <?php foreach ($global_games as $gg): ?>
                             <option value="<?= $gg['id'] ?>" data-img="<?= htmlspecialchars(ltrim($gg['cover_image'] ?? '', '/')) ?>">
@@ -607,11 +607,17 @@ $total_games     = (int)($stats['total_games'] ?? 0);
         const selectedOption = select.options[select.selectedIndex];
         const imgPath = selectedOption.getAttribute('data-img');
 
-        if (imgPath) {
+        if (imgPath && imgPath.trim() !== '') {
             img.src = imgPath;
             container.style.display = 'block';
+            
+            // If image fails to load, hide container
+            img.onerror = () => {
+                container.style.display = 'none';
+            };
         } else {
             container.style.display = 'none';
+            img.src = '';
         }
     }
 </script>
