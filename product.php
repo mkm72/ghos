@@ -81,7 +81,7 @@ $other_sellers = $stmt_others->fetchAll();
         <div class="product-details">
             <h1 class="product-title"><?php echo htmlspecialchars($game['name']); ?></h1>
 
-            <!-- Star rating -->
+            <!-- Star rating (teammate's addition) -->
             <div class="product-stars" style="color: #f59e0b; display: flex; gap: 4px; margin-top: -10px;">
                 <?php for($i=0; $i<5; $i++): ?>
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
@@ -89,7 +89,7 @@ $other_sellers = $stmt_others->fetchAll();
                 <span style="color: #888; font-size: 14px; margin-left: 8px; font-weight: 500;">(4.9 Rating)</span>
             </div>
 
-            <!-- Tags with show more -->
+            <!-- Tags with show more (my addition) -->
             <div class="product-tags" id="tagsContainer">
                 <?php 
                 $all_tags = [];
@@ -100,18 +100,16 @@ $other_sellers = $stmt_others->fetchAll();
                     $style = $tag['type'] === 'genre' 
                         ? 'background-color:#e0e7ff;border-color:#c7d2fe;color:#3730a3;' 
                         : '';
-                    // We removed the inline display:none here! CSS handles it now.
-                    $hidden = $i >= 4 ? 'class="product-tag extra-tag" style="' . $style . '"' 
+                    $hidden = $i >= 4 ? 'class="product-tag extra-tag" style="display:none;' . $style . '"' 
                                       : 'class="product-tag" style="' . $style . '"';
                 ?>
                     <span <?= $hidden ?>><?= htmlspecialchars($tag['label']) ?></span>
                 <?php endforeach; ?>
 
                 <?php if (count($all_tags) > 4): ?>
-                    <button class="tag-toggle" type="button" onclick="
-                        const container = document.getElementById('tagsContainer');
-                        container.classList.toggle('show-all');
-                        this.textContent = container.classList.contains('show-all') ? '− less' : '+ more';
+                    <button class="tag-toggle" onclick="
+                        document.querySelectorAll('.extra-tag').forEach(t => t.style.display = t.style.display === 'none' ? '' : 'none');
+                        this.textContent = this.textContent === '+ more' ? '− less' : '+ more';
                     ">+ more</button>
                 <?php endif; ?>
             </div>

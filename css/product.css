@@ -87,7 +87,6 @@
     align-items: center;
     width: 100%;
 }
-
 .product-tag {
     background-color: #f0f0f0;
     border: 1px solid #dddddd;
@@ -95,20 +94,7 @@
     font-size: 12px;
     padding: 4px 10px;
     border-radius: 4px;
-    display: inline-block; /* Ensures the tag behaves nicely in the flex row */
-    white-space: nowrap;   /* Prevents the text inside the tag from splitting in half */
 }
-
-/* Hide extra tags by default */
-.product-tags .extra-tag {
-    display: none;
-}
-
-/* Show them when the parent container gets the 'show-all' class */
-.product-tags.show-all .extra-tag {
-    display: inline-block;
-}
-
 .tag-toggle {
     background: none;
     border: 1px dashed #aaa;
