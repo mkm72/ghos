@@ -9,11 +9,10 @@
 .hero-slides-container {
     display: flex;
     transition: transform 0.5s ease-in-out;
-    width: 100%;
 }
 
 .hero-slide {
-    min-width: 100%;
+    flex: 0 0 100%;
     box-sizing: border-box;
     min-height: 550px;
     display: flex;
@@ -342,6 +341,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
+    margin-top: 10px;
 }
 
 .game-price {
@@ -407,6 +407,10 @@
     margin-bottom: 24px;
 }
 
+.section-header .section-title {
+    margin-bottom: 0;
+}
+
 .no-games-found {
     grid-column: 1 / -1;
     padding: 40px;
@@ -416,7 +420,8 @@
 
 .load-more-container {
     text-align: center;
-    margin-top: 40px;
+    margin-top: 20px;
+    margin-bottom: 40px;
 }
 
 #loadMoreBtn {
