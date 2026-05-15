@@ -6,20 +6,9 @@ session_start();
 
 if (isset($_GET['logout'])) { session_unset(); session_destroy(); header('Location: index.php'); exit; }
 
-// ── Local dev bypass ─────────────────────────
-// On localhost: auto-set admin session so you can develop without logging in
-$is_local = in_array($_SERVER['REMOTE_ADDR'] ?? '', ['127.0.0.1', '::1']);
-if ($is_local && !isset($_SESSION['user_id'])) {
-    $_SESSION['user_id']    = 1;
-    $_SESSION['user_email'] = 'admin@ghos.com';
-    $_SESSION['role']       = 'admin';
-    $_SESSION['user_role']  = 'admin';
-}
-// ─────────────────────────────────────────────
-
 if (!isset($_SESSION['user_id']) || ($_SESSION['role'] ?? '') !== 'admin') {
     http_response_code(403);
-    echo '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Access Denied</title><link rel="stylesheet" href="css/navbar.css"></head><body>';
+    echo '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Access Denied</title><link rel="stylesheet" href="css/navbar.css?v=2026.05.15.v2"></head><body>';
     echo '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:80vh;text-align:center;gap:16px;">';
     echo '<img src="images/logo/logo2.png" alt="Ghos Logo" style="height: 80px; margin-bottom: 10px;">';
     echo '<div style="font-size:28px;font-weight:bold;">Access Denied</div>';
@@ -352,8 +341,8 @@ function roleBadge(string $r): string {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Panel — GameHub</title>
-    <link rel="stylesheet" href="css/navbar.css">
-    <link rel="stylesheet" href="css/dashboard-layout.css">
+    <link rel="stylesheet" href="css/navbar.css?v=2026.05.15.v2">
+    <link rel="stylesheet" href="css/dashboard-layout.css?v=2026.05.15.v2">
     <style>
         .admin-section { display:none; }
         .admin-section.active-section { display:block; }

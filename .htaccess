@@ -1,0 +1,34 @@
+# 1. COMPRESSION (Speed up loading)
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript application/x-javascript application/json
+</IfModule>
+
+# 2. BROWSER CACHING (Cache static assets)
+<IfModule mod_expires.c>
+    ExpiresActive On
+    
+    # Images (Cache for 1 month as they rarely change)
+    ExpiresByType image/jpg "access plus 1 month"
+    ExpiresByType image/jpeg "access plus 1 month"
+    ExpiresByType image/gif "access plus 1 month"
+    ExpiresByType image/png "access plus 1 month"
+    ExpiresByType image/webp "access plus 1 month"
+    ExpiresByType image/x-icon "access plus 1 month"
+    
+    # CSS/JS (Cache for 1 week - overridden by versioning tags in PHP)
+    ExpiresByType text/css "access plus 1 week"
+    ExpiresByType application/javascript "access plus 1 week"
+    ExpiresByType text/javascript "access plus 1 week"
+</IfModule>
+
+# 3. SECURITY & CACHING FOR PHP
+<FilesMatch "\.(php)$">
+    <IfModule mod_headers.c>
+        # Ensure PHP pages themselves aren't cached aggressively
+        Header set Cache-Control "no-store, no-cache, must-revalidate, max-age=0"
+        Header set Pragma "no-cache"
+    </IfModule>
+</FilesMatch>
+
+# 4. PREVENT DIRECTORY LISTING
+Options -Indexes
