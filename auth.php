@@ -6,6 +6,11 @@ session_start();
 require_once 'php/db_connect.php';
 require_once 'sendEMail.php';
 
+if (isset($_GET['cancel'])) {
+    unset($_SESSION['pending_register']);
+    header('Location: auth.php'); exit;
+}
+
 $error   = '';
 $success = '';
 $mode = isset($_SESSION['pending_register']) && $_SESSION['pending_register'] ? 'verify' : 'login';
@@ -421,7 +426,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <button type="submit" class="resend-link">Resend code</button>
             </form>
             &nbsp;·&nbsp;
-            <a href="auth.php" style="font-size:13px; color:#555;">Start over</a>
+            <a href="?cancel=1" style="font-size:13px; color:#555;">Start over</a>
         </div>
     </div>
     <?php endif; ?>
