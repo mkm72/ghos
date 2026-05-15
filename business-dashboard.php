@@ -314,9 +314,9 @@ $total_games     = (int)($stats['total_games'] ?? 0);
 <body>
 
 <aside class="sidebar">
-    <div class="sidebar-logo">
-        <img src="images/logo/logo2.png" alt="Ghos Logo" style="height: 40px; border-radius: 8px;">
-        <span class="logo-name">Seller Panel</span>
+    <div class="sidebar-logo" style="flex-direction: column; align-items: flex-start; gap: 12px; padding: 0 20px 30px;">
+        <img src="images/logo/logo2.png" alt="Ghos Logo" style="height: 55px; width: auto; border-radius: 8px;">
+        <span class="logo-name" style="font-size: 16px;">Seller Panel</span>
     </div>
     <div class="user-chip">
         <div class="avatar"><?= strtoupper(substr($user_email, 0, 1)) ?></div>

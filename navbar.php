@@ -24,7 +24,7 @@ if ($is_logged_in) {
 
 <nav class="navbar">
     <a href="index.php" class="navbar-logo">
-        <img src="images/logo/logo2.png" alt="Ghos Logo" style="height: 40px; border-radius: 8px;">
+        <img src="images/logo/logo2.png" alt="Ghos Logo" style="height: 50px; border-radius: 8px;">
         <span class="logo-name">GameHub Online Store</span>
     </a>
     <div class="navbar-search">
