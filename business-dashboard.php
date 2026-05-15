@@ -298,6 +298,16 @@ $total_games     = (int)($stats['total_games'] ?? 0);
         .header-actions { display:flex; gap:10px; }
         .btn-white { background: white; border: 1px solid #ccc; color: #333; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; }
         .btn-white:hover { background: #f9f9f9; }
+
+        /* Custom Game Selector Styles */
+        .game-search-input { margin-bottom: 10px; width: 100%; padding: 10px 14px; border: 1px solid #e0e0e0; border-radius: 8px; font-size: 14px; }
+        .game-selector-list { max-height: 280px; overflow-y: auto; border: 1px solid #e0e0e0; border-radius: 8px; background: #fff; }
+        .game-selector-item { display: flex; align-items: center; gap: 12px; padding: 8px 12px; cursor: pointer; border-bottom: 1px solid #f1f5f9; transition: all 0.2s; }
+        .game-selector-item:last-child { border-bottom: none; }
+        .game-selector-item:hover { background: #f8fafc; }
+        .game-selector-item.selected { background: #eff6ff; border-left: 4px solid #3b82f6; }
+        .game-selector-item img { width: 36px; height: 48px; object-fit: cover; border-radius: 4px; background: #eee; flex-shrink: 0; }
+        .game-selector-item .gn { font-size: 14px; font-weight: 500; color: #334155; }
     </style>
 </head>
 <body>
@@ -432,32 +442,35 @@ $total_games     = (int)($stats['total_games'] ?? 0);
 </main>
 
 <div class="modal-overlay" id="addExistingGameModal">
-    <div class="modal-box">
+    <div class="modal-box" style="max-width: 600px;">
         <div class="modal-title">Sell an Existing Game <button class="modal-close" onclick="document.getElementById('addExistingGameModal').classList.remove('open')">×</button></div>
         <form method="POST" action="business-dashboard.php">
             <input type="hidden" name="action" value="add_existing_game">
+            <input type="hidden" name="base_game_id" id="selectedBaseGameId" required>
             
-            <div id="existingPreviewContainer" style="margin-bottom: 15px; text-align: center; display: none;">
-                <img id="existingPreviewImg" src="" alt="Preview" style="max-height: 120px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
-            </div>
-
-            <div class="form-row full">
-                <div class="fg">
-                    <label>Select Game *</label>
-                    <select name="base_game_id" id="existingGameSelect" required oninput="updateExistingPreview(this)">
-                        <option value="" data-img="">-- Choose a game from the catalog --</option>
-                        <?php foreach ($global_games as $gg): ?>
-                            <option value="<?= $gg['id'] ?>" data-img="<?= htmlspecialchars(ltrim($gg['cover_image'] ?? '', '/')) ?>">
-                                <?= htmlspecialchars($gg['name']) ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
+            <div class="fg" style="margin-bottom: 12px;">
+                <label>1. Select Game from Catalog *</label>
+                <input type="text" class="game-search-input" placeholder="Search by name..." onkeyup="filterGameSelector(this.value)">
+                <div class="game-selector-list" id="gameSelectorList">
+                    <?php foreach ($global_games as $gg): 
+                        $imgPath = htmlspecialchars(ltrim($gg['cover_image'] ?? '', '/'));
+                    ?>
+                        <div class="game-selector-item" onclick="selectGameFromList(this, <?= $gg['id'] ?>)" data-name="<?= htmlspecialchars(strtolower($gg['name'])) ?>">
+                            <img src="<?= $imgPath ?: 'images/placeholder.jpg' ?>" alt="">
+                            <span class="gn"><?= htmlspecialchars($gg['name']) ?></span>
+                        </div>
+                    <?php endforeach; ?>
                 </div>
             </div>
-            <div class="form-row full">
-                <div class="fg"><label>Your Price *</label><input type="number" name="price" step="0.01" required></div>
+
+            <div class="fg" style="margin-bottom: 20px;">
+                <label>2. Set Your Price ($) *</label>
+                <input type="number" name="price" step="0.01" required placeholder="29.99">
             </div>
-            <div style="text-align:right;"><button type="submit" class="btn-blue">Add to My Store</button></div>
+
+            <div style="text-align:right;">
+                <button type="submit" class="btn-blue" id="submitExistingBtn" disabled>Add to My Store</button>
+            </div>
         </form>
     </div>
 </div>
@@ -601,24 +614,31 @@ $total_games     = (int)($stats['total_games'] ?? 0);
         document.getElementById('orderDetailsModal').classList.add('open');
     }
 
-    function updateExistingPreview(select) {
-        const container = document.getElementById('existingPreviewContainer');
-        const img = document.getElementById('existingPreviewImg');
-        const selectedOption = select.options[select.selectedIndex];
-        const imgPath = selectedOption.getAttribute('data-img');
+    function selectGameFromList(element, gameId) {
+        // Remove 'selected' class from all items
+        document.querySelectorAll('.game-selector-item').forEach(item => {
+            item.classList.remove('selected');
+        });
+        
+        // Add 'selected' class to the clicked item
+        element.classList.add('selected');
+        
+        // Update hidden input and enable submit button
+        document.getElementById('selectedBaseGameId').value = gameId;
+        document.getElementById('submitExistingBtn').disabled = false;
+    }
 
-        if (imgPath && imgPath.trim() !== '') {
-            img.src = imgPath;
-            container.style.display = 'block';
-            
-            // If image fails to load, hide container
-            img.onerror = () => {
-                container.style.display = 'none';
-            };
-        } else {
-            container.style.display = 'none';
-            img.src = '';
-        }
+    function filterGameSelector(query) {
+        query = query.toLowerCase();
+        const items = document.querySelectorAll('.game-selector-item');
+        items.forEach(item => {
+            const name = item.getAttribute('data-name');
+            if (name.includes(query)) {
+                item.style.display = 'flex';
+            } else {
+                item.style.display = 'none';
+            }
+        });
     }
 </script>
 </body>
