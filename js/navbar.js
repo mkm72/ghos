@@ -93,9 +93,10 @@ function initSearch() {
                             const item = document.createElement('a');
                             item.className   = 'search-item';
                             item.href        = 'product.php?id=' + game.id;
+                            const imgPath = game.cover_image ? game.cover_image.replace(/^\//, '') : '';
                             item.innerHTML   = `
                                 <img class="search-item-img"
-                                     src="${game.cover_image || ''}"
+                                     src="${imgPath}"
                                      onerror="this.style.background='#1e1b4b'; this.src='';">
                                 <div class="search-item-info">
                                     <div class="search-item-name">${game.name}</div>
