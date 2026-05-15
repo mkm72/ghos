@@ -125,7 +125,7 @@ try {
         $body_conf = "
             <div style='font-family:Arial,sans-serif;padding:20px;max-width:600px;'>
                 <div style='margin-bottom:24px;'>
-                    <img src='https://ghos.shop/images/logo/logo1.png' alt='Ghos Logo' style='height: 50px; border-radius: 8px;'>
+                    <img src='https://ghos.shop/images/logo/logo2.png' alt='Ghos Logo' style='height: 50px; border-radius: 8px;'>
                 </div>
                 <h2>Thank you for your order!</h2>
                 <p>Your payment of <strong>$" . number_format($total, 2) . "</strong> has been successfully processed.</p>
@@ -140,7 +140,7 @@ try {
         $body_keys = "
             <div style='font-family:Arial,sans-serif;padding:20px;max-width:600px;'>
                 <div style='margin-bottom:24px;'>
-                    <img src='https://ghos.shop/images/logo/logo1.png' alt='Ghos Logo' style='height: 50px; border-radius: 8px;'>
+                    <img src='https://ghos.shop/images/logo/logo2.png' alt='Ghos Logo' style='height: 50px; border-radius: 8px;'>
                 </div>
                 <h2>Your Digital Keys</h2>
                 <p>Here are the activation codes for your recent purchase:</p>
