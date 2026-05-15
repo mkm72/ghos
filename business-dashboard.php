@@ -7,7 +7,7 @@ require_once 'php/db_connect.php';
 
 if (!isset($_SESSION['user_id']) || ($_SESSION['role'] ?? '') !== 'business') {
     http_response_code(403);
-    echo '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Access Denied</title><link rel="stylesheet" href="css/navbar.css"></head><body>';
+    echo '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Access Denied</title><link rel="icon" type="image/png" href="images/logo/logo2.png"><link rel="stylesheet" href="css/navbar.css"></head><body>';
     echo '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:80vh;text-align:center;gap:16px;">';
     echo '<img src="images/logo/logo2.png" alt="Ghos Logo" style="height: 80px; margin-bottom: 10px;">';
     echo '<div style="font-size:28px;font-weight:bold;">Access Denied</div>';
@@ -279,7 +279,7 @@ $total_games     = (int)($stats['total_games'] ?? 0);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Business Dashboard</title>
-    <link rel="stylesheet" href="css/navbar.css">
+    <link rel="icon" type="image/png" href="images/logo/logo2.png"><link rel="stylesheet" href="css/navbar.css">
     <link rel="stylesheet" href="css/dashboard-layout.css">
     <style>
         .badge-green { background:#dcfce7;color:#16a34a;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:bold; }
