@@ -218,3 +218,53 @@ function showToast(message, type = 'success') {
 }
 
 window.showToast = showToast;
+
+// ============================================================
+// 7. VIEW KEYS (INVENTORY)
+// ============================================================
+async function viewKeys(gameId, gameName) {
+    document.getElementById('viewKeysGameName').textContent = gameName;
+    const tbody = document.getElementById('keysTableBody');
+    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;">Loading...</td></tr>';
+    document.getElementById('viewKeysModal').classList.add('open');
+
+    const response = await fetch(`admin.php?action=get_keys&game_id=${gameId}`);
+    const keys = await response.json();
+    
+    tbody.innerHTML = '';
+    if (keys.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding: 20px;">No keys in stock.</td></tr>';
+        return;
+    }
+
+    keys.forEach(k => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td style="font-family: monospace;">${k.key_code}</td>
+            <td>${k.is_sold == 1 ? '<span class="badge-red">Sold</span>' : '<span class="badge-green">Available</span>'}</td>
+            <td>
+                ${k.is_sold == 0 ? `<button onclick="deleteKey(${k.id}, ${gameId}, this)" style="background:none; border:none; color:#ef4444; cursor:pointer; font-weight:bold;">Delete</button>` : '-'}
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+window.viewKeys = viewKeys;
+
+async function deleteKey(keyId, gameId, btn) {
+    if (!confirm('Delete this unsold key?')) return;
+    
+    const formData = new FormData();
+    formData.append('action', 'delete_key');
+    formData.append('key_id', keyId);
+    formData.append('game_id', gameId);
+
+    const response = await fetch('admin.php', { method: 'POST', body: formData });
+    const res = await response.json();
+    if (res.success) {
+        btn.closest('tr').remove();
+    } else {
+        alert('Error: ' + res.error);
+    }
+}
+window.deleteKey = deleteKey;

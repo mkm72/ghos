@@ -10,13 +10,8 @@ function syncCurrency() {
     // 2. Force the dropdown to visually match the saved choice
     if (selector) {
         selector.value = savedCurrency;
-        // This loop explicitly tells the browser which option to highlight
         for (let i = 0; i < selector.options.length; i++) {
-            if (selector.options[i].value === savedCurrency) {
-                selector.options[i].selected = true;
-            } else {
-                selector.options[i].selected = false;
-            }
+            selector.options[i].selected = (selector.options[i].value === savedCurrency);
         }
     }
     
@@ -25,28 +20,25 @@ function syncCurrency() {
 
     // 4. Listen for when the user changes the dropdown
     if (selector) {
-        // We use onchange here to prevent duplicate listeners
         selector.onchange = function() {
             const newCurrency = this.value;
-            localStorage.setItem('userCurrency', newCurrency); // Save the new choice
-            applyCurrency(newCurrency, exchangeRate); // Update the numbers
+            localStorage.setItem('userCurrency', newCurrency);
+            applyCurrency(newCurrency, exchangeRate);
         };
     }
 }
 
 function applyCurrency(currency, exchangeRate) {
-    // Find every element on the page with the class "price-display"
     const priceElements = document.querySelectorAll('.price-display');
     
     priceElements.forEach(el => {
-        // Get the original USD value from the data attribute
         const usdVal = parseFloat(el.getAttribute('data-usd'));
         if (isNaN(usdVal)) return;
 
         if (currency === 'SAR') {
             const sarVal = (usdVal * exchangeRate).toFixed(2);
-            // USE innerHTML and <bdi> to prevent RTL text from breaking the layout
-            el.innerHTML = sarVal + ' <bdi>⃁</bdi>';
+            // Use the word 'ريال' for total consistency and safety
+            el.innerHTML = sarVal + ' <bdi>ريال</bdi>';
         } else {
             el.innerHTML = '$' + usdVal.toFixed(2);
         }
@@ -87,15 +79,16 @@ function initSearch() {
                             const price = parseFloat(game.price);
                             const currency = localStorage.getItem('userCurrency') || 'USD';
                             const displayPrice = currency === 'SAR'
-                                ? (price * 3.75).toFixed(2) + ' ﷼'
+                                ? (price * 3.75).toFixed(2) + ' <bdi>ريال</bdi>'
                                 : '$' + price.toFixed(2);
 
                             const item = document.createElement('a');
                             item.className   = 'search-item';
                             item.href        = 'product.php?id=' + game.id;
+                            const imgPath = game.cover_image ? game.cover_image.replace(/^\//, '') : '';
                             item.innerHTML   = `
                                 <img class="search-item-img"
-                                     src="${game.cover_image || ''}"
+                                     src="${imgPath}"
                                      onerror="this.style.background='#1e1b4b'; this.src='';">
                                 <div class="search-item-info">
                                     <div class="search-item-name">${game.name}</div>
@@ -108,17 +101,15 @@ function initSearch() {
 
                     dropdown.classList.add('active');
                 });
-        }, 250); // 250ms debounce — waits for user to stop typing
+        }, 250);
     });
 
-    // Close dropdown when clicking outside
     document.addEventListener('click', (e) => {
         if (!input.contains(e.target) && !dropdown.contains(e.target)) {
             dropdown.classList.remove('active');
         }
     });
 
-    // Close on Escape key
     input.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
             dropdown.classList.remove('active');
@@ -135,9 +126,8 @@ function initContactModal() {
     const contactBtn = document.querySelector('.contact-link');
     const closeBtn = document.querySelector('.close-btn');
  
-    if (!modal) return; // Safety check: modal must exist on the page
+    if (!modal) return;
  
-    // Open modal
     if (contactBtn) {
         contactBtn.addEventListener('click', (e) => {
             e.preventDefault();
@@ -145,14 +135,12 @@ function initContactModal() {
         });
     }
  
-    // Close via X button
     if (closeBtn) {
         closeBtn.addEventListener('click', () => {
             modal.style.display = 'none';
         });
     }
  
-    // Close by clicking outside modal content
     window.addEventListener('click', (e) => {
         if (e.target === modal) {
             modal.style.display = 'none';
@@ -160,14 +148,16 @@ function initContactModal() {
     });
 }
 
-// Run the sync function when the page normally loads
-// document.addEventListener('DOMContentLoaded', syncCurrency);
-// Run on DOM ready
+// Global initialization
 document.addEventListener('DOMContentLoaded', () => {
     syncCurrency();
     initContactModal();
-    initSearch()
+    initSearch();
+    
+    // Aggressive re-application to beat any stubborn caches
+    [500, 1000, 2500].forEach(delay => {
+        setTimeout(syncCurrency, delay);
+    });
 });
 
-// Run the sync function if the user navigates using the browser's "Back" button
 window.addEventListener('pageshow', syncCurrency);

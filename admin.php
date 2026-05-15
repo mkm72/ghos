@@ -21,7 +21,8 @@ if (!isset($_SESSION['user_id']) || ($_SESSION['role'] ?? '') !== 'admin') {
     http_response_code(403);
     echo '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Access Denied</title><link rel="stylesheet" href="css/navbar.css"></head><body>';
     echo '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:80vh;text-align:center;gap:16px;">';
-    echo '<div style="font-size:64px;">🚫</div><div style="font-size:28px;font-weight:bold;">Access Denied</div>';
+    echo '<img src="images/logo/logo2.png" alt="Ghos Logo" style="height: 80px; margin-bottom: 10px;">';
+    echo '<div style="font-size:28px;font-weight:bold;">Access Denied</div>';
     echo '<div style="font-size:15px;color:#888;">Admin access only.</div>';
     echo '<a href="index.php" class="btn-blue">← Back to Store</a></div></body></html>';
     exit;
@@ -72,9 +73,25 @@ if ($action === 'add_game' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 // ── Delete Game ───────────────────────────────
 if ($action === 'delete_game' && isset($_GET['id'])) {
     $id = (int)$_GET['id'];
-    $pdo->prepare('DELETE FROM Games WHERE id = ?')->execute([$id]);
-    $flash = 'Game deleted.'; $flash_type = 'error';
-    header('Location: admin.php?section=section-games&flash='.urlencode($flash).'&flash_type=error'); exit;
+    
+    // 1. Check if the game has any sales history
+    $chk_sales = $pdo->prepare('SELECT id FROM Order_Items WHERE game_id=? LIMIT 1');
+    $chk_sales->execute([$id]);
+    if ($chk_sales->fetch()) {
+        $flash = 'Cannot delete this game because it has already been sold to customers.';
+        $flash_type = 'error';
+    } else {
+        // 2. Safely delete child records first
+        $pdo->prepare('DELETE FROM Game_Images WHERE game_id=?')->execute([$id]);
+        $pdo->prepare('DELETE FROM Game_Keys WHERE game_id=?')->execute([$id]);
+        $pdo->prepare('DELETE FROM Cart WHERE game_id=?')->execute([$id]);
+        
+        // 3. Finally, delete the game
+        $pdo->prepare('DELETE FROM Games WHERE id = ?')->execute([$id]);
+        $flash = 'Game deleted.'; $flash_type = 'error';
+    }
+    
+    header('Location: admin.php?section=section-games&flash='.urlencode($flash).'&flash_type='.$flash_type); exit;
 }
 
 // ── Edit Game ─────────────────────────────────
@@ -112,16 +129,53 @@ if ($action === 'add_key' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $keys = array_filter(array_map('trim', explode("\n", $keys_raw)));
     $added = 0;
     $stmt  = $pdo->prepare('INSERT IGNORE INTO Game_Keys (game_id, key_code) VALUES (?,?)');
-    foreach ($keys as $k) { if ($k) { $stmt->execute([$game_id, $k]); $added++; } }
+    foreach ($keys as $k) { 
+        if ($k) { 
+            $stmt->execute([$game_id, $k]); 
+            if ($stmt->rowCount() > 0) {
+                $added++; 
+            }
+        } 
+    }
     $flash = "$added key(s) added successfully!";
     header('Location: admin.php?section=section-games&flash='.urlencode($flash)); exit;
 }
 
 // ── Delete Key ────────────────────────────────
+if ($action === 'delete_key' && isset($_POST['key_id'])) {
+    $pdo->prepare('DELETE FROM Game_Keys WHERE id=? AND is_sold=0')->execute([(int)$_POST['key_id']]);
+    echo json_encode(['success' => true]);
+    exit;
+}
 if ($action === 'delete_key' && isset($_GET['id'])) {
     $pdo->prepare('DELETE FROM Game_Keys WHERE id=? AND is_sold=0')->execute([(int)$_GET['id']]);
     $flash = 'Key deleted.'; $flash_type = 'error';
     header('Location: admin.php?section=section-games&flash='.urlencode($flash).'&flash_type=error'); exit;
+}
+
+// ── Bulk Price Update ─────────────────────────
+if ($action === 'bulk_price_update' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $percent = (float)($_POST['percent'] ?? 0);
+    if ($percent != 0) {
+        $multiplier = 1 + ($percent / 100);
+        $pdo->prepare("UPDATE Games SET price = price * ?")->execute([$multiplier]);
+        $flash = 'All game prices updated by ' . $percent . '%.';
+    }
+    header('Location: admin.php?section=section-games&flash='.urlencode($flash)); exit;
+}
+
+// ── AJAX: Fetch Keys ──────────────────────────
+if ($action === 'get_keys') {
+    $game_id = (int)($_GET['game_id'] ?? 0);
+    $stmt = $pdo->prepare("
+        SELECT id, key_code, is_sold 
+        FROM Game_Keys 
+        WHERE game_id = ? 
+        ORDER BY is_sold ASC, id DESC
+    ");
+    $stmt->execute([$game_id]);
+    echo json_encode($stmt->fetchAll(PDO::FETCH_ASSOC));
+    exit;
 }
 
 // ── Toggle User Active ────────────────────────
@@ -238,7 +292,7 @@ try {
         JOIN Users u ON o.user_id=u.id
         JOIN Order_Items oi ON o.id=oi.order_id
         JOIN Games g ON oi.game_id=g.id
-        GROUP BY o.id ORDER BY o.order_date DESC
+        GROUP BY o.id, u.email, o.total_price, o.order_date, o.status ORDER BY o.order_date DESC
     ")->fetchAll();
 } catch(\PDOException $e) { $orders = []; error_log('Orders query: '.$e->getMessage()); }
 
@@ -246,12 +300,12 @@ try {
 try {
     $games = $pdo->query("
         SELECT g.id, g.name, g.price, g.platform, g.genres, g.description,
-               i.filename AS cover_image,
+               ANY_VALUE(i.filename) AS cover_image,
                COUNT(k.id) AS stock_count
         FROM Games g
         LEFT JOIN Game_Images i ON g.id=i.game_id AND i.is_cover=1
         LEFT JOIN Game_Keys k ON g.id=k.game_id AND k.is_sold=0
-        GROUP BY g.id ORDER BY g.name ASC
+        GROUP BY g.id, g.name, g.price, g.platform, g.genres, g.description ORDER BY g.name ASC
     ")->fetchAll();
 } catch(\PDOException $e) { $games = []; error_log('Games query: '.$e->getMessage()); }
 
@@ -376,9 +430,9 @@ function roleBadge(string $r): string {
 
 <!-- SIDEBAR -->
 <aside class="sidebar">
-    <div class="sidebar-logo">
-        <div class="logo-box">Ghos</div>
-        <span class="logo-name">Admin Panel</span>
+    <div class="sidebar-logo" style="flex-direction: column; align-items: flex-start; gap: 12px; padding: 0 20px 30px;">
+        <img src="images/logo/logo2.png" alt="Ghos Logo" style="height: 55px; width: auto; border-radius: 8px;">
+        <span class="logo-name" style="font-size: 16px;">Admin Panel</span>
     </div>
     <a href="#" class="sidebar-link" data-section="section-dashboard">📊 Dashboard</a>
     <a href="#" class="sidebar-link" data-section="section-orders">🛒 Orders</a>
@@ -422,11 +476,11 @@ function roleBadge(string $r): string {
     <!-- Low stock quick list -->
     <?php
     try { $low_games = $pdo->query("
-        SELECT g.id, g.name, g.price, i.filename AS cover_image, COUNT(k.id) AS stock_count
+        SELECT g.id, g.name, g.price, ANY_VALUE(i.filename) AS cover_image, COUNT(k.id) AS stock_count
         FROM Games g
         LEFT JOIN Game_Images i ON g.id=i.game_id AND i.is_cover=1
         LEFT JOIN Game_Keys k ON g.id=k.game_id AND k.is_sold=0
-        GROUP BY g.id HAVING stock_count < 5 ORDER BY stock_count ASC LIMIT 5
+        GROUP BY g.id, g.name, g.price HAVING stock_count < 5 ORDER BY stock_count ASC LIMIT 5
     ")->fetchAll(); } catch(\PDOException $e) { $low_games = []; }
     if ($low_games):
     ?>
@@ -444,7 +498,7 @@ function roleBadge(string $r): string {
                     </div>
                 </td>
                 <td><?= stockBadge((int)$g['stock_count']) ?></td>
-                <td><a href="?action=view_keys_redirect&id=<?=$g['id']?>" class="act-green act-btn" onclick="event.preventDefault();openAddKeys(<?=$g['id']?>,<?=htmlspecialchars(json_encode($g['name']))?>')">➕ Add Keys</a></td>
+                <td><a href="?action=view_keys_redirect&id=<?=$g['id']?>" class="act-green act-btn" onclick="event.preventDefault();openAddKeys(<?=$g['id']?>,<?=htmlspecialchars(json_encode($g['name']))?> )">➕ Add Keys</a></td>
             </tr>
             <?php endforeach; ?>
             </tbody>
@@ -467,12 +521,12 @@ function roleBadge(string $r): string {
     <table class="data-table" data-sortable>
         <thead><tr>
             <th data-col="id">#</th>
-            <th>User</th>
-            <th>Games</th>
+            <th data-col="user">User</th>
+            <th data-col="games">Games</th>
             <th data-col="price">Total</th>
             <th data-col="date">Date</th>
-            <th>Status</th>
-            <th>Change Status</th>
+            <th data-col="status">Status</th>
+            <th data-col="action">Change Status</th>
         </tr></thead>
         <tbody id="ordersTableBody">
         <?php if(empty($orders)): ?>
@@ -480,12 +534,12 @@ function roleBadge(string $r): string {
         <?php else: foreach($orders as $o): $sl=strtolower($o['status']); ?>
             <tr data-status="<?= htmlspecialchars($sl) ?>">
                 <td data-col="id" data-val="<?=$o['id']?>"><?=$o['id']?></td>
-                <td><?= htmlspecialchars($o['user_email']) ?></td>
-                <td style="max-width:200px;font-size:12px;"><?= htmlspecialchars($o['game_names']) ?></td>
+                <td data-col="user" data-val="<?= htmlspecialchars($o['user_email']) ?>"><?= htmlspecialchars($o['user_email']) ?></td>
+                <td data-col="games" data-val="<?= htmlspecialchars($o['game_names']) ?>" style="max-width:200px;font-size:12px;"><?= htmlspecialchars($o['game_names']) ?></td>
                 <td data-col="price" data-val="<?=(float)$o['total_price']?>">$<?= number_format((float)$o['total_price'],2) ?></td>
                 <td data-col="date" data-val="<?=strtotime($o['order_date'])?>"><?= date('M j, Y', strtotime($o['order_date'])) ?></td>
-                <td><?= statusBadge($o['status']) ?></td>
-                <td>
+                <td data-col="status" data-val="<?= htmlspecialchars($sl) ?>"><?= statusBadge($o['status']) ?></td>
+                <td data-col="action" data-val="">
                     <form method="POST" action="admin.php" style="display:flex;gap:4px;align-items:center;">
                         <input type="hidden" name="action" value="update_order_status">
                         <input type="hidden" name="order_id" value="<?=$o['id']?>">
@@ -507,16 +561,20 @@ function roleBadge(string $r): string {
 <div id="section-games" class="admin-section panel" style="margin-top:0;">
     <div class="panel-header">
         <span class="panel-title">Games (<span id="gamesCount"><?= count($games) ?></span>)</span>
-        <input id="gamesSearch" type="text" class="search-input" placeholder="Search games...">
+        <div style="display:flex;gap:8px;">
+            <button class="btn-white" style="padding:6px 12px; font-size:12px; border: 1px solid #ddd;" onclick="document.getElementById('adminHelpModal').classList.add('open')">Help?</button>
+            <button class="btn-blue" style="padding:6px 12px; font-size:12px;" onclick="document.getElementById('bulkPriceModal').classList.add('open')">% Discounts</button>
+            <input id="gamesSearch" type="text" class="search-input" placeholder="Search games...">
+        </div>
     </div>
     <table class="data-table" data-sortable>
         <thead><tr>
             <th data-col="id">ID</th>
-            <th>Game</th>
+            <th data-col="name">Game</th>
             <th data-col="price">Price</th>
             <th data-col="stock">Stock</th>
-            <th>Status</th>
-            <th>Actions</th>
+            <th data-col="status">Status</th>
+            <th data-col="action">Actions</th>
         </tr></thead>
         <tbody id="gamesTableBody">
         <?php if(empty($games)): ?>
@@ -531,19 +589,22 @@ function roleBadge(string $r): string {
         ?>
             <tr class="<?= $isLow?'low-stock-row':'' ?>">
                 <td data-col="id" data-val="<?=$game['id']?>"><?=$game['id']?></td>
-                <td>
-                    <div class="game-cell">
-                        <div class="mini-img <?=$clr?>"><?php if($img):?><img src="<?=htmlspecialchars($img)?>" alt=""><?php endif;?></div>
-                        <span class="mini-name"><?= htmlspecialchars($game['name']) ?></span>
-                    </div>
+                <td data-col="name" data-val="<?= htmlspecialchars($game['name']) ?>">
+                    <a href="product.php?id=<?=$game['id']?>" target="_blank" style="text-decoration:none; color:inherit;">
+                        <div class="game-cell">
+                            <div class="mini-img <?=$clr?>"><?php if($img):?><img src="<?=htmlspecialchars($img)?>" alt=""><?php endif;?></div>
+                            <span class="mini-name"><?= htmlspecialchars($game['name']) ?></span>
+                        </div>
+                    </a>
                 </td>
                 <td data-col="price" data-val="<?=(float)$game['price']?>">$<?= number_format((float)$game['price'],2) ?></td>
                 <td data-col="stock" data-val="<?=$stock?>"><?=$stock?></td>
-                <td><?= stockBadge($stock) ?></td>
-                <td>
+                <td data-col="status" data-val="<?=$stock > 0 ? ($isLow ? 1 : 2) : 0?>"><?= stockBadge($stock) ?></td>
+                <td data-col="action" data-val="">
                     <button class="act-btn act-edit" onclick="openEditGame(<?= htmlspecialchars(json_encode($game)) ?>)">Edit</button>
-                    <button class="act-btn act-green" onclick="openAddKeys(<?=$game['id']?>,<?=htmlspecialchars(json_encode($game['name']))?>')">Keys</button>
-                    <a href="admin.php?action=delete_game&id=<?=$game['id']?>" class="act-btn act-delete" data-confirm="Delete \"<?= htmlspecialchars($game['name']) ?>\"? This cannot be undone.">Delete</a>
+                    <button class="act-btn act-green" onclick="openAddKeys(<?=$game['id']?>,<?=htmlspecialchars(json_encode($game['name']))?> )">+ Keys</button>
+                    <button class="act-btn act-blue" style="background:#6366f1; color:white; border:none;" onclick="viewKeys(<?=$game['id']?>, <?=htmlspecialchars(json_encode($game['name']))?>)">View Inventory</button>
+                    <a href="admin.php?action=delete_game&id=<?=$game['id']?>" class="act-btn act-delete" data-confirm="Delete '<?= htmlspecialchars($game['name']) ?>'? This cannot be undone.">Delete</a>
                 </td>
             </tr>
         <?php endforeach; endif; ?>
@@ -561,20 +622,20 @@ function roleBadge(string $r): string {
     <table class="data-table" data-sortable>
         <thead><tr>
             <th data-col="id">ID</th>
-            <th>Email</th>
-            <th>Role</th>
-            <th>Status</th>
-            <th>Change Role</th>
-            <th>Actions</th>
+            <th data-col="email">Email</th>
+            <th data-col="role">Role</th>
+            <th data-col="status">Status</th>
+            <th data-col="change_role">Change Role</th>
+            <th data-col="action">Actions</th>
         </tr></thead>
         <tbody id="usersTableBody">
         <?php foreach($users as $u): ?>
             <tr>
                 <td data-col="id" data-val="<?=$u['id']?>"><?=$u['id']?></td>
-                <td><?= htmlspecialchars($u['email']) ?></td>
-                <td><?= roleBadge($u['role']) ?></td>
-                <td><?= $u['is_active'] ? '<span class="badge-green">Active</span>' : '<span class="badge-red">Suspended</span>' ?></td>
-                <td>
+                <td data-col="email" data-val="<?= htmlspecialchars($u['email']) ?>"><?= htmlspecialchars($u['email']) ?></td>
+                <td data-col="role" data-val="<?= htmlspecialchars($u['role']) ?>"><?= roleBadge($u['role']) ?></td>
+                <td data-col="status" data-val="<?= $u['is_active'] ? 1 : 0 ?>"><?= $u['is_active'] ? '<span class="badge-green">Active</span>' : '<span class="badge-red">Suspended</span>' ?></td>
+                <td data-col="change_role" data-val="">
                     <form method="POST" action="admin.php" style="display:flex;gap:4px;align-items:center;">
                         <input type="hidden" name="action" value="change_role">
                         <input type="hidden" name="user_id" value="<?=$u['id']?>">
@@ -586,9 +647,9 @@ function roleBadge(string $r): string {
                         <button type="submit" class="act-btn act-green">Save</button>
                     </form>
                 </td>
-                <td>
+                <td data-col="action" data-val="" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
                     <a href="admin.php?action=toggle_user&id=<?=$u['id']?>&section=section-users" class="act-btn <?= $u['is_active']?'act-orange':'act-green' ?>">
-                        <?= $u['is_active']?'Suspend':'Enable' ?>
+                        <?= $u['is_active'] ? 'Block' : 'Unblock' ?>
                     </a>
                     <?php if($u['id'] !== (int)$_SESSION['user_id']): ?>
                     <a href="admin.php?action=delete_user&id=<?=$u['id']?>" class="act-btn act-delete" data-confirm="Delete user <?= htmlspecialchars($u['email']) ?>? This cannot be undone.">Delete</a>
@@ -604,11 +665,11 @@ function roleBadge(string $r): string {
 <div id="section-add-game" class="admin-section">
     <h1 class="page-title">Add New Game</h1>
     <div class="panel">
-        <form method="POST" action="admin.php" enctype="multipart/form-data" class="form-panel">
+        <form id="addGameForm" method="POST" action="admin.php" enctype="multipart/form-data" class="form-panel" onsubmit="return validateAddGame()">
             <input type="hidden" name="action" value="add_game">
             <div class="form-row">
-                <div class="fg"><label>Game Name *</label><input type="text" name="name" required placeholder="e.g. Elden Ring"></div>
-                <div class="fg"><label>Price (USD) *</label><input type="number" name="price" step="0.01" min="0" required placeholder="29.99"></div>
+                <div class="fg"><label>Game Name *</label><input type="text" name="name" id="add_name" required placeholder="e.g. Elden Ring"></div>
+                <div class="fg"><label>Price (USD) *</label><input type="number" name="price" id="add_price" step="0.01" min="0" required placeholder="29.99"></div>
             </div>
             <div class="form-row">
                 <div class="fg">
@@ -656,17 +717,17 @@ function roleBadge(string $r): string {
             <button class="order-filter-tab" data-filter-apps="rejected">Rejected</button>
         </div>
     </div>
-    <table class="data-table">
+    <table class="data-table" data-sortable>
         <thead><tr>
-            <th>#</th>
-            <th>Applicant</th>
-            <th>Business Name</th>
-            <th>Contact</th>
-            <th>Volume</th>
-            <th>Reason</th>
-            <th>Date</th>
-            <th>Status</th>
-            <th>Actions</th>
+            <th data-col="id">#</th>
+            <th data-col="email">Applicant</th>
+            <th data-col="business_name">Business Name</th>
+            <th data-col="contact">Contact</th>
+            <th data-col="volume">Volume</th>
+            <th data-col="reason">Reason</th>
+            <th data-col="date">Date</th>
+            <th data-col="status">Status</th>
+            <th data-col="action">Actions</th>
         </tr></thead>
         <tbody id="appsTableBody">
         <?php if(empty($biz_apps)): ?>
@@ -675,21 +736,21 @@ function roleBadge(string $r): string {
             $sl = $app["status"];
         ?>
             <tr data-status-app="<?= htmlspecialchars($sl) ?>">
-                <td><?= $app["id"] ?></td>
-                <td>
+                <td data-col="id" data-val="<?= $app["id"] ?>"><?= $app["id"] ?></td>
+                <td data-col="email" data-val="<?= htmlspecialchars($app["user_email"]) ?>">
                     <?= htmlspecialchars($app["user_email"]) ?><br>
                     <span style="font-size:11px;color:#888;"><?= htmlspecialchars(($app["first_name"]??'').' '.($app["last_name"]??'')) ?></span>
                 </td>
-                <td><strong><?= htmlspecialchars($app["business_name"]) ?></strong><br>
+                <td data-col="business_name" data-val="<?= htmlspecialchars($app["business_name"]) ?>"><strong><?= htmlspecialchars($app["business_name"]) ?></strong><br>
                     <?php if(!empty($app["website"])): ?><a href="<?=htmlspecialchars($app["website"])?>" target="_blank" style="font-size:11px;color:#2563eb;">🔗 Website</a><?php endif; ?>
                 </td>
-                <td style="font-size:12px;">
+                <td data-col="contact" data-val="<?= htmlspecialchars($app["business_email"]??'') ?>" style="font-size:12px;">
                     <?= htmlspecialchars($app["business_email"]??'') ?>
                 </td>
-                <td style="font-size:12px;color:#666;"><?= htmlspecialchars($app["sales_volume"]??'—') ?></td>
-                <td style="max-width:160px;font-size:12px;color:#666;"><?= htmlspecialchars($app["reason"]) ?></td>
-                <td style="font-size:12px;"><?= date("M j, Y", strtotime($app["created_at"])) ?></td>
-                <td>
+                <td data-col="volume" data-val="<?= htmlspecialchars($app["sales_volume"]??'') ?>" style="font-size:12px;color:#666;"><?= htmlspecialchars($app["sales_volume"]??'—') ?></td>
+                <td data-col="reason" data-val="<?= htmlspecialchars($app["reason"]) ?>" style="max-width:160px;font-size:12px;color:#666;"><?= htmlspecialchars($app["reason"]) ?></td>
+                <td data-col="date" data-val="<?= strtotime($app["created_at"]) ?>" style="font-size:12px;"><?= date("M j, Y", strtotime($app["created_at"])) ?></td>
+                <td data-col="status" data-val="<?= htmlspecialchars($sl) ?>">
                     <?php if($sl === "pending"): ?>
                         <span class="badge-blue">Pending</span>
                     <?php elseif($sl === "approved"): ?>
@@ -698,7 +759,7 @@ function roleBadge(string $r): string {
                         <span class="badge-red">Rejected</span>
                     <?php endif; ?>
                 </td>
-                <td>
+                <td data-col="action" data-val="">
                     <?php if($sl === "pending"): ?>
                     <form method="POST" action="admin.php" style="display:inline;">
                         <input type="hidden" name="action" value="review_app">
@@ -718,6 +779,27 @@ function roleBadge(string $r): string {
 </div>
 
 </main>
+
+<!-- ══════════════ ADMIN HELP MODAL ══════════════ -->
+<div class="modal-overlay" id="adminHelpModal">
+    <div class="modal-box" style="max-width: 500px;">
+        <div class="modal-title">Admin Dashboard Help <button class="modal-close" onclick="closeModal('adminHelpModal')">×</button></div>
+        <div style="font-size: 14px; line-height: 1.6; color: #555;">
+            <p style="margin-bottom: 12px;">Welcome to the <strong>GameHub Admin Panel</strong>. Here's a quick guide on how to manage your store:</p>
+            <ul style="padding-left: 20px; margin-bottom: 15px;">
+                <li><strong>Games:</strong> Click "Edit" to modify details or "Delete" to remove a game (only if not sold).</li>
+                <li><strong>Stock:</strong> Use "+ Keys" to add activation codes and "View Inventory" to manage them.</li>
+                <li><strong>Users:</strong> Manage roles and account status in the Users section.</li>
+                <li><strong>Search:</strong> Use the search bars to find games or users instantly.</li>
+                <li><strong>Discounts:</strong> Use the "% Discounts" button to apply bulk price changes.</li>
+            </ul>
+            <p>For technical support, please contact the development team.</p>
+        </div>
+        <div style="text-align: right; margin-top: 20px;">
+            <button class="btn-blue" onclick="closeModal('adminHelpModal')">Got it!</button>
+        </div>
+    </div>
+</div>
 
 <!-- ══════════════ EDIT GAME MODAL ══════════════ -->
 <div class="modal-overlay" id="editGameModal">
@@ -765,11 +847,43 @@ function roleBadge(string $r): string {
             <div class="fg" style="margin-bottom:12px;">
                 <label>Add Keys (one per line)</label>
                 <textarea name="keys" placeholder="XXXXX-XXXXX-XXXXX&#10;YYYYY-YYYYY-YYYYY" style="min-height:100px;width:100%;padding:8px;border:1px solid #e0e0e0;border-radius:6px;font-family:monospace;font-size:13px;"></textarea>
+                <div style="font-size:12px;color:#888;margin-top:6px;">
+                    ℹ️ <b>Note:</b> Duplicate keys will be automatically ignored and will not be counted.
+                </div>
             </div>
             <div style="display:flex;justify-content:flex-end;gap:8px;">
                 <button type="button" onclick="closeModal('addKeysModal')" style="padding:8px 16px;border:1px solid #e0e0e0;border-radius:6px;background:white;cursor:pointer;">Cancel</button>
                 <button type="submit" class="btn-blue" style="padding:8px 20px;">Add Keys</button>
             </div>
+        </form>
+    </div>
+</div>
+
+<!-- ══════════════ VIEW KEYS MODAL ══════════════ -->
+<div class="modal-overlay" id="viewKeysModal">
+    <div class="modal-box" style="max-width: 600px;">
+        <div class="modal-title">Inventory for: <span id="viewKeysGameName"></span> <button class="modal-close" onclick="closeModal('viewKeysModal')">×</button></div>
+        <div style="max-height: 400px; overflow-y: auto;">
+            <table class="data-table" style="font-size: 13px;">
+                <thead><tr><th>Key Code</th><th>Status</th><th>Action</th></tr></thead>
+                <tbody id="keysTableBody"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- ══════════════ BULK PRICE UPDATE MODAL ══════════════ -->
+<div class="modal-overlay" id="bulkPriceModal">
+    <div class="modal-box">
+        <div class="modal-title">Bulk Price Update <button class="modal-close" onclick="closeModal('bulkPriceModal')">×</button></div>
+        <form method="POST" action="admin.php">
+            <input type="hidden" name="action" value="bulk_price_update">
+            <p style="font-size: 14px; color: #666; margin-bottom: 15px;">Update all game prices by a percentage. (e.g. 5 for +5% increase, -10 for 10% discount).</p>
+            <div class="fg">
+                <label>Percentage Change (%)</label>
+                <input type="number" name="percent" step="0.1" required placeholder="5.0">
+            </div>
+            <div style="text-align:right; margin-top: 15px;"><button type="submit" class="btn-blue" onclick="return confirm('Apply this price change to ALL listings?')">Apply Change</button></div>
         </form>
     </div>
 </div>
@@ -805,6 +919,22 @@ if (urlSection) {
         });
     });
 })();
+
+// ── Validation ──────────────────────────────────
+function validateAddGame() {
+    const name = document.getElementById('add_name').value.trim();
+    const price = parseFloat(document.getElementById('add_price').value);
+    
+    if (!name) {
+        alert('Game name is required.');
+        return false;
+    }
+    if (isNaN(price) || price <= 0) {
+        alert('Please enter a valid price greater than 0.');
+        return false;
+    }
+    return true;
+}
 
 // Auto-dismiss flash
 setTimeout(() => document.getElementById('flashAlert')?.remove(), 4000);

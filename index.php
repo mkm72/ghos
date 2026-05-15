@@ -9,16 +9,17 @@ $current_category = isset($_GET['category']) ? trim($_GET['category']) : 'All Ga
 $current_sort = $_GET['sort'] ?? 'rating';
 
 $order_by = match($current_sort) {
-    'price_asc'  => 'ORDER BY g.price ASC',
-    'price_desc' => 'ORDER BY g.price DESC',
-    'name'       => 'ORDER BY g.name ASC',
-    default      => 'ORDER BY g.id DESC',
+    'price_asc'  => 'ORDER BY price ASC',
+    'price_desc' => 'ORDER BY price DESC',
+    'name'       => 'ORDER BY name ASC',
+    default      => 'ORDER BY id DESC',
 };
 
 $stmt_featured = $pdo->prepare("
-    SELECT g.id, g.name, g.price, i.filename AS cover_image
+    SELECT MIN(g.id) AS id, g.name, MIN(g.price) AS price, MAX(i.filename) AS cover_image
     FROM Games g
     JOIN Game_Images i ON g.id = i.game_id AND i.is_cover = 1
+    GROUP BY g.name
     ORDER BY RAND()
     LIMIT 3
 ");
@@ -33,30 +34,27 @@ unset($g);
 $categories = ['Action', 'RPG', 'Shooter', 'Adventure', 'Strategy', 'Indie', 'Platformer'];
 
 $grid_query = "
-    SELECT 
-        g.id, 
-        g.name, 
-        g.price, 
-        g.platform, 
-        g.genres,
-        i.filename AS cover_image,
-        (SELECT COUNT(*) FROM Game_Keys k WHERE k.game_id = g.id AND k.is_sold = 0) AS stock_count
-    FROM Games g
-    LEFT JOIN Game_Images i ON g.id = i.game_id AND i.is_cover = 1
+    SELECT t.* FROM (
+        SELECT 
+            g.id, 
+            g.name, 
+            g.price, 
+            g.platform, 
+            g.genres,
+            i.filename AS cover_image,
+            (SELECT COUNT(*) FROM Game_Keys k JOIN Games g2 ON k.game_id = g2.id WHERE g2.name = g.name AND k.is_sold = 0) AS stock_count,
+            ROW_NUMBER() OVER(PARTITION BY g.name ORDER BY g.price ASC, g.id ASC) as rn
+        FROM Games g
+        LEFT JOIN Game_Images i ON g.id = i.game_id AND i.is_cover = 1
+        " . ($current_category !== 'All Games' ? "WHERE g.genres LIKE :category" : "") . "
+    ) t WHERE t.rn = 1
+    $order_by
 ";
 
-if ($current_category !== 'All Games') {
-    $grid_query .= " WHERE g.genres LIKE :category ";
-}
-
-$grid_query .= " $order_by";
-
 $stmt_games = $pdo->prepare($grid_query);
-
 if ($current_category !== 'All Games') {
     $stmt_games->bindValue(':category', '%' . $current_category . '%');
 }
-
 $stmt_games->execute();
 $games = $stmt_games->fetchAll();
 
@@ -81,22 +79,21 @@ $current_sort_label = $sort_options[$current_sort] ?? 'Top Rated';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GameHub Online Store - Home</title>
-    <link rel="stylesheet" href="css/navbar.css">
-    <link rel="stylesheet" href="css/index.css">
+    <link rel="stylesheet" href="css/navbar.css?v=2026.05.15">
+    <link rel="stylesheet" href="css/index.css?v=2026.05.15">
 </head>
 <body>
 
     <?php include 'navbar.php'; ?>
 
     <?php if (isset($_SESSION['guest_success'])): ?>
-        <div id="guestPopup" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.7); z-index: 9999; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(3px);">
-            <div style="background: white; padding: 30px; border-radius: 12px; text-align: center; max-width: 400px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
-                <h2 style="margin-top: 0; color: #0f172a; font-size: 1.5rem;">Order Confirmed!</h2>
-                <p style="color: #475569; font-size: 1.1rem; line-height: 1.5; margin-bottom: 20px;">
+        <div id="guestPopup" class="guest-popup-overlay">
+            <div class="guest-popup-card">
+                <h2 class="guest-popup-title">Order Confirmed!</h2>
+                <p class="guest-popup-text">
                     <?= htmlspecialchars($_SESSION['guest_success']) ?>
                 </p>
-                <button onclick="document.getElementById('guestPopup').style.display='none'" 
-                        style="width: 100%; padding: 12px; background: #8b5cf6; color: white; border: none; border-radius: 6px; font-weight: bold; font-size: 1rem; cursor: pointer;">
+                <button onclick="document.getElementById('guestPopup').style.display='none'" class="guest-popup-btn">
                     Continue Shopping
                 </button>
             </div>
@@ -105,14 +102,21 @@ $current_sort_label = $sort_options[$current_sort] ?? 'Top Rated';
     <?php endif; ?>
 
     <div class="hero-carousel">
-        <button class="carousel-btn prev-btn" onclick="moveSlide(-1)">❮</button>
-        <button class="carousel-btn next-btn" onclick="moveSlide(1)">❯</button>
+        <button class="carousel-btn prev-btn" onclick="moveSlide(-1)">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+        </button>
+        <button class="carousel-btn next-btn" onclick="moveSlide(1)">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </button>
 
         <div class="hero-slides-container" id="carouselWrapper">
             <?php foreach ($featured_games as $index => $hero): ?>
-            <div class="hero-slide" style="background-image: linear-gradient(rgba(26, 26, 46, 0.7), rgba(26, 26, 46, 0.9)), url('<?php echo htmlspecialchars(ltrim($hero['cover_image'], '/')); ?>');">
+            <div class="hero-slide <?php echo $index === 0 ? 'active' : ''; ?>" style="background-image: linear-gradient(rgba(26, 26, 46, 0.7), rgba(26, 26, 46, 0.9)), url('<?php echo htmlspecialchars(ltrim($hero['cover_image'], '/')); ?>');">
                 <div class="featured-product-inner">
                     <div class="featured-product-badge">
+                        <?php if ($index !== 0): ?>
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" style="vertical-align: middle; margin-right: 2px;"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                        <?php endif; ?>
                         <?php echo $index === 0 ? 'Hot Deal' : 'Top Rated'; ?>
                     </div>
                     <h1><?php echo htmlspecialchars($hero['name']); ?></h1>
@@ -128,8 +132,8 @@ $current_sort_label = $sort_options[$current_sort] ?? 'Top Rated';
     </div>
 
     <div class="games-section">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-            <h2 class="section-title" style="margin-bottom: 0;">Browse Games</h2>
+        <div class="section-header" style="display: flex !important; justify-content: space-between !important; align-items: center !important; flex-wrap: nowrap !important;">
+            <h2 class="section-title" style="margin-bottom: 0 !important;">Browse Games</h2>
 
             <div class="custom-select-wrapper" id="sortDropdown">
                 <div class="custom-select-trigger" onclick="toggleSortDropdown(event)">
@@ -144,6 +148,9 @@ $current_sort_label = $sort_options[$current_sort] ?? 'Top Rated';
                     <?php foreach ($sort_options as $value => $label): ?>
                         <div class="custom-option <?php echo $current_sort === $value ? 'selected' : ''; ?>"
                              onclick="applySort('<?php echo $value; ?>')">
+                            <?php if ($value === 'rating'): ?>
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" style="vertical-align: middle; margin-right: 4px; color: #f59e0b;"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                            <?php endif; ?>
                             <?php echo htmlspecialchars($label); ?>
                         </div>
                     <?php endforeach; ?>
@@ -164,7 +171,7 @@ $current_sort_label = $sort_options[$current_sort] ?? 'Top Rated';
         <div class="games-grid">
             <?php 
             if (count($games) === 0): ?>
-                <div style="grid-column: 1 / -1; padding: 40px; text-align: center; color: #888;">
+                <div class="no-games-found">
                     No games found in the "<?php echo htmlspecialchars($current_category); ?>" category.
                 </div>
             <?php 
@@ -174,11 +181,11 @@ $current_sort_label = $sort_options[$current_sort] ?? 'Top Rated';
                     $in_stock = $game['stock_count'] > 0;
                     $current_bg = $bg_colors[$color_index % count($bg_colors)];
                     $color_index++;
-                    $image_path = ltrim($game['cover_image'], '/');
+                    $image_path = ltrim($game['cover_image'] ?? '', '/');
                     $hidden_class = $index >= 16 ? 'hidden-game' : '';
             ?>
-            <a href="product.php?id=<?php echo $game['id']; ?>" class="game-card <?php echo $hidden_class; ?>">
-                <div class="game-image <?php echo $current_bg; ?>" <?php echo !$in_stock ? 'style="position: relative;"' : ''; ?>>
+            <a href="product.php?id=<?php echo $game['id']; ?>" class="game-card <?php echo $hidden_class; ?> reveal-animation">
+                <div class="game-image <?php echo $current_bg; ?>">
                     <?php if ($image_path): ?>
                         <img src="<?php echo htmlspecialchars($image_path); ?>" alt="<?php echo htmlspecialchars($game['name']); ?> Cover">
                     <?php else: ?>
@@ -194,6 +201,11 @@ $current_sort_label = $sort_options[$current_sort] ?? 'Top Rated';
 
                 <div class="game-info">
                     <div class="game-name"><?php echo htmlspecialchars($game['name']); ?></div>
+                    <div class="game-stars" style="color: #f59e0b; display: flex; gap: 2px; margin-bottom: 6px;">
+                        <?php for($i=0; $i<5; $i++): ?>
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                        <?php endfor; ?>
+                    </div>
                     <div class="game-genre">
                         <?php 
                             $genres_array = explode(',', $game['genres']);
@@ -201,7 +213,7 @@ $current_sort_label = $sort_options[$current_sort] ?? 'Top Rated';
                         ?>
                     </div>
                     <div class="game-platform"><?php echo htmlspecialchars($game['platform']); ?></div>
-                    <div class="game-footer" style="margin-top: 10px;">
+                    <div class="game-footer">
                         <span class="game-price price-display" data-usd="<?php echo $game['price']; ?>">$<?php echo number_format($game['price'], 2); ?></span>
                         
                         <?php if ($in_stock): ?>
@@ -219,8 +231,8 @@ $current_sort_label = $sort_options[$current_sort] ?? 'Top Rated';
         </div>
 
         <?php if (count($games) > 16): ?>
-        <div style="text-align: center; margin-top: 40px;">
-            <button id="loadMoreBtn" onclick="loadMoreGames()" class="btn-white" style="padding: 12px 30px; font-size: 15px;">
+        <div class="load-more-container" style="display: flex !important; justify-content: center !important; width: 100% !important; margin: 40px 0 !important;">
+            <button id="loadMoreBtn" onclick="loadMoreGames()" class="btn-white">
                 Load More Games
             </button>
         </div>
@@ -232,7 +244,46 @@ $current_sort_label = $sort_options[$current_sort] ?? 'Top Rated';
         © 2026 GameHub Online Store. All rights reserved.
     </div>
 
-    <script src="js/index.js"></script>
+    <script src="js/index.js?v=2026.05.15"></script>
+
+    <?php if (isset($_COOKIE['past_purchases'])): ?>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const pastIds = <?= json_encode(explode(',', $_COOKIE['past_purchases'])) ?>;
+            if (pastIds.length > 0) {
+                const response = await fetch('php/search.php?ids=' + pastIds.join(','));
+                const games = await response.json();
+                if (games && games.length > 0) {
+                    const section = document.createElement('div');
+                    section.className = 'games-section';
+                    section.style.marginTop = '40px';
+                    section.innerHTML = `
+                        <h2 class="section-title">Your Recent Purchases</h2>
+                        <div class="games-grid">
+                            ${games.map(g => `
+                                <a href="product.php?id=${g.id}" class="game-card reveal-animation">
+                                    <div class="game-image bg-dark">
+                                        <img src="${g.cover_image.replace(/^\//, '')}" alt="${g.name}">
+                                    </div>
+                                    <div class="game-info">
+                                        <div class="game-name">${g.name}</div>
+                                        <div class="game-footer">
+                                            <span class="game-price">$${parseFloat(g.price).toFixed(2)}</span>
+                                            <span class="btn-dark">Buy Again</span>
+                                        </div>
+                                    </div>
+                                </a>
+                            `).join('')}
+                        </div>
+                    `;
+                    // Insert before the footer
+                    const footer = document.querySelector('.footer');
+                    footer.parentNode.insertBefore(section, footer);
+                }
+            }
+        });
+    </script>
+    <?php endif; ?>
 
     <script>
         const currentCategory = <?php echo json_encode($current_category); ?>;

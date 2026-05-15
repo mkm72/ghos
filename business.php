@@ -11,13 +11,18 @@ $field_errors = [];
 $already_applied = false;
 $already_business = false;
 
+$is_admin = false;
 // Check if already business/admin
-if ($is_logged_in && in_array($user_role, ['business','admin'])) {
-    $already_business = true;
+if ($is_logged_in) {
+    if ($user_role === 'business') {
+        $already_business = true;
+    } elseif ($user_role === 'admin') {
+        $is_admin = true;
+    }
 }
 
 // Check if already applied
-if ($is_logged_in && !$already_business) {
+if ($is_logged_in && !$already_business && !$is_admin) {
     try {
         $pdo->exec('CREATE TABLE IF NOT EXISTS Business_Applications (
             id INT AUTO_INCREMENT PRIMARY KEY,
@@ -43,7 +48,7 @@ if ($is_logged_in && !$already_business) {
 }
 
 // Handle form submission
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && $is_logged_in && !$already_business) {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && $is_logged_in && !$already_business && !$is_admin) {
     $first_name   = trim($_POST['first_name'] ?? '');
     $last_name    = trim($_POST['last_name'] ?? '');
     $business_name= trim($_POST['business_name'] ?? '');
@@ -64,20 +69,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $is_logged_in && !$already_business
                             $field_errors['business_email'] = 'Please enter a valid email.';
         if (!$sales_volume) $field_errors['sales_volume']   = 'Please select a sales volume.';
         if (!$key_source)   $field_errors['key_source']     = 'Please select a key source.';
-        if ($field_errors) { $error = 'Please fix the errors below.'; }
-        else {
-        try {
-            $ins = $pdo->prepare('INSERT INTO Business_Applications
-                (user_id, business_name, first_name, last_name, business_email, website, sales_volume, key_source, reason)
-                VALUES (?,?,?,?,?,?,?,?,?)');
-            $ins->execute([
-                $_SESSION['user_id'], $business_name, $first_name, $last_name,
-                $biz_email, $website, $sales_volume, $key_source, $reason
-            ]);
-            $success = 'Your application has been submitted! We will review it within 24-48 hours.';
-            $already_applied = 'pending';
-        } catch (\PDOException $e) {
-            $error = 'Database error: ' . $e->getMessage();
+
+        if ($field_errors) {
+            $error = 'Please fix the errors below.';
+        } else {
+            try {
+                $ins = $pdo->prepare('INSERT INTO Business_Applications
+                    (user_id, business_name, first_name, last_name, business_email, website, sales_volume, key_source, reason)
+                    VALUES (?,?,?,?,?,?,?,?,?)');
+                $ins->execute([
+                    $_SESSION['user_id'], $business_name, $first_name, $last_name,
+                    $biz_email, $website, $sales_volume, $key_source, $reason
+                ]);
+                $success = 'Your application has been submitted! We will review it within 24-48 hours.';
+                $already_applied = 'pending';
+            } catch (\PDOException $e) {
+                $error = 'Database error: ' . $e->getMessage();
+            }
         }
     }
 }
@@ -105,7 +113,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $is_logged_in && !$already_business
     <h1>🚀 Become a Verified Seller</h1>
     <p>Join GameHub Online Store to reach millions of gamers worldwide. Register your business today to start selling game keys with industry-low fees and powerful tools.</p>
     <div class="hero-buttons">
-        <?php if ($already_business): ?>
+        <?php if ($is_admin): ?>
+            <a href="admin.php" class="btn-blue" style="font-size:15px;padding:12px 28px;">Go to Admin Panel</a>
+        <?php elseif ($already_business): ?>
             <a href="business-dashboard.php" class="btn-blue" style="font-size:15px;padding:12px 28px;">Go to Dashboard</a>
         <?php else: ?>
             <a href="#register" class="btn-blue" style="font-size:15px;padding:12px 28px;">Apply Now</a>
@@ -212,7 +222,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $is_logged_in && !$already_business
         </div>
         <?php endif; ?>
 
-        <?php if ($already_business): ?>
+        <?php if ($is_admin): ?>
+        <!-- Admin -->
+        <div style="text-align:center;padding:40px 20px;background:#f9f9f9;border-radius:12px;">
+            <div style="font-size:48px;margin-bottom:12px;">👑</div>
+            <div style="font-size:18px;font-weight:bold;color:#1a1a1a;margin-bottom:8px;">You're an Administrator!</div>
+            <p style="color:#888;margin-bottom:20px;">Go to your Admin Panel to manage the store and review applications.</p>
+            <a href="admin.php" class="btn-blue" style="padding:12px 28px;font-size:15px;">Open Admin Panel →</a>
+        </div>
+
+        <?php elseif ($already_business): ?>
         <!-- Already a seller -->
         <div style="text-align:center;padding:40px 20px;background:#f9f9f9;border-radius:12px;">
             <div style="font-size:48px;margin-bottom:12px;">🎉</div>
@@ -238,7 +257,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $is_logged_in && !$already_business
         <?php $already_applied = false; ?>
         <?php endif; ?>
 
-        <?php if (!$already_business && $already_applied !== 'pending'): ?>
+        <?php if (!$already_business && !$is_admin && $already_applied !== 'pending'): ?>
 
         <?php if (!$is_logged_in): ?>
         <div style="background:#eff6ff;border:1px solid #bfdbfe;color:#1d4ed8;padding:14px 18px;border-radius:10px;margin-bottom:20px;text-align:center;">

@@ -7,8 +7,16 @@ if (wrapper) {
 
     function moveSlide(direction) {
         if (totalSlides === 0) return;
+        
+        // Remove active class from current slide
+        const slides = document.querySelectorAll('.hero-slide');
+        slides[currentSlide].classList.remove('active');
+        
         currentSlide = (currentSlide + direction + totalSlides) % totalSlides;
         wrapper.style.transform = `translateX(-${currentSlide * 100}%)`;
+        
+        // Add active class to new slide
+        slides[currentSlide].classList.add('active');
     }
 
     // Auto-slide every 5 seconds
@@ -26,6 +34,7 @@ window.loadMoreGames = function() {
     // Reveal the next 16 games
     for(let i = 0; i < 16 && i < hiddenGames.length; i++) {
         hiddenGames[i].classList.remove('hidden-game');
+        hiddenGames[i].classList.add('reveal-animation');
     }
     
     // If there are no more hidden games, hide the Load More button entirely

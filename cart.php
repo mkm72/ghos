@@ -19,6 +19,16 @@ $identifier   = $user_id ?: $session_id;
 // ------------------------------------------------------------------
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
+    // Action: EMPTY CART
+    if (isset($_POST['action']) && $_POST['action'] === 'empty') {
+        $stmt_empty = $pdo->prepare("DELETE FROM Cart WHERE $where_clause");
+        $stmt_empty->execute(['identifier' => $identifier]);
+        
+        $_SESSION['success'] = "Your cart has been cleared.";
+        header("Location: cart.php");
+        exit();
+    }
+
     // Action: DELETE ITEM
     if (isset($_POST['action']) && $_POST['action'] === 'delete' && isset($_POST['cart_id'])) {
         $stmt_delete = $pdo->prepare("DELETE FROM Cart WHERE id = :cart_id AND $where_clause");
@@ -211,7 +221,7 @@ foreach ($cart_items as $item) {
                                             <td>
                                                 <div class="game-cell">
                                                     <div class="game-thumb bg-purple">
-                                                        <img src="<?= htmlspecialchars($item['cover_image'] ?? '') ?>"
+                                                        <img src="<?= htmlspecialchars(ltrim($item['cover_image'] ?? '', '/')) ?>"
                                                              alt="<?= htmlspecialchars($item['name']) ?>">
                                                     </div>
                                                     <div>
@@ -300,6 +310,12 @@ foreach ($cart_items as $item) {
                         <span class="summary-total-price price-display" data-usd="<?= $subtotal ?>">$<?= number_format($subtotal, 2) ?></span>
                     </div>
                     <a href="checkout.php" class="checkout-btn">Proceed to Payment ⚡</a>
+                    
+                    <form action="cart.php" method="POST" style="margin-top: 10px;">
+                        <input type="hidden" name="action" value="empty">
+                        <button type="submit" class="btn-white" style="width: 100%; border: 1px solid #e2e8f0; color: #64748b; font-size: 14px; cursor: pointer;" onclick="return confirm('Are you sure you want to empty your cart?')">Empty Cart</button>
+                    </form>
+
                     <p class="checkout-note">🔒 Digital keys delivered instantly</p>
                 </div>
             </div>

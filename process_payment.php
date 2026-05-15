@@ -102,6 +102,18 @@ try {
     $clear_stmt = $pdo->prepare("DELETE FROM Cart WHERE " . str_replace("c.", "", $where_clause));
     $clear_stmt->execute(['identifier' => $identifier]);
 
+    // ── Update Past Purchases Cookie ────────────────────────
+    $past_purchases = isset($_COOKIE['past_purchases']) ? explode(',', $_COOKIE['past_purchases']) : [];
+    foreach ($cart_items as $item) {
+        if (!in_array($item['game_id'], $past_purchases)) {
+            $past_purchases[] = $item['game_id'];
+        }
+    }
+    // Keep only the last 5 unique purchases
+    $past_purchases = array_slice($past_purchases, -5);
+    setcookie('past_purchases', implode(',', $past_purchases), time() + (86400 * 30), "/"); // 30 days
+    // ────────────────────────────────────────────────────────
+
     $pdo->commit();
 
     // ── Send Emails ───────────────────────────────────────────
@@ -112,8 +124,8 @@ try {
         $subject_conf = "Order Confirmation #$order_id — GameHub";
         $body_conf = "
             <div style='font-family:Arial,sans-serif;padding:20px;max-width:600px;'>
-                <div style='background:#1a1a1a;color:white;padding:10px 20px;border-radius:8px;display:inline-block;margin-bottom:20px;'>
-                    <strong>Ghos</strong>
+                <div style='margin-bottom:24px;'>
+                    <img src='https://ghos.shop/images/logo/logo2.png' alt='Ghos Logo' style='height: 70px; border-radius: 8px;'>
                 </div>
                 <h2>Thank you for your order!</h2>
                 <p>Your payment of <strong>$" . number_format($total, 2) . "</strong> has been successfully processed.</p>
@@ -127,8 +139,8 @@ try {
         $subject_keys = "Your Game Keys (Order #$order_id) — GameHub";
         $body_keys = "
             <div style='font-family:Arial,sans-serif;padding:20px;max-width:600px;'>
-                <div style='background:#1a1a1a;color:white;padding:10px 20px;border-radius:8px;display:inline-block;margin-bottom:20px;'>
-                    <strong>Ghos</strong>
+                <div style='margin-bottom:24px;'>
+                    <img src='https://ghos.shop/images/logo/logo2.png' alt='Ghos Logo' style='height: 70px; border-radius: 8px;'>
                 </div>
                 <h2>Your Digital Keys</h2>
                 <p>Here are the activation codes for your recent purchase:</p>
