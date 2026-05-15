@@ -29,17 +29,21 @@ if ($is_logged_in) {
     </a>
     <div class="navbar-search">
         <div class="search-wrap">
-            <input type="text" id="searchInput" placeholder="Search for games..." autocomplete="off">
+            <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); pointer-events: none;"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            <input type="text" id="searchInput" placeholder="Search for games..." autocomplete="off" style="padding-left: 38px;">
             <div class="search-dropdown" id="searchDropdown"></div>
         </div>
     </div>
     
     <div class="navbar-links">
-        <a href="javascript:void(0)" class="contact-link" onclick="document.getElementById('contactModal').style.display='flex'">📞 Contact Us</a>
+        <a href="javascript:void(0)" class="contact-link" onclick="document.getElementById('contactModal').style.display='flex'">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 4px;"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l2.28-2.28a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+            Contact Us
+        </a>
 
         <select id="currencySelector" class="currency-select">
             <option value="USD">USD ($)</option>
-            <option value="SAR">SAR (﷼)</option>
+            <option value="SAR">SAR (ر.س)</option>
         </select>
 
         <?php if ($user_role === 'admin'): ?>
@@ -54,7 +58,10 @@ if ($is_logged_in) {
 
         <?php if ($is_logged_in): ?>
             <div class="profile-dropdown">
-                <button class="profile-btn">👤 Profile ▼</button>
+                <button class="profile-btn">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 2px;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                    Profile ▼
+                </button>
                 <div class="dropdown-content">
                     <a href="orders.php">My Orders</a>
                     <a href="settings.php">Settings</a>
@@ -67,7 +74,8 @@ if ($is_logged_in) {
         <?php endif; ?>
 
         <a href="cart.php" class="cart-link">
-            🛒 Cart
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 4px;"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+            Cart
             <span class="cart-badge"><?php echo $cart_count; ?></span>
         </a>
     </div>

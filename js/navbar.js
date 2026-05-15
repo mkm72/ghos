@@ -46,7 +46,7 @@ function applyCurrency(currency, exchangeRate) {
         if (currency === 'SAR') {
             const sarVal = (usdVal * exchangeRate).toFixed(2);
             // USE innerHTML and <bdi> to prevent RTL text from breaking the layout
-            el.innerHTML = sarVal + ' <bdi>﷼</bdi>';
+            el.innerHTML = sarVal + ' <bdi>ر.س</bdi>';
         } else {
             el.innerHTML = '$' + usdVal.toFixed(2);
         }
@@ -87,7 +87,7 @@ function initSearch() {
                             const price = parseFloat(game.price);
                             const currency = localStorage.getItem('userCurrency') || 'USD';
                             const displayPrice = currency === 'SAR'
-                                ? (price * 3.75).toFixed(2) + ' <bdi>﷼</bdi>'
+                                ? (price * 3.75).toFixed(2) + ' <bdi>ر.س</bdi>'
                                 : '$' + price.toFixed(2);
 
                             const item = document.createElement('a');
