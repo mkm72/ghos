@@ -258,12 +258,12 @@ $stmt_stats = $pdo->prepare("
         COUNT(DISTINCT g.id) as total_games,
         SUM(oi.unit_price) as total_revenue,
         COUNT(oi.id) as total_sales,
-        (SELECT COUNT(*) FROM Games g2 WHERE g2.seller_id = :uid AND (SELECT COUNT(*) FROM Game_Keys k WHERE k.game_id = g2.id AND k.is_sold = 0) > 0) as active_listings
+        (SELECT COUNT(*) FROM Games g2 WHERE g2.seller_id = :uid1 AND (SELECT COUNT(*) FROM Game_Keys k WHERE k.game_id = g2.id AND k.is_sold = 0) > 0) as active_listings
     FROM Games g
     LEFT JOIN Order_Items oi ON g.id = oi.game_id
-    WHERE g.seller_id = :uid
+    WHERE g.seller_id = :uid2
 ");
-$stmt_stats->execute(['uid' => $user_id]);
+$stmt_stats->execute(['uid1' => $user_id, 'uid2' => $user_id]);
 $stats = $stmt_stats->fetch();
 
 $total_revenue   = (float)($stats['total_revenue'] ?? 0);
