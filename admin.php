@@ -72,9 +72,25 @@ if ($action === 'add_game' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 // ── Delete Game ───────────────────────────────
 if ($action === 'delete_game' && isset($_GET['id'])) {
     $id = (int)$_GET['id'];
-    $pdo->prepare('DELETE FROM Games WHERE id = ?')->execute([$id]);
-    $flash = 'Game deleted.'; $flash_type = 'error';
-    header('Location: admin.php?section=section-games&flash='.urlencode($flash).'&flash_type=error'); exit;
+    
+    // 1. Check if the game has any sales history
+    $chk_sales = $pdo->prepare('SELECT id FROM Order_Items WHERE game_id=? LIMIT 1');
+    $chk_sales->execute([$id]);
+    if ($chk_sales->fetch()) {
+        $flash = 'Cannot delete this game because it has already been sold to customers.';
+        $flash_type = 'error';
+    } else {
+        // 2. Safely delete child records first
+        $pdo->prepare('DELETE FROM Game_Images WHERE game_id=?')->execute([$id]);
+        $pdo->prepare('DELETE FROM Game_Keys WHERE game_id=?')->execute([$id]);
+        $pdo->prepare('DELETE FROM Cart WHERE game_id=?')->execute([$id]);
+        
+        // 3. Finally, delete the game
+        $pdo->prepare('DELETE FROM Games WHERE id = ?')->execute([$id]);
+        $flash = 'Game deleted.'; $flash_type = 'error';
+    }
+    
+    header('Location: admin.php?section=section-games&flash='.urlencode($flash).'&flash_type='.$flash_type); exit;
 }
 
 // ── Edit Game ─────────────────────────────────
