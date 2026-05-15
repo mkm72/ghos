@@ -89,30 +89,42 @@ $other_sellers = $stmt_others->fetchAll();
                 <span style="color: #888; font-size: 14px; margin-left: 8px; font-weight: 500;">(4.9 Rating)</span>
             </div>
 
-            <!-- Tags with show more (my addition) -->
+            <!-- Tags with show more -->
             <div class="product-tags" id="tagsContainer">
                 <?php 
                 $all_tags = [];
                 foreach ($platforms as $p) $all_tags[] = ['label' => $p, 'type' => 'platform'];
                 foreach ($genres as $g)    $all_tags[] = ['label' => $g,  'type' => 'genre'];
                 
+                $limit = 6;
                 foreach ($all_tags as $i => $tag): 
-                    $style = $tag['type'] === 'genre' 
-                        ? 'background-color:#e0e7ff;border-color:#c7d2fe;color:#3730a3;' 
-                        : '';
-                    $hidden = $i >= 4 ? 'class="product-tag extra-tag" style="display:none;' . $style . '"' 
-                                      : 'class="product-tag" style="' . $style . '"';
+                    $type_class = ($tag['type'] === 'genre') ? 'product-tag-genre' : 'product-tag-platform';
+                    $is_extra = ($i >= $limit);
+                    $display_style = $is_extra ? 'style="display:none;"' : '';
+                    $extra_class = $is_extra ? 'extra-tag' : '';
                 ?>
-                    <span <?= $hidden ?>><?= htmlspecialchars($tag['label']) ?></span>
+                    <span class="product-tag <?= $type_class ?> <?= $extra_class ?>" <?= $display_style ?>>
+                        <?= htmlspecialchars($tag['label']) ?>
+                    </span>
                 <?php endforeach; ?>
 
-                <?php if (count($all_tags) > 4): ?>
-                    <button class="tag-toggle" onclick="
-                        document.querySelectorAll('.extra-tag').forEach(t => t.style.display = t.style.display === 'none' ? 'inline-block' : 'none');
-                        this.textContent = this.textContent === '+ more' ? '− less' : '+ more';
-                    ">+ more</button>
+                <?php if (count($all_tags) > $limit): ?>
+                    <button class="tag-toggle" onclick="toggleProductTags(this)">
+                        <span>+ more</span>
+                    </button>
                 <?php endif; ?>
             </div>
+
+            <script>
+            function toggleProductTags(btn) {
+                const container = btn.closest('.product-tags');
+                const extraTags = container.querySelectorAll('.extra-tag');
+                const isHidden = extraTags[0].style.display === 'none';
+                
+                extraTags.forEach(t => t.style.display = isHidden ? 'inline-flex' : 'none');
+                btn.querySelector('span').textContent = isHidden ? '− less' : '+ more';
+            }
+            </script>
 
             <div class="product-price">
                 <span class="price-display" data-usd="<?php echo $game['price']; ?>">$<?php echo number_format($game['price'], 2); ?></span>
