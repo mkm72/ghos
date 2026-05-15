@@ -223,7 +223,16 @@ $other_sellers = $stmt_others->fetchAll();
                     </div>
                 </div>
             </div>
-            <button class="btn-blue" style="width: 100%; margin-top: 25px;" onclick="document.getElementById('helpModal').style.display='none'">Got it!</button>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 25px;">
+                <button class="btn-white" style="border: 1px solid #ccc; cursor: pointer; font-family: inherit;" 
+                        onclick="document.getElementById('helpModal').style.display='none'; document.getElementById('contactModal').style.display='flex'">
+                    💬 Need more help?
+                </button>
+                <button class="btn-blue" style="cursor: pointer; font-family: inherit;" 
+                        onclick="document.getElementById('helpModal').style.display='none'">
+                    Got it!
+                </button>
+            </div>
         </div>
     </div>
 
