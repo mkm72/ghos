@@ -108,7 +108,7 @@ $other_sellers = $stmt_others->fetchAll();
 
                 <?php if (count($all_tags) > 4): ?>
                     <button class="tag-toggle" onclick="
-                        document.querySelectorAll('.extra-tag').forEach(t => t.style.display = t.style.display === 'none' ? '' : 'none');
+                        document.querySelectorAll('.extra-tag').forEach(t => t.style.display = t.style.display === 'none' ? 'inline-block' : 'none');
                         this.textContent = this.textContent === '+ more' ? '− less' : '+ more';
                     ">+ more</button>
                 <?php endif; ?>
@@ -135,11 +135,11 @@ $other_sellers = $stmt_others->fetchAll();
                         <button class="qty-btn" type="button" onclick="document.getElementById('qtyInput').stepUp()" <?php echo !$in_stock ? 'disabled style="opacity: 0.5; cursor: not-allowed;"' : ''; ?>>+</button>
                     </div>
                 </div>
-                <div class="delivery-box">
+                <div style="margin-top: 16px;" class="delivery-box">
                     <div class="delivery-title">Instant Digital Delivery</div>
                     <div class="delivery-text">Receive your game key immediately after purchase</div>
                 </div>
-                <div class="action-buttons">
+                <div style="margin-top: 16px;" class="action-buttons">
                     <?php if ($in_stock): ?>
                         <button type="submit" name="action" value="buy_now" class="btn-blue" style="border: none; cursor: pointer; font-family: inherit; font-size: inherit;">Buy Now</button>
                         <button type="submit" name="action" value="add_cart" class="btn-white" style="border: 1px solid #ccc; cursor: pointer; font-family: inherit; font-size: inherit;">Add to Cart</button>
