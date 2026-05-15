@@ -243,10 +243,11 @@ try {
 // Fetch unique games by name, picking the lowest ID for each title
 try {
     $stmt_global = $pdo->query("
-        SELECT MIN(id) as id, name 
-        FROM Games 
-        GROUP BY name 
-        ORDER BY name ASC
+        SELECT g.id, g.name, i.filename as cover_image
+        FROM Games g
+        LEFT JOIN Game_Images i ON g.id = i.game_id AND i.is_cover = 1
+        WHERE g.id IN (SELECT MIN(id) FROM Games GROUP BY name)
+        ORDER BY g.name ASC
     ");
     $global_games = $stmt_global->fetchAll();
 } catch (\PDOException $e) { 
@@ -435,13 +436,20 @@ $total_games     = (int)($stats['total_games'] ?? 0);
         <div class="modal-title">Sell an Existing Game <button class="modal-close" onclick="document.getElementById('addExistingGameModal').classList.remove('open')">×</button></div>
         <form method="POST" action="business-dashboard.php">
             <input type="hidden" name="action" value="add_existing_game">
+            
+            <div id="existingPreviewContainer" style="margin-bottom: 15px; text-align: center; display: none;">
+                <img id="existingPreviewImg" src="" alt="Preview" style="max-height: 120px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+            </div>
+
             <div class="form-row full">
                 <div class="fg">
                     <label>Select Game *</label>
-                    <select name="base_game_id" required>
-                        <option value="">-- Choose a game from the catalog --</option>
+                    <select name="base_game_id" id="existingGameSelect" required onchange="updateExistingPreview(this)">
+                        <option value="" data-img="">-- Choose a game from the catalog --</option>
                         <?php foreach ($global_games as $gg): ?>
-                            <option value="<?= $gg['id'] ?>"><?= htmlspecialchars($gg['name']) ?></option>
+                            <option value="<?= $gg['id'] ?>" data-img="<?= htmlspecialchars(ltrim($gg['cover_image'] ?? '', '/')) ?>">
+                                <?= htmlspecialchars($gg['name']) ?>
+                            </option>
                         <?php endforeach; ?>
                     </select>
                 </div>
@@ -591,6 +599,20 @@ $total_games     = (int)($stats['total_games'] ?? 0);
             </div>
         `;
         document.getElementById('orderDetailsModal').classList.add('open');
+    }
+
+    function updateExistingPreview(select) {
+        const container = document.getElementById('existingPreviewContainer');
+        const img = document.getElementById('existingPreviewImg');
+        const selectedOption = select.options[select.selectedIndex];
+        const imgPath = selectedOption.getAttribute('data-img');
+
+        if (imgPath) {
+            img.src = imgPath;
+            container.style.display = 'block';
+        } else {
+            container.style.display = 'none';
+        }
     }
 </script>
 </body>
