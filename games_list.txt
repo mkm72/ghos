@@ -1,0 +1,125 @@
+28, Red Dead Redemption 2
+42, What Remains of Edith Finch
+115, Zero Escape: The Nonary Games
+591, Monument Valley
+622, XCOM: Enemy Within
+654, Stardew Valley
+1358, Papers, Please
+1450, INSIDE
+1452, Phoenix Wright: Ace Attorney Trilogy
+1458, Bug Princess
+1682, The Wolf Among Us
+2454, DOOM (2016)
+2551, Dark Souls III
+3328, The Witcher 3: Wild Hunt
+3498, Grand Theft Auto V
+4062, BioShock Infinite
+4166, Mass Effect
+4186, Persona 4 Golden
+4200, Portal 2
+4248, Dishonored
+4265, Persona 3 Portable
+4439, Mass Effect 3
+4535, Call of Duty 4: Modern Warfare
+4544, Red Dead Redemption
+4550, Dead Space 2
+4570, Dead Space (2008)
+5563, Fallout: New Vegas
+5679, The Elder Scrolls V: Skyrim
+9767, Hollow Knight
+10073, Divinity: Original Sin 2
+10141, NieR:Automata
+10389, Gothic II: Gold Edition
+11498, The Legend of Heroes: Trails in the Sky SC
+11971, Space Rangers HD: A War Apart
+12447, The Elder Scrolls V: Skyrim Special Edition
+13536, Portal
+13537, Half-Life 2
+13820, The Elder Scrolls III: Morrowind
+13856, Katana ZERO
+13925, Prince of Persia: Warrior Within
+14935, Total War: Shogun 2 - Fall of the Samurai
+17572, Batman: Arkham Asylum Game of the Year Edition
+17576, Batman: Arkham City - Game of the Year Edition
+17959, Ori and the Blind Forest: Definitive Edition
+18080, Half-Life
+19445, Disciples II: Gallean\
+19457, Disciples II: Rise of the Elves
+19635, Fable: The Lost Chapters
+19654, Samurai Gunn
+20709, Tom Clancy\
+21974, The Legend of Heroes: Trails in the Sky the 3rd
+23741, Monument Valley 2
+28154, Cuphead
+28199, Ori and the Will of the Wisps
+28568, Assassin\
+28623, Batman: Arkham City
+29153, Max Payne 2: The Fall of Max Payne
+29642, Silent Hill 2 (2001)
+42303, BioShock Infinite: Burial at Sea - Episode Two
+43050, The Witcher 3: Wild Hunt – Hearts of Stone
+43252, The Witcher 3: Wild Hunt – Blood and Wine
+43737, Dark Souls III: Ashes of Ariandel
+45958, XCOM 2: War of the Chosen
+50734, Sekiro: Shadows Die Twice
+50839, Baba Is You
+51610, Dark Souls: Remastered
+52201, Yakuza 6: The Song of Life
+52884, DOOM
+56184, Resident Evil 4 (2005)
+58134, Marvel\
+58175, God of War (2018)
+58388, ZONE OF THE ENDERS: The 2nd Runner - M∀RS
+58550, Ghost of Tsushima
+58813, Resident Evil 2
+58890, Need For Speed: Most Wanted
+59199, Divinity: Original Sin 2 - Definitive Edition
+254545, Cuphead: The Delicious Last Course
+257192, Psychonauts 2
+262382, Disco Elysium
+274755, Hades
+274757, Sayonara Wild Hearts
+307137, Live A Live
+324997, Baldur\
+326243, Elden Ring
+339958, Persona 5 Royal
+366881, Little Nightmares II
+366885, Dragon Age: Origins - Ultimate Edition
+366889, Monster Hunter World: Iceborne
+385406, Dark Souls III: The Ringed City
+422859, NieR Replicant v1.22474487139...
+428664, A Space for the Unbound
+452649, Resident Evil: Village
+455597, It Takes Two
+479694, Inscryption
+484971, Chained Echoes
+516111, Mass Effect: Legendary Edition
+545015, Disco Elysium: Final Cut
+727315, Ratchet & Clank: Rift Apart
+727316, call of duty modern warfare 2019
+727317, seller_test
+727318, ARK: Survival Evolved
+727319, ARK: Survival Evolved
+1, 2026-05-03 05:33:33
+2, 2026-05-03 06:09:26
+3, 2026-05-03 06:12:30
+4, 2026-05-03 06:18:40
+5, 2026-05-03 06:20:52
+6, 2026-05-03 06:22:53
+7, 2026-05-03 09:41:15
+8, 2026-05-03 16:42:30
+9, 2026-05-07 19:05:27
+10, 2026-05-07 19:06:47
+11, 2026-05-09 19:48:30
+12, 2026-05-11 13:37:38
+13, 2026-05-13 15:49:24
+4, test@test.me
+5, admin@gamestore.com
+6, ali@ghos.com
+7, test@guest.com
+8, yousef@gmail.com
+9, abdullah988@gmail.com
+10, abuali14q@gmail.com
+11, seller@ghos.com
+15, awdstfrfhhg@gmail.com
+16, abcb1240009m@gmail.com
