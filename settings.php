@@ -22,14 +22,23 @@ $stmt = $pdo->prepare('SELECT id, email, role, 2fa_enabled FROM Users WHERE id =
 $stmt->execute([$_SESSION['user_id']]);
 $user = $stmt->fetch();
 
-// Fallback if column doesn't exist yet
 if (!$user) { session_destroy(); header('Location: auth.php'); exit; }
 $twofa_enabled = (bool)($user['2fa_enabled'] ?? false);
+
+function generateCode() {
+    return str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+}
+
+if (isset($_GET['cancel_email'])) {
+    unset($_SESSION['pending_email_change']);
+    header('Location: settings.php');
+    exit;
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
 
-    // ── Change Email ──────────────────────────────
+    // ── Change Email (Initial Request) ────────────
     if ($action === 'change_email') {
         $new_email = trim($_POST['new_email'] ?? '');
         if (!filter_var($new_email, FILTER_VALIDATE_EMAIL)) {
@@ -40,49 +49,90 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($check->fetch()) {
                 $error = 'That email is already in use.';
             } else {
-                $old_email = $user['email'];
-                $pdo->prepare('UPDATE Users SET email = ? WHERE id = ?')->execute([$new_email, $user['id']]);
+                $code_old = generateCode();
+                $code_new = generateCode();
                 
-                // Send notification to OLD email
+                $_SESSION['pending_email_change'] = [
+                    'new_email' => $new_email,
+                    'old_email' => $user['email'],
+                    'code_old'  => $code_old,
+                    'code_new'  => $code_new,
+                    'expires'   => time() + 600
+                ];
+
+                // Send to OLD email
                 sendEmail(
-                    $old_email,
-                    $old_email,
-                    'Security Alert: Email address changed',
+                    $user['email'],
+                    $user['email'],
+                    'Confirm Email Change (Old Address)',
                     "
                     <div style='font-family: Arial, sans-serif; max-width: 500px; margin: auto; padding: 20px;'>
                         <div style='text-align:center; margin-bottom: 24px;'>
                             <img src='https://ghos.shop/images/logo/logo2.png' alt='Ghos Logo' style='height: 80px; border-radius: 8px;'>
                         </div>
-                        <h2 style='color:#1a1a1a;'>Email address changed</h2>
-                        <p style='color:#555; font-size:15px;'>The email address for your GameHub account has been changed to <strong>$new_email</strong>.</p>
-                        <p style='color:#ef4444; font-size:14px; font-weight:bold;'>If you did not make this change, please contact us immediately.</p>
+                        <h2 style='color:#1a1a1a;'>Confirm your email change</h2>
+                        <p style='color:#555; font-size:15px;'>You are requesting to change your GameHub email to <strong>$new_email</strong>.</p>
+                        <p style='color:#555; font-size:15px;'>Enter the code below in the settings page to authorize this change from your current address:</p>
+                        <div style='text-align:center; margin: 28px 0;'>
+                            <div style='display:inline-block; background:#f4f4f4; border:2px dashed #ccc; border-radius:12px; padding:18px 36px;'>
+                                <span style='font-size:36px; font-weight:bold; letter-spacing:10px; color:#1a1a1a;'>$code_old</span>
+                            </div>
+                        </div>
+                        <p style='color:#ef4444; font-size:13px;'>If you did not request this, please secure your account immediately.</p>
                         <hr style='border:none; border-top:1px solid #e0e0e0; margin:28px 0 16px;'>
                         <p style='font-size:12px; color:#999; margin:0;'>GameHub Online Store — <a href='https://ghos.shop' style='color:#999;'>ghos.shop</a></p>
                     </div>"
                 );
 
-                // Send notification to NEW email
+                // Send to NEW email
                 sendEmail(
                     $new_email,
                     $new_email,
-                    'Email updated successfully',
+                    'Confirm Email Change (New Address)',
                     "
                     <div style='font-family: Arial, sans-serif; max-width: 500px; margin: auto; padding: 20px;'>
                         <div style='text-align:center; margin-bottom: 24px;'>
                             <img src='https://ghos.shop/images/logo/logo2.png' alt='Ghos Logo' style='height: 80px; border-radius: 8px;'>
                         </div>
-                        <h2 style='color:#1a1a1a;'>Welcome to your new email!</h2>
-                        <p style='color:#555; font-size:15px;'>Your GameHub account email has been successfully updated to <strong>$new_email</strong>.</p>
-                        <p style='color:#555; font-size:15px;'>You will now use this email to log in and receive notifications.</p>
+                        <h2 style='color:#1a1a1a;'>Confirm your new email</h2>
+                        <p style='color:#555; font-size:15px;'>You are setting this address as your new GameHub account email.</p>
+                        <p style='color:#555; font-size:15px;'>Enter the code below in the settings page to verify this new address:</p>
+                        <div style='text-align:center; margin: 28px 0;'>
+                            <div style='display:inline-block; background:#f4f4f4; border:2px dashed #ccc; border-radius:12px; padding:18px 36px;'>
+                                <span style='font-size:36px; font-weight:bold; letter-spacing:10px; color:#1a1a1a;'>$code_new</span>
+                            </div>
+                        </div>
                         <hr style='border:none; border-top:1px solid #e0e0e0; margin:28px 0 16px;'>
                         <p style='font-size:12px; color:#999; margin:0;'>GameHub Online Store — <a href='https://ghos.shop' style='color:#999;'>ghos.shop</a></p>
                     </div>"
                 );
 
-                $_SESSION['user_email'] = $new_email;
-                $user['email']          = $new_email;
-                $success = 'Email updated successfully. Notifications have been sent to both addresses.';
+                $success = 'Verification codes have been sent to both your old and new email addresses.';
             }
+        }
+    }
+
+    // ── Verify Email Change ───────────────────────
+    if ($action === 'verify_email_change') {
+        $entered_old = trim($_POST['code_old'] ?? '');
+        $entered_new = trim($_POST['code_new'] ?? '');
+        $pending = $_SESSION['pending_email_change'] ?? null;
+
+        if (!$pending) {
+            $error = 'No pending email change found.';
+        } elseif (time() > $pending['expires']) {
+            $error = 'Verification codes have expired. Please try again.';
+            unset($_SESSION['pending_email_change']);
+        } elseif ($entered_old !== $pending['code_old'] || $entered_new !== $pending['code_new']) {
+            $error = 'One or both verification codes are incorrect.';
+        } else {
+            $new_email = $pending['new_email'];
+            $pdo->prepare('UPDATE Users SET email = ? WHERE id = ?')->execute([$new_email, $user['id']]);
+            
+            $_SESSION['user_email'] = $new_email;
+            $user['email']          = $new_email;
+            unset($_SESSION['pending_email_change']);
+            $success = 'Email updated successfully to ' . htmlspecialchars($new_email);
         }
     }
 
@@ -118,7 +168,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $user['2fa_enabled'] = $new_val;
             if ($new_val) {
                 $success = '2FA enabled. You will receive a code by email on each login.';
-                // Send confirmation email
                 sendEmail($user['email'], $user['email'], 'Two-Factor Authentication Enabled — GameHub',
                     "<div style='font-family:Arial,sans-serif;max-width:500px;margin:auto;padding:20px;'>
                         <div style='text-align:center;margin-bottom:20px;'>
@@ -132,8 +181,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $success = '2FA disabled.';
             }
         } catch (\PDOException $e) {
-            // Column may not exist — show friendly message
-            $error = 'To enable 2FA, run this SQL first: ALTER TABLE Users ADD COLUMN 2fa_enabled TINYINT(1) DEFAULT 0;';
+            $error = 'Error updating 2FA settings.';
         }
     }
 }
@@ -176,7 +224,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .form-group input:focus    { border-color:#2563eb; }
         .form-group input[readonly]{ background:#f9f9f9;color:#aaa;cursor:not-allowed; }
 
-        /* password field with toggle */
         .pass-wrap { position:relative; }
         .pass-wrap input { padding-right:40px; }
         .pass-toggle { position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#aaa;font-size:15px; }
@@ -184,7 +231,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         .form-footer { display:flex;justify-content:flex-end;padding-top:4px; }
 
-        /* 2FA toggle row */
         .twofa-row { display:flex;align-items:center;justify-content:space-between;gap:16px; }
         .twofa-info strong { display:block;font-size:14px;color:#1a1a1a;margin-bottom:3px; }
         .twofa-info span   { font-size:13px;color:#888; }
@@ -201,6 +247,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .toggle-switch input:checked + .toggle-slider::before { transform:translateX(22px); }
         .twofa-badge-on  { font-size:11px;font-weight:bold;padding:3px 9px;border-radius:20px;background:#dcfce7;color:#16a34a; }
         .twofa-badge-off { font-size:11px;font-weight:bold;padding:3px 9px;border-radius:20px;background:#f3f4f6;color:#888; }
+
+        /* 2FA Code Inputs */
+        .code-input-wrap { display: flex; gap: 8px; justify-content: flex-start; margin: 10px 0 16px; }
+        .code-digit { width: 40px; height: 48px; text-align: center; font-size: 20px; font-weight: bold; border: 2px solid #e0e0e0; border-radius: 8px; outline: none; transition: border-color 0.2s; }
+        .code-digit:focus { border-color: #1a1a1a; }
+        #countdown { font-weight: bold; color: #1a1a1a; }
     </style>
 </head>
 <body>
@@ -232,7 +284,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
     </div>
 
-    <!-- 2FA -->
+    <!-- 2FA Toggle -->
     <div class="settings-card">
         <div class="card-header">
             <h3>Two-Factor Authentication
@@ -263,24 +315,65 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
     </div>
 
-    <!-- Change Email -->
+    <!-- Change Email Card -->
     <div class="settings-card">
         <div class="card-header"><h3>Change Email</h3></div>
         <div class="card-body">
-            <form method="POST" action="settings.php">
-                <input type="hidden" name="action" value="change_email">
-                <div class="form-group">
-                    <label>Current Email</label>
-                    <input type="email" value="<?= htmlspecialchars($user['email']) ?>" readonly>
-                </div>
-                <div class="form-group">
-                    <label>New Email</label>
-                    <input type="email" name="new_email" placeholder="new.email@example.com" required>
-                </div>
-                <div class="form-footer">
-                    <button type="submit" class="btn-blue">Update Email</button>
-                </div>
-            </form>
+            <?php if (isset($_SESSION['pending_email_change'])): $pending = $_SESSION['pending_email_change']; ?>
+                <form method="POST" action="settings.php" id="verify-email-form">
+                    <input type="hidden" name="action" value="verify_email_change">
+                    <input type="hidden" name="code_old" id="code_old_hidden">
+                    <input type="hidden" name="code_new" id="code_new_hidden">
+                    
+                    <p style="font-size:13px; color:#555; margin-bottom:15px;">
+                        We've sent verification codes to both your old and new email addresses. They expire in <span id="countdown"></span>.
+                    </p>
+                    
+                    <div class="form-group">
+                        <label>Code sent to: <strong><?= htmlspecialchars($pending['old_email']) ?></strong></label>
+                        <div class="code-input-wrap" data-target="old">
+                            <input class="code-digit" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]">
+                            <input class="code-digit" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]">
+                            <input class="code-digit" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]">
+                            <input class="code-digit" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]">
+                            <input class="code-digit" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]">
+                            <input class="code-digit" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Code sent to: <strong><?= htmlspecialchars($pending['new_email']) ?></strong></label>
+                        <div class="code-input-wrap" data-target="new">
+                            <input class="code-digit" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]">
+                            <input class="code-digit" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]">
+                            <input class="code-digit" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]">
+                            <input class="code-digit" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]">
+                            <input class="code-digit" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]">
+                            <input class="code-digit" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]">
+                        </div>
+                    </div>
+
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:24px;">
+                        <a href="?cancel_email=1" style="font-size:13px; color:#b91c1c; text-decoration:none;">Cancel Change</a>
+                        <button type="submit" class="btn-blue" id="verify-btn" disabled>Verify & Update Email</button>
+                    </div>
+                </form>
+            <?php else: ?>
+                <form method="POST" action="settings.php">
+                    <input type="hidden" name="action" value="change_email">
+                    <div class="form-group">
+                        <label>Current Email</label>
+                        <input type="email" value="<?= htmlspecialchars($user['email']) ?>" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>New Email</label>
+                        <input type="email" name="new_email" placeholder="new.email@example.com" required>
+                    </div>
+                    <div class="form-footer">
+                        <button type="submit" class="btn-blue">Update Email</button>
+                    </div>
+                </form>
+            <?php endif; ?>
         </div>
     </div>
 
@@ -328,6 +421,70 @@ function togglePass(id, btn) {
     const show  = input.type === 'password';
     input.type  = show ? 'text' : 'password';
     btn.textContent = show ? '︶' : '👁';
+}
+
+// Code Digit Handling
+const wraps = document.querySelectorAll('.code-input-wrap');
+if (wraps.length) {
+    wraps.forEach(wrap => {
+        const type = wrap.dataset.target; // 'old' or 'new'
+        const inputs = wrap.querySelectorAll('.code-digit');
+        const hidden = document.getElementById('code_' + type + '_hidden');
+
+        inputs.forEach((el, i) => {
+            el.addEventListener('input', () => {
+                el.value = el.value.replace(/[^0-9]/g, '').slice(-1);
+                if (el.value && i < inputs.length - 1) inputs[i + 1].focus();
+                syncCodes();
+            });
+            el.addEventListener('keydown', e => {
+                if (e.key === 'Backspace' && !el.value && i > 0) inputs[i - 1].focus();
+            });
+            el.addEventListener('paste', e => {
+                e.preventDefault();
+                const pasted = (e.clipboardData || window.clipboardData).getData('text').replace(/[^0-9]/g, '').slice(0, 6);
+                [...pasted].forEach((ch, j) => { if (inputs[j]) inputs[j].value = ch; });
+                if (inputs[pasted.length - 1]) inputs[pasted.length - 1].focus();
+                syncCodes();
+            });
+        });
+    });
+
+    function syncCodes() {
+        const btn = document.getElementById('verify-btn');
+        let allFilled = true;
+        
+        ['old', 'new'].forEach(type => {
+            const wrap = document.querySelector(`.code-input-wrap[data-target="${type}"]`);
+            const hidden = document.getElementById(`code_${type}_hidden`);
+            const code = [...wrap.querySelectorAll('.code-digit')].map(d => d.value).join('');
+            hidden.value = code;
+            if (code.length < 6) allFilled = false;
+        });
+
+        btn.disabled = !allFilled;
+    }
+}
+
+// Countdown
+const countdownEl = document.getElementById('countdown');
+if (countdownEl) {
+    const expires = <?= isset($_SESSION['pending_email_change']) ? (int)$_SESSION['pending_email_change']['expires'] : 0 ?>;
+    function tick() {
+        const left = expires - Math.floor(Date.now() / 1000);
+        if (left <= 0) {
+            countdownEl.textContent = '00:00';
+            countdownEl.style.color = '#ef4444';
+            document.getElementById('verify-btn').disabled = true;
+            return;
+        }
+        const m = String(Math.floor(left / 60)).padStart(2, '0');
+        const s = String(left % 60).padStart(2, '0');
+        countdownEl.textContent = m + ':' + s;
+        countdownEl.style.color = left <= 60 ? '#ef4444' : '#1a1a1a';
+        setTimeout(tick, 1000);
+    }
+    tick();
 }
 </script>
 </body>
