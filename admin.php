@@ -8,7 +8,7 @@ if (isset($_GET['logout'])) { session_unset(); session_destroy(); header('Locati
 
 if (!isset($_SESSION['user_id']) || ($_SESSION['role'] ?? '') !== 'admin') {
     http_response_code(403);
-    echo '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Access Denied</title><link rel="icon" type="image/png" href="images/logo/logo2.png"><link rel="stylesheet" href="css/navbar.css?v=2026.05.15.v2"></head><body>';
+    echo '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Access Denied</title><link rel="icon" type="image/png" href="images/logo/logo2.png"><link rel="stylesheet" href="css/navbar.css?v=2026.05.17.v1"></head><body>';
     echo '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:80vh;text-align:center;gap:16px;">';
     echo '<img src="images/logo/logo2.png" alt="Ghos Logo" style="height: 80px; margin-bottom: 10px;">';
     echo '<div style="font-size:28px;font-weight:bold;">Access Denied</div>';
@@ -341,7 +341,7 @@ function roleBadge(string $r): string {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Panel — GameHub</title>
-    <link rel="icon" type="image/png" href="images/logo/logo2.png"><link rel="stylesheet" href="css/navbar.css?v=2026.05.15.v2">
+    <link rel="icon" type="image/png" href="images/logo/logo2.png"><link rel="stylesheet" href="css/navbar.css?v=2026.05.17.v1">
     <link rel="stylesheet" href="css/dashboard-layout.css?v=2026.05.15.v2">
     <style>
         .admin-section { display:none; }
@@ -592,8 +592,8 @@ function roleBadge(string $r): string {
                 <td data-col="action" data-val="">
                     <button class="act-btn act-edit" onclick="openEditGame(<?= htmlspecialchars(json_encode($game)) ?>)">Edit</button>
                     <button class="act-btn act-green" onclick="openAddKeys(<?=$game['id']?>,<?=htmlspecialchars(json_encode($game['name']))?> )">+ Keys</button>
-                    <button class="act-btn act-blue" style="background:#6366f1; color:white; border:none;" onclick="viewKeys(<?=$game['id']?>, <?=htmlspecialchars(json_encode($game['name']))?>)">View Inventory</button>
-                    <a href="admin.php?action=delete_game&id=<?=$game['id']?>" class="act-btn act-delete" data-confirm="Delete '<?= htmlspecialchars($game['name']) ?>'? This cannot be undone.">Delete</a>
+                    <button class="act-btn act-blue" style="background:#6366f1; color:white; border:none;" onclick="viewKeys(<?=$game['id']?>, '<?=addslashes($game['name'])?>')">View Inventory</button>
+                    <a href="admin.php?action=delete_game&id=<?=$game['id']?>" class="act-btn act-delete" data-confirm="Delete \"<?= htmlspecialchars($game['name']) ?>\"? This cannot be undone.">Delete</a>
                 </td>
             </tr>
         <?php endforeach; endif; ?>

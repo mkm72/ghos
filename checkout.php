@@ -40,7 +40,7 @@ unset($_SESSION['pay_error']);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Checkout — Ghos</title>
     <link rel="icon" type="image/png" href="images/logo/logo2.png">
-    <link rel="stylesheet" href="css/navbar.css">
+    <link rel="stylesheet" href="css/navbar.css?v=2026.05.17.v1">
     <link rel="stylesheet" href="css/checkout.css">
 </head>
 <body>
