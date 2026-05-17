@@ -73,7 +73,7 @@ if ($is_logged_in) {
 
         <?php if ($is_logged_in): ?>
             <div class="profile-dropdown" id="profileDropdown">
-                <button class="profile-btn" onclick="toggleProfile(event)">
+                <button class="profile-btn" onclick="toggleProfile(event)" type="button">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:2px;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
                     Profile ▼
                 </button>
@@ -129,16 +129,20 @@ function closeNav() {
     document.body.style.overflow = '';
 }
 
-// ── Profile dropdown (click instead of hover on mobile) ──
+// ── Profile dropdown ──────────────────────────
 function toggleProfile(e) {
+    if (window.innerWidth > 820) return; 
     e.stopPropagation();
-    const menu = document.getElementById('profileMenu');
-    const isOpen = menu.style.display === 'block';
-    menu.style.display = isOpen ? '' : 'block';
+    const dropdown = document.getElementById('profileDropdown');
+    dropdown.classList.toggle('open');
 }
-document.addEventListener('click', () => {
-    const menu = document.getElementById('profileMenu');
-    if (menu) menu.style.display = '';
+document.addEventListener('click', (e) => {
+    if (window.innerWidth <= 820) {
+        const dropdown = document.getElementById('profileDropdown');
+        if (dropdown && !dropdown.contains(e.target)) {
+            dropdown.classList.remove('open');
+        }
+    }
 });
 
 // ── Sync mobile search with desktop search ──
