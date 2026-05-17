@@ -474,7 +474,6 @@ body {
 /* ========================================================
    MOBILE RESPONSIVE 
    ======================================================== */
-
 /* Hamburger button */
 .navbar-hamburger {
     display: none;
@@ -499,7 +498,7 @@ body {
 
 @media (max-width: 820px) {
 
-    /* Navbar  */
+    /* Navbar */
     .navbar {
         padding: 10px 14px;
         flex-wrap: nowrap;
@@ -511,16 +510,15 @@ body {
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-        max-width: 120px;
+        max-width: 220px;
     }
 
-    /* Search disapper in navbar */
+    /* Search disapper navbar */
     .navbar-search { display: none; }
 
-    /* Hamburger */
+    /* Hamburger apper */
     .navbar-hamburger { display: flex; }
 
-    /* links dropdown  */
     .navbar-links {
         display: flex;
         flex-direction: column;
@@ -542,7 +540,6 @@ body {
 
     .navbar-links.open { right: 0; }
 
-    /* Search  */
     .navbar-mobile-search {
         display: block !important;
         margin-bottom: 12px;
@@ -559,7 +556,6 @@ body {
         box-sizing: border-box;
     }
     .navbar-mobile-search input:focus { border-color: #2563eb; }
-
     .navbar-links a,
     .contact-link {
         display: block !important;
