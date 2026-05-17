@@ -542,19 +542,6 @@ body {
 
     .navbar-links.open { right: 0; }
 
-    /* Overlayة */
-    .navbar-overlay {
-        display: none;
-        position: fixed;
-        inset: 0;
-        background: rgba(0,0,0,0.35);
-        z-index: 1098;
-    }
-    .navbar-overlay.open { display: block; }
-.navbar-links {
-    z-index: 1100 !important;
-}
-
     /* Search  */
     .navbar-mobile-search {
         display: block !important;
