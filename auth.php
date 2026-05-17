@@ -7,26 +7,137 @@ require_once 'php/db_connect.php';
 require_once 'sendEMail.php';
 
 if (isset($_GET['cancel'])) {
-    unset($_SESSION['pending_register']);
+    unset($_SESSION['pending_register'], $_SESSION['reset_email'], $_SESSION['reset_code'], $_SESSION['reset_expires'], $_SESSION['reset_attempts'], $_SESSION['reset_verified']);
     header('Location: auth.php'); exit;
 }
 
 $error   = '';
 $success = '';
-$mode = isset($_SESSION['pending_register']) && $_SESSION['pending_register'] ? 'verify' : 'login';
+$mode = 'login';
+
+// Determine initial mode based on session state
+if (isset($_SESSION['pending_register']) && $_SESSION['pending_register']) {
+    $mode = 'verify';
+} elseif (isset($_SESSION['2fa_user']) && $_SESSION['2fa_user']) {
+    $mode = 'login_verify';
+} elseif (isset($_SESSION['reset_email'])) {
+    if (isset($_SESSION['reset_verified']) && $_SESSION['reset_verified']) {
+        $mode = 'new_password';
+    } else {
+        $mode = 'forgot_verify';
+    }
+}
 
 function generateCode() {
     return str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
 }
 
-function codeExpired() {
-    return !isset($_SESSION['code_expires']) || time() > $_SESSION['code_expires'];
+function codeExpired($type = 'register') {
+    if ($type === 'register') {
+        return !isset($_SESSION['code_expires']) || time() > $_SESSION['code_expires'];
+    } elseif ($type === 'reset') {
+        return !isset($_SESSION['reset_expires']) || time() > $_SESSION['reset_expires'];
+    } elseif ($type === '2fa') {
+        return !isset($_SESSION['2fa_expires']) || time() > $_SESSION['2fa_expires'];
+    }
+    return true;
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $mode = $_POST['mode'] ?? 'login';
 
-    if ($mode === 'register') {
+    if ($mode === 'forgot') {
+        $email = trim($_POST['email'] ?? '');
+        if (empty($email)) {
+            $error = 'Email is required.';
+        } else {
+            $stmt = $pdo->prepare('SELECT id FROM Users WHERE email = ?');
+            $stmt->execute([$email]);
+            $user = $stmt->fetch();
+
+            if ($user) {
+                $code = generateCode();
+                $_SESSION['reset_email']   = $email;
+                $_SESSION['reset_code']    = $code;
+                $_SESSION['reset_expires'] = time() + 600;
+                $_SESSION['reset_attempts'] = 0;
+                $_SESSION['reset_verified'] = false;
+
+                sendEmail(
+                    $email,
+                    $email,
+                    'Password Reset Code',
+                    "
+                    <div style='font-family: Arial, sans-serif; max-width: 500px; margin: auto; padding: 20px;'>
+                        <div style='text-align:center; margin-bottom: 24px;'>
+                            <img src='https://ghos.shop/images/logo/logo2.png' alt='Ghos Logo' style='height: 80px; border-radius: 8px;'>
+                        </div>
+                        <h2 style='color:#1a1a1a;'>Reset your password</h2>
+                        <p style='color:#555; font-size:15px;'>Use the code below to reset your password. It expires in <strong>10 minutes</strong>.</p>
+                        <div style='text-align:center; margin: 28px 0;'>
+                            <div style='display:inline-block; background:#f4f4f4; border:2px dashed #ccc; border-radius:12px; padding:18px 36px;'>
+                                <span style='font-size:36px; font-weight:bold; letter-spacing:10px; color:#1a1a1a;'>$code</span>
+                            </div>
+                        </div>
+                        <hr style='border:none; border-top:1px solid #e0e0e0; margin:28px 0 16px;'>
+                        <p style='font-size:12px; color:#999; margin:0;'>GameHub Online Store — <a href='https://ghos.shop' style='color:#999;'>ghos.shop</a></p>
+                    </div>"
+                );
+                $mode = 'forgot_verify';
+            } else {
+                $success = 'If an account exists with that email, a code has been sent.';
+                $mode = 'login';
+            }
+        }
+
+    } elseif ($mode === 'forgot_verify') {
+        $entered = trim($_POST['code'] ?? '');
+        if (!isset($_SESSION['reset_email'])) {
+            $error = 'Session expired.';
+            $mode = 'login';
+        } elseif (codeExpired('reset')) {
+            unset($_SESSION['reset_email'], $_SESSION['reset_code'], $_SESSION['reset_expires'], $_SESSION['reset_attempts']);
+            $error = 'Code expired.';
+            $mode = 'login';
+        } elseif ($_SESSION['reset_attempts'] >= 5) {
+            unset($_SESSION['reset_email'], $_SESSION['reset_code'], $_SESSION['reset_expires'], $_SESSION['reset_attempts']);
+            $error = 'Too many attempts.';
+            $mode = 'login';
+        } elseif ($entered !== $_SESSION['reset_code']) {
+            $_SESSION['reset_attempts']++;
+            $error = 'Invalid code.';
+            $mode = 'forgot_verify';
+        } else {
+            $_SESSION['reset_verified'] = true;
+            $mode = 'new_password';
+        }
+
+    } elseif ($mode === 'reset_password') {
+        $pass = $_POST['password'] ?? '';
+        $repeat = $_POST['repeat_password'] ?? '';
+
+        if (!isset($_SESSION['reset_email']) || !$_SESSION['reset_verified']) {
+            $error = 'Unauthorized access.';
+            $mode = 'login';
+        } elseif (strlen($pass) < 8) {
+            $error = 'Password must be at least 8 characters.';
+        } elseif (!preg_match('/[0-9]/', $pass)) {
+            $error = 'Password must contain at least one number.';
+        } elseif (!preg_match('/[^a-zA-Z0-9]/', $pass)) {
+            $error = 'Password must contain at least one special character.';
+        } elseif ($pass !== $repeat) {
+            $error = 'Passwords do not match.';
+        } else {
+            $hash = password_hash($pass, PASSWORD_BCRYPT);
+            $stmt = $pdo->prepare('UPDATE Users SET password = ? WHERE email = ?');
+            $stmt->execute([$hash, $_SESSION['reset_email']]);
+            
+            unset($_SESSION['reset_email'], $_SESSION['reset_code'], $_SESSION['reset_expires'], $_SESSION['reset_attempts'], $_SESSION['reset_verified']);
+            $success = 'Password reset successfully! You can now log in.';
+            $mode = 'login';
+        }
+
+    } elseif ($mode === 'register') {
         $email  = trim($_POST['email'] ?? '');
         $pass   = $_POST['password'] ?? '';
         $repeat = $_POST['repeat_password'] ?? '';
@@ -89,7 +200,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!isset($_SESSION['pending_register'])) {
             $error = 'Session expired. Please register again.';
             $mode  = 'register';
-        } elseif (codeExpired()) {
+        } elseif (codeExpired('register')) {
             unset($_SESSION['pending_register'], $_SESSION['verify_code'], $_SESSION['code_expires'], $_SESSION['code_attempts']);
             $error = 'Code expired. Please register again.';
             $mode  = 'register';
@@ -168,7 +279,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!isset($_SESSION['2fa_user'])) {
             $error = 'Session expired. Please log in again.';
             $mode  = 'login';
-        } elseif (!isset($_SESSION['2fa_expires']) || time() > $_SESSION['2fa_expires']) {
+        } elseif (codeExpired('2fa')) {
             unset($_SESSION['2fa_user'], $_SESSION['2fa_code'], $_SESSION['2fa_expires'], $_SESSION['2fa_attempts']);
             $error = 'Code expired. Please log in again.';
             $mode  = 'login';
@@ -303,17 +414,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <div class="auth-logo">
     <img src="images/logo/logo2.png" alt="Ghos Logo" style="height: 100px; width: auto; margin-bottom: 20px; border-radius: 12px;">
     <h1 id="page-title">
-        <?= $mode === 'register' ? 'Create Account' : ($mode === 'verify' ? 'Verify Email' : ($mode === 'login_verify' ? 'Two-Factor Auth' : 'Welcome Back')) ?>
+        <?php
+        if ($mode === 'register') echo 'Create Account';
+        elseif ($mode === 'verify') echo 'Verify Email';
+        elseif ($mode === 'login_verify') echo 'Two-Factor Auth';
+        elseif ($mode === 'forgot') echo 'Forgot Password';
+        elseif ($mode === 'forgot_verify') echo 'Verify Code';
+        elseif ($mode === 'new_password') echo 'New Password';
+        else echo 'Welcome Back';
+        ?>
     </h1>
     <p id="page-sub">
-        <?= $mode === 'register' ? 'Join GameHub Online Store today' : ($mode === 'verify' ? 'Enter the code sent to your email' : ($mode === 'login_verify' ? 'Enter the code sent to your email' : 'Sign in to your GameHub account')) ?>
+        <?php
+        if ($mode === 'register') echo 'Join GameHub Online Store today';
+        elseif ($mode === 'verify') echo 'Enter the code sent to your email';
+        elseif ($mode === 'login_verify') echo 'Enter the code sent to your email';
+        elseif ($mode === 'forgot') echo 'Enter your email to receive a reset code';
+        elseif ($mode === 'forgot_verify') echo 'Enter the code sent to your email';
+        elseif ($mode === 'new_password') echo 'Choose a strong new password';
+        else echo 'Sign in to your GameHub account';
+        ?>
     </p>
 </div>
 
 <div class="auth-card">
-    <?php if ($mode !== 'verify' && $mode !== 'login_verify'): ?>
+    <?php if (!in_array($mode, ['verify', 'login_verify', 'forgot_verify', 'new_password'])): ?>
     <div class="tabs">
-        <button class="tab-btn <?= $mode === 'login'    ? 'active' : '' ?>" onclick="switchMode('login')"    type="button" id="tab-login">Login</button>
+        <button class="tab-btn <?= in_array($mode, ['login', 'forgot']) ? 'active' : '' ?>" onclick="switchMode('login')"    type="button" id="tab-login">Login</button>
         <button class="tab-btn <?= $mode === 'register' ? 'active' : '' ?>" onclick="switchMode('register')" type="button" id="tab-register">Register</button>
     </div>
     <?php endif; ?>
@@ -321,6 +448,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <?php if ($error):   ?><div class="alert alert-error"  ><?= htmlspecialchars($error)   ?></div><?php endif; ?>
     <?php if ($success): ?><div class="alert alert-success"><?= htmlspecialchars($success) ?></div><?php endif; ?>
 
+    <!-- Login Panel -->
     <div class="form-section <?= $mode === 'login' ? 'active' : '' ?>" id="panel-login">
         <form method="POST" action="auth.php">
             <input type="hidden" name="mode" value="login">
@@ -334,12 +462,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                 </button>
             </div>
+            
+            <div style="text-align: right; margin-top: -10px; margin-bottom: 20px;">
+                <a href="#" onclick="switchMode('forgot')" style="font-size: 13px; color: #555; text-decoration: none;">Forgot Password?</a>
+            </div>
 
             <button class="auth-btn" type="submit">Login</button>
         </form>
         <div class="auth-link">Don't have an account? <a onclick="switchMode('register')" href="#">Register here</a></div>
     </div>
 
+    <!-- Register Panel -->
     <div class="form-section <?= $mode === 'register' ? 'active' : '' ?>" id="panel-register">
         <form method="POST" action="auth.php">
             <input type="hidden" name="mode" value="register">
@@ -380,6 +513,84 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="auth-link">Already have an account? <a onclick="switchMode('login')" href="#">Login here</a></div>
     </div>
 
+    <!-- Forgot Request Panel -->
+    <div class="form-section <?= $mode === 'forgot' ? 'active' : '' ?>" id="panel-forgot">
+        <form method="POST" action="auth.php">
+            <input type="hidden" name="mode" value="forgot">
+            <label>Email</label>
+            <input type="email" name="email" placeholder="your.email@example.com" required value="<?= htmlspecialchars($_POST['email'] ?? '') ?>">
+            
+            <button class="auth-btn" type="submit" style="margin-top: 10px;">Send Reset Code</button>
+        </form>
+        <div style="text-align:center; margin-top:14px;">
+            <a href="#" onclick="switchMode('login')" style="font-size:13px; color:#555;">← Back to Login</a>
+        </div>
+    </div>
+
+    <!-- Forgot Verify Panel -->
+    <?php if ($mode === 'forgot_verify'): ?>
+    <div class="form-section active" id="panel-forgot-verify">
+        <p style="text-align:center; font-size:14px; color:#555; margin-bottom:4px;">
+            Code sent to <strong><?= htmlspecialchars($_SESSION['reset_email'] ?? '') ?></strong>
+        </p>
+        <div class="code-meta">
+            Expires in <span id="countdown"></span>
+        </div>
+
+        <form method="POST" action="auth.php" id="forgot-verify-form">
+            <input type="hidden" name="mode" value="forgot_verify">
+            <input type="hidden" name="code" id="code-hidden">
+            <div class="code-input-wrap">
+                <input class="code-digit" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]">
+                <input class="code-digit" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]">
+                <input class="code-digit" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]">
+                <input class="code-digit" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]">
+                <input class="code-digit" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]">
+                <input class="code-digit" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]">
+            </div>
+            <button class="auth-btn" type="submit" id="verify-btn" disabled>Verify Code</button>
+        </form>
+
+        <div style="text-align:center; margin-top:14px;">
+            <a href="?cancel=1" style="font-size:13px; color:#555;">Start over</a>
+        </div>
+    </div>
+    <?php endif; ?>
+
+    <!-- New Password Panel -->
+    <?php if ($mode === 'new_password'): ?>
+    <div class="form-section active" id="panel-new-password">
+        <form method="POST" action="auth.php">
+            <input type="hidden" name="mode" value="reset_password">
+            <label>New Password</label>
+            <div class="password-wrap">
+                <input type="password" name="password" id="reset-password" placeholder="Min. 8 characters" required oninput="checkStrength(this.value)">
+                <button type="button" class="toggle-password" onclick="togglePass(this)">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                </button>
+            </div>
+
+            <div class="strength-wrap" style="margin-top: 8px;">
+                <div class="strength-bar-track">
+                    <div class="strength-bar-fill" id="strength-bar"></div>
+                </div>
+                <div class="strength-label" id="strength-label">Enter a password</div>
+            </div>
+            
+            <label>Repeat New Password</label>
+            <div class="password-wrap">
+                <input type="password" name="repeat_password" placeholder="••••••••" required>
+                <button type="button" class="toggle-password" onclick="togglePass(this)">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                </button>
+            </div>
+
+            <button class="auth-btn" type="submit" style="margin-top: 15px;">Reset Password</button>
+        </form>
+    </div>
+    <?php endif; ?>
+
+    <!-- 2FA Panel -->
     <?php if ($mode === 'login_verify'): ?>
     <div class="form-section active" id="panel-login-verify">
         <p style="text-align:center; font-size:14px; color:#555; margin-bottom:4px;">
@@ -404,11 +615,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </form>
 
         <div style="text-align:center; margin-top:14px;">
-            <a href="auth.php" style="font-size:13px; color:#555;">← Back to Login</a>
+            <a href="?cancel=1" style="font-size:13px; color:#555;">← Back to Login</a>
         </div>
     </div>
     <?php endif; ?>
 
+    <!-- Registration Verify Panel -->
     <?php if ($mode === 'verify'): ?>
     <div class="form-section active" id="panel-verify">
         <p style="text-align:center; font-size:14px; color:#555; margin-bottom:4px;">
@@ -451,14 +663,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 function switchMode(mode) {
     const labels = {
         login:    { h1: 'Welcome Back',   p: 'Sign in to your GameHub account' },
-        register: { h1: 'Create Account', p: 'Join GameHub Online Store today'  }
+        register: { h1: 'Create Account', p: 'Join GameHub Online Store today'  },
+        forgot:   { h1: 'Forgot Password', p: 'Enter your email to receive a reset code' }
     };
-    ['login','register'].forEach(m => {
-        document.getElementById('panel-' + m)?.classList.toggle('active', m === mode);
-        document.getElementById('tab-'   + m)?.classList.toggle('active', m === mode);
+    
+    // Toggle active panels
+    const panels = ['login', 'register', 'forgot'];
+    panels.forEach(p => {
+        const el = document.getElementById('panel-' + p);
+        if (el) el.classList.toggle('active', p === mode);
     });
-    document.getElementById('page-title').textContent = labels[mode].h1;
-    document.getElementById('page-sub').textContent   = labels[mode].p;
+
+    // Toggle active tabs
+    const tabLogin = document.getElementById('tab-login');
+    const tabRegister = document.getElementById('tab-register');
+    if (tabLogin) tabLogin.classList.toggle('active', mode === 'login' || mode === 'forgot');
+    if (tabRegister) tabRegister.classList.toggle('active', mode === 'register');
+
+    // Update text
+    if (labels[mode]) {
+        document.getElementById('page-title').textContent = labels[mode].h1;
+        document.getElementById('page-sub').textContent   = labels[mode].p;
+    }
 }
 
 function checkStrength(val) {
@@ -468,10 +694,19 @@ function checkStrength(val) {
     const hasNumber  = /[0-9]/.test(val);
     const hasSpecial = /[^a-zA-Z0-9]/.test(val);
     const hasUpper   = /[A-Z]/.test(val);
-    document.getElementById('hint-length') .classList.toggle('met', hasLength);
-    document.getElementById('hint-number') .classList.toggle('met', hasNumber);
-    document.getElementById('hint-special').classList.toggle('met', hasSpecial);
-    document.getElementById('hint-upper')  .classList.toggle('met', hasUpper);
+    
+    const hints = {
+        'hint-length': hasLength,
+        'hint-number': hasNumber,
+        'hint-special': hasSpecial,
+        'hint-upper': hasUpper
+    };
+
+    for (const [id, met] of Object.entries(hints)) {
+        const el = document.getElementById(id);
+        if (el) el.classList.toggle('met', met);
+    }
+
     const score  = [hasLength, hasNumber, hasSpecial, hasUpper].filter(Boolean).length;
     const levels = [
         { pct: '0%',   color: '#e0e0e0', text: 'Enter a password', textColor: '#999'    },
@@ -481,10 +716,14 @@ function checkStrength(val) {
         { pct: '100%', color: '#22c55e', text: 'Strong',           textColor: '#22c55e' },
     ];
     const level = val.length === 0 ? levels[0] : levels[score];
-    bar.style.width           = level.pct;
-    bar.style.backgroundColor = level.color;
-    label.textContent         = level.text;
-    label.style.color         = level.textColor;
+    if (bar) {
+        bar.style.width = level.pct;
+        bar.style.backgroundColor = level.color;
+    }
+    if (label) {
+        label.textContent = level.text;
+        label.style.color = level.textColor;
+    }
 }
 
 const eyeOpen = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
@@ -526,14 +765,18 @@ if (digits.length) {
 
     function syncCode() {
         const code = [...digits].map(d => d.value).join('');
-        hidden.value = code;
-        btn.disabled = code.length < 6;
+        if (hidden) hidden.value = code;
+        if (btn) btn.disabled = code.length < 6;
     }
 }
 
 const countdownEl = document.getElementById('countdown');
 if (countdownEl) {
-    const expires = <?= isset($_SESSION['code_expires']) ? (int)$_SESSION['code_expires'] : (isset($_SESSION['2fa_expires']) ? (int)$_SESSION['2fa_expires'] : 0) ?>;
+    const expires = <?= 
+        isset($_SESSION['code_expires']) ? (int)$_SESSION['code_expires'] : 
+        (isset($_SESSION['2fa_expires']) ? (int)$_SESSION['2fa_expires'] : 
+        (isset($_SESSION['reset_expires']) ? (int)$_SESSION['reset_expires'] : 0)) 
+    ?>;
     function tick() {
         const left = expires - Math.floor(Date.now() / 1000);
         if (left <= 0) {
