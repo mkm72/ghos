@@ -97,7 +97,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $is_logged_in && !$already_business
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Register Your Business — GameHub Online Store</title>
     <link rel="icon" type="image/png" href="images/logo/logo2.png">
-    <link rel="stylesheet" href="css/navbar.css?v=2026.05.17.v1">
+    <link rel="stylesheet" href="css/navbar.css?v=2026.05.17.v2">
     <link rel="stylesheet" href="css/business.css">
     <style>
         .input-error { border: 2px solid #ef4444 !important; background: #fff5f5 !important; }

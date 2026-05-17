@@ -35,16 +35,11 @@ if ($is_logged_in) {
         </div>
     </div>
 
-    <!-- Hamburger (mobile only) -->
-    <button class="navbar-hamburger" id="navHamburger" onclick="toggleNav()" aria-label="Menu">
-        <span></span><span></span><span></span>
-    </button>
-
     <!-- Links -->
     <div class="navbar-links" id="navLinks">
 
         <!-- Search inside mobile menu -->
-        <div class="navbar-mobile-search" style="display:none;">
+        <div class="navbar-mobile-search">
             <input type="text" id="searchInputMobile" placeholder="Search for games..." autocomplete="off">
             <div class="search-dropdown" id="searchDropdownMobile"></div>
         </div>
@@ -92,6 +87,12 @@ if ($is_logged_in) {
         </a>
 
     </div>
+
+    <!-- Hamburger (mobile only) - placed last so it renders above the menu drawer -->
+    <button class="navbar-hamburger" id="navHamburger" onclick="toggleNav()" aria-label="Menu">
+        <span></span><span></span><span></span>
+    </button>
+
 </nav>
 
 <!-- Contact Modal -->
@@ -107,7 +108,7 @@ if ($is_logged_in) {
     </div>
 </div>
 
-<script src="js/navbar.js?v=2026.05.17.v1"></script>
+<script src="js/navbar.js?v=2026.05.17.v2"></script>
 <script>
 // ── Hamburger toggle ──────────────────────────
 function toggleNav() {

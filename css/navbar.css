@@ -474,6 +474,10 @@ body {
 /* ========================================================
    MOBILE RESPONSIVE 
    ======================================================== */
+
+/* Mobile search bar - hidden on desktop */
+.navbar-mobile-search { display: none; }
+
 /* Hamburger button */
 .navbar-hamburger {
     display: none;
@@ -483,6 +487,8 @@ body {
     padding: 4px;
     background: none;
     border: none;
+    position: relative;
+    z-index: 1200;
 }
 .navbar-hamburger span {
     display: block;
@@ -492,6 +498,7 @@ body {
     border-radius: 2px;
     transition: all 0.25s;
 }
+.navbar-hamburger.open span { background: #333; }
 .navbar-hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
 .navbar-hamburger.open span:nth-child(2) { opacity: 0; }
 .navbar-hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
@@ -534,7 +541,7 @@ body {
 
 
     .navbar-mobile-search {
-        display: block !important;
+        display: block;
         margin-bottom: 12px;
         padding-bottom: 12px;
         border-bottom: 1px solid #f0f0f0;
