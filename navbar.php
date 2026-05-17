@@ -40,6 +40,7 @@ if ($is_logged_in) {
         <span></span><span></span><span></span>
     </button>
 
+    <!-- Links -->
     <div class="navbar-links" id="navLinks">
 
         <!-- Search inside mobile menu -->
@@ -123,8 +124,10 @@ function closeNav() {
 }
 
 // ── Profile dropdown ──────────────────────────
+// Desktop: CSS hover handles it
+// Mobile: click toggle
 function toggleProfile(e) {
-    if (window.innerWidth > 820) return; 
+    if (window.innerWidth > 820) return; // let CSS handle on desktop
     e.stopPropagation();
     const dropdown = document.getElementById('profileDropdown');
     dropdown.classList.toggle('open');
@@ -138,16 +141,34 @@ document.addEventListener('click', (e) => {
     }
 });
 
-// ── Sync mobile search with desktop search ──
-const mobileSearch = document.getElementById('searchInputMobile');
+// ── Mobile search — sync with desktop input ──
+const mobileSearch  = document.getElementById('searchInputMobile');
 const desktopSearch = document.getElementById('searchInput');
 if (mobileSearch && desktopSearch) {
+    // Typing in mobile search → triggers desktop search logic
     mobileSearch.addEventListener('input', () => {
         desktopSearch.value = mobileSearch.value;
-        desktopSearch.dispatchEvent(new Event('input'));
+        desktopSearch.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    // Keep both in sync
+    desktopSearch.addEventListener('input', () => {
+        if (mobileSearch.value !== desktopSearch.value)
+            mobileSearch.value = desktopSearch.value;
     });
 }
 
 // ── Close on ESC ──
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeNav(); });
+
+// ── Close when clicking outside the menu ──
+document.addEventListener('click', function(e) {
+    const links  = document.getElementById('navLinks');
+    const btn    = document.getElementById('navHamburger');
+    if (!links || !btn) return;
+    if (links.classList.contains('open') &&
+        !links.contains(e.target) &&
+        !btn.contains(e.target)) {
+        closeNav();
+    }
+});
 </script>
