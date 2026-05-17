@@ -58,5 +58,5 @@ GHOS is a modern, secure, and feature-rich e-commerce platform dedicated to digi
 
 
 ---
-*Built with by the GHOS Team.*
+*Built by the GHOS Team.*
 
