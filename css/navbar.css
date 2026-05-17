@@ -505,18 +505,9 @@ body {
         overflow: hidden;
     }
 
-    .navbar-logo .logo-name {
-        font-size: 14px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        max-width: 220px;
-    }
 
-    /* Search disapper navbar */
     .navbar-search { display: none; }
 
-    /* Hamburger apper */
     .navbar-hamburger { display: flex; }
 
     .navbar-links {
@@ -540,6 +531,7 @@ body {
 
     .navbar-links.open { right: 0; }
 
+
     .navbar-mobile-search {
         display: block !important;
         margin-bottom: 12px;
@@ -556,6 +548,7 @@ body {
         box-sizing: border-box;
     }
     .navbar-mobile-search input:focus { border-color: #2563eb; }
+
     .navbar-links a,
     .contact-link {
         display: block !important;
