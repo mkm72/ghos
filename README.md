@@ -22,7 +22,7 @@ GHOS is a modern, secure, and feature-rich e-commerce platform dedicated to digi
 
 ##  Tech Stack
 
-*   **Frontend**: CSS, JavaScript (ES6+)
+*   **Frontend**: CSS, JavaScript 
 *   **Backend**: PHP
 *   **Database**: MySQL
 *   **Email**: Integrated with Resend API for transactional emails.
