@@ -186,6 +186,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['user_id']    = $user['id'];
             $_SESSION['user_email'] = $user['email'];
             $_SESSION['role']       = $user['role'];
+
+            // Transfer cart items from guest session to user account
+            $session_id = session_id();
+            $stmt_transfer = $pdo->prepare("UPDATE Cart SET user_id = ?, session_id = NULL WHERE session_id = ? AND user_id IS NULL");
+            $stmt_transfer->execute([$user['id'], $session_id]);
+
             unset($_SESSION['2fa_user'], $_SESSION['2fa_code'], $_SESSION['2fa_expires'], $_SESSION['2fa_attempts']);
             header('Location: index.php');
             exit;
@@ -228,6 +234,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $_SESSION['user_id']    = $user['id'];
                         $_SESSION['user_email'] = $user['email'];
                         $_SESSION['role']       = $user['role'];
+
+                        // Transfer cart items from guest session to user account
+                        $session_id = session_id();
+                        $stmt_transfer = $pdo->prepare("UPDATE Cart SET user_id = ?, session_id = NULL WHERE session_id = ? AND user_id IS NULL");
+                        $stmt_transfer->execute([$user['id'], $session_id]);
+
                         header('Location: index.php');
                         exit;
                     }

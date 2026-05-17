@@ -10,10 +10,16 @@ $is_logged_in = isset($_SESSION['user_id']);
 $user_role    = $_SESSION['role'] ?? '';
 $cart_count   = 0;
 
+require_once 'php/db_connect.php';
+
 if ($is_logged_in) {
-    require_once 'php/db_connect.php';
     $stmt_cart = $pdo->prepare("SELECT SUM(quantity) FROM Cart WHERE user_id = ?");
     $stmt_cart->execute([$_SESSION['user_id']]);
+    $cart_count = (int)$stmt_cart->fetchColumn();
+} else {
+    $session_id = session_id();
+    $stmt_cart = $pdo->prepare("SELECT SUM(quantity) FROM Cart WHERE session_id = ?");
+    $stmt_cart->execute([$session_id]);
     $cart_count = (int)$stmt_cart->fetchColumn();
 }
 ?>
