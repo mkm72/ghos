@@ -46,6 +46,7 @@ if ($is_logged_in) {
         <!-- Search inside mobile menu -->
         <div class="navbar-mobile-search" style="display:none;">
             <input type="text" id="searchInputMobile" placeholder="Search for games..." autocomplete="off">
+            <div class="search-dropdown" id="searchDropdownMobile"></div>
         </div>
 
         <a href="javascript:void(0)" class="contact-link" onclick="closeNav();document.getElementById('contactModal').style.display='flex'">
@@ -106,7 +107,7 @@ if ($is_logged_in) {
     </div>
 </div>
 
-<script src="js/navbar.js?v=2026.05.15.v3"></script>
+<script src="js/navbar.js?v=2026.05.17.v1"></script>
 <script>
 // ── Hamburger toggle ──────────────────────────
 function toggleNav() {
@@ -140,22 +141,6 @@ document.addEventListener('click', (e) => {
         }
     }
 });
-
-// ── Mobile search — sync with desktop input ──
-const mobileSearch  = document.getElementById('searchInputMobile');
-const desktopSearch = document.getElementById('searchInput');
-if (mobileSearch && desktopSearch) {
-    // Typing in mobile search → triggers desktop search logic
-    mobileSearch.addEventListener('input', () => {
-        desktopSearch.value = mobileSearch.value;
-        desktopSearch.dispatchEvent(new Event('input', { bubbles: true }));
-    });
-    // Keep both in sync
-    desktopSearch.addEventListener('input', () => {
-        if (mobileSearch.value !== desktopSearch.value)
-            mobileSearch.value = desktopSearch.value;
-    });
-}
 
 // ── Close on ESC ──
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeNav(); });

@@ -49,73 +49,80 @@ function applyCurrency(currency, exchangeRate) {
 // LIVE SEARCH
 // ========================================================
 function initSearch() {
-    const input    = document.getElementById('searchInput');
-    const dropdown = document.getElementById('searchDropdown');
+    const desktopInput    = document.getElementById('searchInput');
+    const desktopDropdown = document.getElementById('searchDropdown');
+    const mobileInput     = document.getElementById('searchInputMobile');
+    const mobileDropdown  = document.getElementById('searchDropdownMobile');
 
-    if (!input || !dropdown) return;
+    function setupSearch(input, dropdown) {
+        if (!input || !dropdown) return;
 
-    let debounceTimer;
+        let debounceTimer;
 
-    input.addEventListener('input', () => {
-        clearTimeout(debounceTimer);
-        const query = input.value.trim();
+        input.addEventListener('input', () => {
+            clearTimeout(debounceTimer);
+            const query = input.value.trim();
 
-        if (query.length === 0) {
-            dropdown.classList.remove('active');
-            dropdown.innerHTML = '';
-            return;
-        }
+            if (query.length === 0) {
+                dropdown.classList.remove('active');
+                dropdown.innerHTML = '';
+                return;
+            }
 
-        debounceTimer = setTimeout(() => {
-            fetch('php/search.php?q=' + encodeURIComponent(query))
-                .then(res => res.json())
-                .then(results => {
-                    dropdown.innerHTML = '';
+            debounceTimer = setTimeout(() => {
+                fetch('php/search.php?q=' + encodeURIComponent(query))
+                    .then(res => res.json())
+                    .then(results => {
+                        dropdown.innerHTML = '';
 
-                    if (results.length === 0) {
-                        dropdown.innerHTML = '<div class="search-no-results">No games found</div>';
-                    } else {
-                        results.forEach(game => {
-                            const price = parseFloat(game.price);
-                            const currency = localStorage.getItem('userCurrency') || 'USD';
-                            const displayPrice = currency === 'SAR'
-                                ? (price * 3.75).toFixed(2) + ' <bdi>ريال</bdi>'
-                                : '$' + price.toFixed(2);
+                        if (results.length === 0) {
+                            dropdown.innerHTML = '<div class="search-no-results">No games found</div>';
+                        } else {
+                            results.forEach(game => {
+                                const price = parseFloat(game.price);
+                                const currency = localStorage.getItem('userCurrency') || 'USD';
+                                const displayPrice = currency === 'SAR'
+                                    ? (price * 3.75).toFixed(2) + ' <bdi>ريال</bdi>'
+                                    : '$' + price.toFixed(2);
 
-                            const item = document.createElement('a');
-                            item.className   = 'search-item';
-                            item.href        = 'product.php?id=' + game.id;
-                            const imgPath = game.cover_image ? game.cover_image.replace(/^\//, '') : '';
-                            item.innerHTML   = `
-                                <img class="search-item-img"
-                                     src="${imgPath}"
-                                     onerror="this.style.background='#1e1b4b'; this.src='';">
-                                <div class="search-item-info">
-                                    <div class="search-item-name">${game.name}</div>
-                                    <div class="search-item-price">${displayPrice}</div>
-                                </div>
-                            `;
-                            dropdown.appendChild(item);
-                        });
-                    }
+                                const item = document.createElement('a');
+                                item.className   = 'search-item';
+                                item.href        = 'product.php?id=' + game.id;
+                                const imgPath = game.cover_image ? game.cover_image.replace(/^\//, '') : '';
+                                item.innerHTML   = `
+                                    <img class="search-item-img"
+                                         src="${imgPath}"
+                                         onerror="this.style.background='#1e1b4b'; this.src='';">
+                                    <div class="search-item-info">
+                                        <div class="search-item-name">${game.name}</div>
+                                        <div class="search-item-price">${displayPrice}</div>
+                                    </div>
+                                `;
+                                dropdown.appendChild(item);
+                            });
+                        }
 
-                    dropdown.classList.add('active');
-                });
-        }, 250);
-    });
+                        dropdown.classList.add('active');
+                    });
+            }, 250);
+        });
 
-    document.addEventListener('click', (e) => {
-        if (!input.contains(e.target) && !dropdown.contains(e.target)) {
-            dropdown.classList.remove('active');
-        }
-    });
+        document.addEventListener('click', (e) => {
+            if (!input.contains(e.target) && !dropdown.contains(e.target)) {
+                dropdown.classList.remove('active');
+            }
+        });
 
-    input.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') {
-            dropdown.classList.remove('active');
-            input.blur();
-        }
-    });
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                dropdown.classList.remove('active');
+                input.blur();
+            }
+        });
+    }
+
+    setupSearch(desktopInput, desktopDropdown);
+    setupSearch(mobileInput, mobileDropdown);
 }
 
 // ========================================================
