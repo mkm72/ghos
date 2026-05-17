@@ -28,9 +28,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $platform = trim($_POST['platform'] ?? '');
         $genres = trim($_POST['genres'] ?? '');
         $desc = trim($_POST['description'] ?? '');
+        $rating = (float)($_POST['rating'] ?? 0);
+        $min_req = trim($_POST['min_requirements'] ?? '');
+        $rec_req = trim($_POST['recommended_requirements'] ?? '');
 
-        $ins = $pdo->prepare('INSERT INTO Games (name, description, price, platform, genres, seller_id) VALUES (?,?,?,?,?,?)');
-        $ins->execute([$name, $desc, $price, $platform, $genres, $user_id]);
+        $ins = $pdo->prepare('INSERT INTO Games (name, description, price, platform, genres, rating, min_requirements, recommended_requirements, seller_id) VALUES (?,?,?,?,?,?,?,?,?)');
+        $ins->execute([$name, $desc, $price, $platform, $genres, $rating, $min_req, $rec_req, $user_id]);
         $game_id = $pdo->lastInsertId();
 
         if (!empty($_FILES['cover_image']['name'])) {
@@ -58,8 +61,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $base = $stmt->fetch();
         
         if ($base) {
-            $ins = $pdo->prepare('INSERT INTO Games (name, description, price, platform, genres, seller_id) VALUES (?,?,?,?,?,?)');
-            $ins->execute([$base['name'], $base['description'], $my_price, $base['platform'], $base['genres'], $user_id]);
+            $ins = $pdo->prepare('INSERT INTO Games (name, description, price, platform, genres, rating, min_requirements, recommended_requirements, seller_id) VALUES (?,?,?,?,?,?,?,?,?)');
+            $ins->execute([$base['name'], $base['description'], $my_price, $base['platform'], $base['genres'], $base['rating'], $base['min_requirements'], $base['recommended_requirements'], $user_id]);
             $new_game_id = $pdo->lastInsertId();
             
             $stmt_img = $pdo->prepare("SELECT filename FROM Game_Images WHERE game_id = ? AND is_cover = 1 LIMIT 1");
@@ -490,6 +493,15 @@ $total_games     = (int)($stats['total_games'] ?? 0);
             <div class="form-row">
                 <div class="fg"><label>Platform</label><input type="text" name="platform"></div>
                 <div class="fg"><label>Genres</label><input type="text" name="genres"></div>
+            </div>
+            <div class="form-row">
+                <div class="fg"><label>Rating (0.00 - 5.00)</label><input type="number" name="rating" step="0.01" min="0" max="5" placeholder="4.50"></div>
+            </div>
+            <div class="form-row full">
+                <div class="fg"><label>Minimum Requirements</label><textarea name="min_requirements" rows="2" placeholder="OS: Windows 10..."></textarea></div>
+            </div>
+            <div class="form-row full">
+                <div class="fg"><label>Recommended Requirements</label><textarea name="recommended_requirements" rows="2" placeholder="OS: Windows 11..."></textarea></div>
             </div>
             <div class="form-row full">
                 <div class="fg"><label>Description</label><textarea name="description" rows="3"></textarea></div>
