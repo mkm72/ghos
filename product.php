@@ -82,11 +82,13 @@ $other_sellers = $stmt_others->fetchAll();
         <div class="product-details">
             <h1 class="product-title"><?php echo htmlspecialchars($game['name']); ?></h1>
 
-            <div class="product-stars" style="color: #f59e0b; display: flex; gap: 4px; margin-top: -10px;">
-                <?php for($i=0; $i<5; $i++): ?>
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+            <div class="product-stars" style="color: #f59e0b; display: flex; gap: 4px; margin-top: -10px; align-items: center;">
+                <?php 
+                $rating = (float)($game['rating'] ?? 0);
+                for($i=1; $i<=5; $i++): ?>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="<?php echo $rating >= $i ? 'currentColor' : '#ccc'; ?>"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
                 <?php endfor; ?>
-                <span style="color: #888; font-size: 14px; margin-left: 8px; font-weight: 500;">(4.9 Rating)</span>
+                <span style="color: #888; font-size: 14px; margin-left: 8px; font-weight: 500;">(<?php echo number_format($rating, 1); ?> Rating)</span>
             </div>
 
             <div class="product-tags" id="tagsContainer">
@@ -200,7 +202,25 @@ $other_sellers = $stmt_others->fetchAll();
             </div>
             <div>
                 <div class="description-title">System Requirements</div>
-                <p class="description-text">OS: Windows 10/11 · Processor: Intel Core i5-8600K or equivalent · Memory: 8 GB RAM · Graphics: DirectX 11 Compatible GPU</p>
+                <div class="description-text" style="white-space: pre-wrap; margin-top: 10px;">
+                    <?php if (!empty($game['min_requirements'])): ?>
+                        <div style="margin-bottom: 15px;">
+                            <strong style="color: #333; display: block; margin-bottom: 5px;">Minimum:</strong>
+                            <?php echo htmlspecialchars($game['min_requirements']); ?>
+                        </div>
+                    <?php endif; ?>
+                    
+                    <?php if (!empty($game['recommended_requirements'])): ?>
+                        <div>
+                            <strong style="color: #333; display: block; margin-bottom: 5px;">Recommended:</strong>
+                            <?php echo htmlspecialchars($game['recommended_requirements']); ?>
+                        </div>
+                    <?php endif; ?>
+
+                    <?php if (empty($game['min_requirements']) && empty($game['recommended_requirements'])): ?>
+                        <p>System requirements are not available for this game.</p>
+                    <?php endif; ?>
+                </div>
             </div>
         </div>
     </div>

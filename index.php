@@ -12,11 +12,12 @@ $order_by = match($current_sort) {
     'price_asc'  => 'ORDER BY price ASC',
     'price_desc' => 'ORDER BY price DESC',
     'name'       => 'ORDER BY name ASC',
+    'rating'     => 'ORDER BY rating DESC',
     default      => 'ORDER BY id DESC',
 };
 
 $stmt_featured = $pdo->prepare("
-    SELECT MIN(g.id) AS id, g.name, MIN(g.price) AS price, MAX(i.filename) AS cover_image
+    SELECT MIN(g.id) AS id, g.name, MIN(g.price) AS price, MAX(i.filename) AS cover_image, MAX(g.rating) AS rating
     FROM Games g
     JOIN Game_Images i ON g.id = i.game_id AND i.is_cover = 1
     GROUP BY g.name
@@ -41,6 +42,7 @@ $grid_query = "
             g.price, 
             g.platform, 
             g.genres,
+            g.rating,
             i.filename AS cover_image,
             (SELECT COUNT(*) FROM Game_Keys k JOIN Games g2 ON k.game_id = g2.id WHERE g2.name = g.name AND k.is_sold = 0) AS stock_count,
             ROW_NUMBER() OVER(PARTITION BY g.name ORDER BY g.price ASC, g.id ASC) as rn
@@ -118,7 +120,7 @@ $current_sort_label = $sort_options[$current_sort] ?? 'Top Rated';
                         <?php if ($index !== 0): ?>
                             <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" style="vertical-align: middle; margin-right: 2px;"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
                         <?php endif; ?>
-                        <?php echo $index === 0 ? 'Hot Deal' : 'Top Rated'; ?>
+                        <?php echo $index === 0 ? 'Hot Deal' : (number_format($hero['rating'], 1) . ' Rating'); ?>
                     </div>
                     <h1><?php echo htmlspecialchars($hero['name']); ?></h1>
                     <p class="featured-product-promo">Epic adventures await. Buy now and play instantly!</p>
@@ -202,10 +204,19 @@ $current_sort_label = $sort_options[$current_sort] ?? 'Top Rated';
 
                 <div class="game-info">
                     <div class="game-name"><?php echo htmlspecialchars($game['name']); ?></div>
-                    <div class="game-stars" style="color: #f59e0b; display: flex; gap: 2px; margin-bottom: 6px;">
-                        <?php for($i=0; $i<5; $i++): ?>
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
-                        <?php endfor; ?>
+                    <div class="game-stars" style="color: #f59e0b; display: flex; gap: 2px; margin-bottom: 6px; align-items: center;">
+                        <div style="display: flex; gap: 2px;">
+                            <?php 
+                            $rating = (float)($game['rating'] ?? 0);
+                            for($i=1; $i<=5; $i++): 
+                                $fill = 'none';
+                                if ($rating >= $i) $fill = 'currentColor';
+                                elseif ($rating > $i-1) $fill = 'url(#halfGrad)'; // Simplified for now, just full stars
+                            ?>
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="<?php echo $rating >= $i ? 'currentColor' : '#ccc'; ?>"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                            <?php endfor; ?>
+                        </div>
+                        <span style="font-size: 10px; color: #888; margin-left: 4px; font-weight: bold;"><?php echo number_format($rating, 1); ?></span>
                     </div>
                     <div class="game-genre">
                         <?php 

@@ -36,11 +36,15 @@ if ($action === 'add_game' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $platform = trim($_POST['platform'] ?? '');
     $genres   = trim($_POST['genres'] ?? '');
     $desc     = trim($_POST['description'] ?? '');
+    $rating   = (float)($_POST['rating'] ?? 0);
+    $min_req  = trim($_POST['min_requirements'] ?? '');
+    $rec_req  = trim($_POST['recommended_requirements'] ?? '');
+
     if (!$name || $price <= 0 || !$platform) {
         $flash = 'Name, price, and platform are required.'; $flash_type = 'error';
     } else {
-        $ins = $pdo->prepare('INSERT INTO Games (name, description, price, platform, genres) VALUES (?,?,?,?,?)');
-        $ins->execute([$name, $desc, $price, $platform, $genres]);
+        $ins = $pdo->prepare('INSERT INTO Games (name, description, price, platform, genres, rating, min_requirements, recommended_requirements) VALUES (?,?,?,?,?,?,?,?)');
+        $ins->execute([$name, $desc, $price, $platform, $genres, $rating, $min_req, $rec_req]);
         $game_id = $pdo->lastInsertId();
         if (!empty($_FILES['cover_image']['name'])) {
             $file = $_FILES['cover_image'];
@@ -91,8 +95,12 @@ if ($action === 'edit_game' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $platform = trim($_POST['platform'] ?? '');
     $genres   = trim($_POST['genres'] ?? '');
     $desc     = trim($_POST['description'] ?? '');
-    $pdo->prepare('UPDATE Games SET name=?,description=?,price=?,platform=?,genres=? WHERE id=?')
-        ->execute([$name, $desc, $price, $platform, $genres, $id]);
+    $rating   = (float)($_POST['rating'] ?? 0);
+    $min_req  = trim($_POST['min_requirements'] ?? '');
+    $rec_req  = trim($_POST['recommended_requirements'] ?? '');
+
+    $pdo->prepare('UPDATE Games SET name=?,description=?,price=?,platform=?,genres=?,rating=?,min_requirements=?,recommended_requirements=? WHERE id=?')
+        ->execute([$name, $desc, $price, $platform, $genres, $rating, $min_req, $rec_req, $id]);
     if (!empty($_FILES['cover_image']['name'])) {
         $file = $_FILES['cover_image'];
         $ext  = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
@@ -671,9 +679,17 @@ function roleBadge(string $r): string {
                     </select>
                 </div>
                 <div class="fg"><label>Genres</label><input type="text" name="genres" placeholder="e.g. Action, RPG"></div>
-            </div>
-            <div class="form-row full">
-                <div class="fg"><label>Description</label><textarea name="description" placeholder="Game description..."></textarea></div>
+                </div>
+                <div class="form-row">
+                <div class="fg"><label>Rating (0.00 - 5.00)</label><input type="number" name="rating" step="0.01" min="0" max="5" placeholder="4.50"></div>
+                </div>
+                <div class="form-row full">
+                <div class="fg"><label>Minimum Requirements</label><textarea name="min_requirements" placeholder="OS: Windows 10..."></textarea></div>
+                </div>
+                <div class="form-row full">
+                <div class="fg"><label>Recommended Requirements</label><textarea name="recommended_requirements" placeholder="OS: Windows 11..."></textarea></div>
+                </div>
+                <div class="form-row full">                <div class="fg"><label>Description</label><textarea name="description" placeholder="Game description..."></textarea></div>
             </div>
             <div class="form-row full">
                 <div class="fg">
@@ -805,10 +821,18 @@ function roleBadge(string $r): string {
                 <div class="fg"><label>Platform</label><input type="text" name="platform" id="edit_platform"></div>
                 <div class="fg"><label>Genres</label><input type="text" name="genres" id="edit_genres"></div>
             </div>
-            <div class="form-row full" style="margin-bottom:14px;">
-                <div class="fg"><label>Description</label><textarea name="description" id="edit_description"></textarea></div>
+            <div class="form-row">
+                <div class="fg"><label>Rating</label><input type="number" name="rating" id="edit_rating" step="0.01" min="0" max="5"></div>
             </div>
             <div class="form-row full" style="margin-bottom:14px;">
+                <div class="fg"><label>Minimum Requirements</label><textarea name="min_requirements" id="edit_min_requirements"></textarea></div>
+            </div>
+            <div class="form-row full" style="margin-bottom:14px;">
+                <div class="fg"><label>Recommended Requirements</label><textarea name="recommended_requirements" id="edit_recommended_requirements"></textarea></div>
+            </div>
+            <div class="form-row full" style="margin-bottom:14px;">
+                <div class="fg"><label>Description</label><textarea name="description" id="edit_description"></textarea></div>
+            </div>            <div class="form-row full" style="margin-bottom:14px;">
                 <div class="fg">
                     <label>New Cover Image (leave empty to keep current)</label>
                     <div class="upload-zone">
@@ -937,6 +961,9 @@ function openEditGame(game) {
     document.getElementById('edit_price').value     = game.price;
     document.getElementById('edit_platform').value  = game.platform ?? '';
     document.getElementById('edit_genres').value    = game.genres ?? '';
+    document.getElementById('edit_rating').value    = game.rating ?? 0;
+    document.getElementById('edit_min_requirements').value = game.min_requirements ?? '';
+    document.getElementById('edit_recommended_requirements').value = game.recommended_requirements ?? '';
     document.getElementById('edit_description').value = game.description ?? '';
     document.getElementById('edit-img-preview').style.display = 'none';
     document.getElementById('editGameModal').classList.add('open');
