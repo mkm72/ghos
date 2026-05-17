@@ -40,10 +40,48 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($check->fetch()) {
                 $error = 'That email is already in use.';
             } else {
+                $old_email = $user['email'];
                 $pdo->prepare('UPDATE Users SET email = ? WHERE id = ?')->execute([$new_email, $user['id']]);
+                
+                // Send notification to OLD email
+                sendEmail(
+                    $old_email,
+                    $old_email,
+                    'Security Alert: Email address changed',
+                    "
+                    <div style='font-family: Arial, sans-serif; max-width: 500px; margin: auto; padding: 20px;'>
+                        <div style='text-align:center; margin-bottom: 24px;'>
+                            <img src='https://ghos.shop/images/logo/logo2.png' alt='Ghos Logo' style='height: 80px; border-radius: 8px;'>
+                        </div>
+                        <h2 style='color:#1a1a1a;'>Email address changed</h2>
+                        <p style='color:#555; font-size:15px;'>The email address for your GameHub account has been changed to <strong>$new_email</strong>.</p>
+                        <p style='color:#ef4444; font-size:14px; font-weight:bold;'>If you did not make this change, please contact us immediately.</p>
+                        <hr style='border:none; border-top:1px solid #e0e0e0; margin:28px 0 16px;'>
+                        <p style='font-size:12px; color:#999; margin:0;'>GameHub Online Store — <a href='https://ghos.shop' style='color:#999;'>ghos.shop</a></p>
+                    </div>"
+                );
+
+                // Send notification to NEW email
+                sendEmail(
+                    $new_email,
+                    $new_email,
+                    'Email updated successfully',
+                    "
+                    <div style='font-family: Arial, sans-serif; max-width: 500px; margin: auto; padding: 20px;'>
+                        <div style='text-align:center; margin-bottom: 24px;'>
+                            <img src='https://ghos.shop/images/logo/logo2.png' alt='Ghos Logo' style='height: 80px; border-radius: 8px;'>
+                        </div>
+                        <h2 style='color:#1a1a1a;'>Welcome to your new email!</h2>
+                        <p style='color:#555; font-size:15px;'>Your GameHub account email has been successfully updated to <strong>$new_email</strong>.</p>
+                        <p style='color:#555; font-size:15px;'>You will now use this email to log in and receive notifications.</p>
+                        <hr style='border:none; border-top:1px solid #e0e0e0; margin:28px 0 16px;'>
+                        <p style='font-size:12px; color:#999; margin:0;'>GameHub Online Store — <a href='https://ghos.shop' style='color:#999;'>ghos.shop</a></p>
+                    </div>"
+                );
+
                 $_SESSION['user_email'] = $new_email;
                 $user['email']          = $new_email;
-                $success = 'Email updated successfully.';
+                $success = 'Email updated successfully. Notifications have been sent to both addresses.';
             }
         }
     }
