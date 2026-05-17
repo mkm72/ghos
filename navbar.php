@@ -18,9 +18,6 @@ if ($is_logged_in) {
 }
 ?>
 
-<!-- Mobile overlay -->
-<div class="navbar-overlay" id="navOverlay" onclick="closeNav()"></div>
-
 <nav class="navbar">
 
     <!-- Logo -->
@@ -43,7 +40,6 @@ if ($is_logged_in) {
         <span></span><span></span><span></span>
     </button>
 
-    <!-- Links -->
     <div class="navbar-links" id="navLinks">
 
         <!-- Search inside mobile menu -->
@@ -115,17 +111,14 @@ if ($is_logged_in) {
 function toggleNav() {
     const links = document.getElementById('navLinks');
     const btn   = document.getElementById('navHamburger');
-    const overlay = document.getElementById('navOverlay');
     links.classList.toggle('open');
     btn.classList.toggle('open');
-    overlay.classList.toggle('open');
     document.body.style.overflow = links.classList.contains('open') ? 'hidden' : '';
 }
 
 function closeNav() {
     document.getElementById('navLinks').classList.remove('open');
     document.getElementById('navHamburger').classList.remove('open');
-    document.getElementById('navOverlay').classList.remove('open');
     document.body.style.overflow = '';
 }
 
