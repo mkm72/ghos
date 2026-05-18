@@ -204,7 +204,7 @@ $other_sellers = $stmt_others->fetchAll();
                 <p class="description-text" style="white-space: pre-wrap; margin-top: 10px;"><?php echo htmlspecialchars($game['description'] ? $game['description'] : 'No description available for this game.'); ?></p>
             </div>
             <div class="requirements-box">
-                        <div>class="description-title">System Requirements</div>
+                        <div class="description-title">System Requirements</div>
                         <?php
                         // 1. Clean the raw string to establish a baseline
                         $raw_reqs = html_entity_decode($game['min_requirements'] ?? '', ENT_QUOTES | ENT_HTML5, 'UTF-8');
