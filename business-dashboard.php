@@ -32,6 +32,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $min_req = trim($_POST['min_requirements'] ?? '');
         $rec_req = trim($_POST['recommended_requirements'] ?? '');
 
+        if ($price > 1264) {
+            die("Error: Price cannot exceed $1,264.");
+        }
+
         $ins = $pdo->prepare('INSERT INTO Games (name, description, price, platform, genres, rating, min_requirements, recommended_requirements, seller_id) VALUES (?,?,?,?,?,?,?,?,?)');
         $ins->execute([$name, $desc, $price, $platform, $genres, $rating, $min_req, $rec_req, $user_id]);
         $game_id = $pdo->lastInsertId();
@@ -55,6 +59,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'add_existing_game') {
         $base_game_id = (int)($_POST['base_game_id'] ?? 0);
         $my_price = (float)($_POST['price'] ?? 0);
+        
+        if ($my_price > 1264) {
+            die("Error: Price cannot exceed $1,264.");
+        }
         
         $stmt = $pdo->prepare("SELECT * FROM Games WHERE id = ?");
         $stmt->execute([$base_game_id]);
@@ -471,7 +479,7 @@ $total_games     = (int)($stats['total_games'] ?? 0);
 
             <div class="fg" style="margin-bottom: 20px;">
                 <label>2. Set Your Price ($) *</label>
-                <input type="number" name="price" step="0.01" required placeholder="29.99">
+                <input type="number" name="price" step="0.01" max="1264" required placeholder="29.99">
             </div>
 
             <div style="text-align:right;">
@@ -484,11 +492,11 @@ $total_games     = (int)($stats['total_games'] ?? 0);
 <div class="modal-overlay" id="addGameModal">
     <div class="modal-box">
         <div class="modal-title">Add New Custom Game <button class="modal-close" onclick="document.getElementById('addGameModal').classList.remove('open')">×</button></div>
-        <form method="POST" action="business-dashboard.php" enctype="multipart/form-data">
+        <form id="addCustomGameForm" method="POST" action="business-dashboard.php" enctype="multipart/form-data" onsubmit="return validateBusinessAddGame()">
             <input type="hidden" name="action" value="add_game">
             <div class="form-row">
                 <div class="fg"><label>Name *</label><input type="text" name="name" required></div>
-                <div class="fg"><label>Price *</label><input type="number" name="price" step="0.01" required></div>
+                <div class="fg"><label>Price *</label><input type="number" name="price" step="0.01" max="1264" required></div>
             </div>
             <div class="form-row">
                 <div class="fg"><label>Platform</label><input type="text" name="platform"></div>
@@ -654,6 +662,16 @@ $total_games     = (int)($stats['total_games'] ?? 0);
                 item.style.display = 'none';
             }
         });
+    }
+
+    function validateBusinessAddGame() {
+        const priceInput = document.querySelector('#addCustomGameForm input[name="price"]');
+        const price = parseFloat(priceInput.value);
+        if (price > 1264) {
+            alert('Price cannot exceed $1,264.');
+            return false;
+        }
+        return true;
     }
 </script>
 </body>

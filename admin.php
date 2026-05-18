@@ -42,6 +42,8 @@ if ($action === 'add_game' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (!$name || $price <= 0 || !$platform) {
         $flash = 'Name, price, and platform are required.'; $flash_type = 'error';
+    } elseif ($price > 1264) {
+        $flash = 'Price cannot exceed $1,264.'; $flash_type = 'error';
     } else {
         $ins = $pdo->prepare('INSERT INTO Games (name, description, price, platform, genres, rating, min_requirements, recommended_requirements) VALUES (?,?,?,?,?,?,?,?)');
         $ins->execute([$name, $desc, $price, $platform, $genres, $rating, $min_req, $rec_req]);
@@ -98,6 +100,11 @@ if ($action === 'edit_game' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $rating   = (float)($_POST['rating'] ?? 0);
     $min_req  = trim($_POST['min_requirements'] ?? '');
     $rec_req  = trim($_POST['recommended_requirements'] ?? '');
+
+    if ($price > 1264) {
+        $flash = 'Price cannot exceed $1,264.'; $flash_type = 'error';
+        header('Location: admin.php?section=section-games&flash='.urlencode($flash).'&flash_type=error'); exit;
+    }
 
     $pdo->prepare('UPDATE Games SET name=?,description=?,price=?,platform=?,genres=?,rating=?,min_requirements=?,recommended_requirements=? WHERE id=?')
         ->execute([$name, $desc, $price, $platform, $genres, $rating, $min_req, $rec_req, $id]);
@@ -278,7 +285,7 @@ if (isset($_GET['flash'])) { $flash = $_GET['flash']; $flash_type = $_GET['flash
 try { $total_revenue = (float)$pdo->query("SELECT COALESCE(SUM(total_price),0) FROM Orders WHERE status IN ('delivered','completed')")->fetchColumn(); } catch(\PDOException $e) { $total_revenue = 0; }
 try { $total_users = (int)$pdo->query("SELECT COUNT(*) FROM Users")->fetchColumn(); } catch(\PDOException $e) { $total_users = 0; }
 try { $total_orders = (int)$pdo->query("SELECT COUNT(*) FROM Orders")->fetchColumn(); } catch(\PDOException $e) { $total_orders = 0; }
-try { $low_stock_count = (int)$pdo->query("SELECT COUNT(*) FROM (SELECT g.id FROM Games g LEFT JOIN Game_Keys k ON g.id=k.game_id AND k.is_sold=0 GROUP BY g.id HAVING COUNT(k.id)<5) x")->fetchColumn(); } catch(\PDOException $e) { $low_stock_count = 0; }
+try { $low_stock_count = (int)$pdo->query("SELECT COUNT(*) FROM Games g WHERE (SELECT COUNT(*) FROM Game_Keys k WHERE k.game_id = g.id AND k.is_sold = 0) < 5")->fetchColumn(); } catch(\PDOException $e) { $low_stock_count = 0; }
 
 // Orders
 try {
@@ -297,12 +304,10 @@ try {
 try {
     $games = $pdo->query("
         SELECT g.id, g.name, g.price, g.platform, g.genres, g.description,
-               ANY_VALUE(i.filename) AS cover_image,
-               COUNT(k.id) AS stock_count
+               (SELECT filename FROM Game_Images i WHERE i.game_id = g.id AND i.is_cover = 1 LIMIT 1) AS cover_image,
+               (SELECT COUNT(*) FROM Game_Keys k WHERE k.game_id = g.id AND k.is_sold = 0) AS stock_count
         FROM Games g
-        LEFT JOIN Game_Images i ON g.id=i.game_id AND i.is_cover=1
-        LEFT JOIN Game_Keys k ON g.id=k.game_id AND k.is_sold=0
-        GROUP BY g.id, g.name, g.price, g.platform, g.genres, g.description ORDER BY g.name ASC
+        ORDER BY g.name ASC
     ")->fetchAll();
 } catch(\PDOException $e) { $games = []; error_log('Games query: '.$e->getMessage()); }
 
@@ -473,11 +478,13 @@ function roleBadge(string $r): string {
     <!-- Low stock quick list -->
     <?php
     try { $low_games = $pdo->query("
-        SELECT g.id, g.name, g.price, ANY_VALUE(i.filename) AS cover_image, COUNT(k.id) AS stock_count
+        SELECT g.id, g.name, g.price, 
+               (SELECT filename FROM Game_Images i WHERE i.game_id = g.id AND i.is_cover = 1 LIMIT 1) AS cover_image,
+               (SELECT COUNT(*) FROM Game_Keys k WHERE k.game_id = g.id AND k.is_sold = 0) AS stock_count
         FROM Games g
-        LEFT JOIN Game_Images i ON g.id=i.game_id AND i.is_cover=1
-        LEFT JOIN Game_Keys k ON g.id=k.game_id AND k.is_sold=0
-        GROUP BY g.id, g.name, g.price HAVING stock_count < 5 ORDER BY stock_count ASC LIMIT 5
+        WHERE (SELECT COUNT(*) FROM Game_Keys k WHERE k.game_id = g.id AND k.is_sold = 0) < 5
+        ORDER BY stock_count ASC 
+        LIMIT 5
     ")->fetchAll(); } catch(\PDOException $e) { $low_games = []; }
     if ($low_games):
     ?>
@@ -666,7 +673,7 @@ function roleBadge(string $r): string {
             <input type="hidden" name="action" value="add_game">
             <div class="form-row">
                 <div class="fg"><label>Game Name *</label><input type="text" name="name" id="add_name" required placeholder="e.g. Elden Ring"></div>
-                <div class="fg"><label>Price (USD) *</label><input type="number" name="price" id="add_price" step="0.01" min="0" required placeholder="29.99"></div>
+                <div class="fg"><label>Price (USD) *</label><input type="number" name="price" id="add_price" step="0.01" min="0" max="1264" required placeholder="29.99"></div>
             </div>
             <div class="form-row">
                 <div class="fg">
@@ -810,12 +817,12 @@ function roleBadge(string $r): string {
 <div class="modal-overlay" id="editGameModal">
     <div class="modal-box">
         <div class="modal-title">Edit Game <button class="modal-close" onclick="closeModal('editGameModal')">×</button></div>
-        <form method="POST" action="admin.php" enctype="multipart/form-data" class="form-panel" style="padding:0;">
+        <form method="POST" action="admin.php" enctype="multipart/form-data" class="form-panel" style="padding:0;" onsubmit="return validateEditGame()">
             <input type="hidden" name="action" value="edit_game">
             <input type="hidden" name="game_id" id="edit_game_id">
             <div class="form-row">
                 <div class="fg"><label>Name *</label><input type="text" name="name" id="edit_name" required></div>
-                <div class="fg"><label>Price *</label><input type="number" name="price" id="edit_price" step="0.01" min="0" required></div>
+                <div class="fg"><label>Price *</label><input type="number" name="price" id="edit_price" step="0.01" min="0" max="1264" required></div>
             </div>
             <div class="form-row">
                 <div class="fg"><label>Platform</label><input type="text" name="platform" id="edit_platform"></div>
@@ -944,6 +951,29 @@ function validateAddGame() {
     }
     if (isNaN(price) || price <= 0) {
         alert('Please enter a valid price greater than 0.');
+        return false;
+    }
+    if (price > 1264) {
+        alert('Price cannot exceed $1,264.');
+        return false;
+    }
+    return true;
+}
+
+function validateEditGame() {
+    const name = document.getElementById('edit_name').value.trim();
+    const price = parseFloat(document.getElementById('edit_price').value);
+    
+    if (!name) {
+        alert('Game name is required.');
+        return false;
+    }
+    if (isNaN(price) || price <= 0) {
+        alert('Please enter a valid price greater than 0.');
+        return false;
+    }
+    if (price > 1264) {
+        alert('Price cannot exceed $1,264.');
         return false;
     }
     return true;
