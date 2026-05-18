@@ -205,25 +205,56 @@ $other_sellers = $stmt_others->fetchAll();
             </div>
             <div>
                 <div class="description-title">System Requirements</div>
-                <div class="description-text" style="white-space: pre-wrap; margin-top: 10px;">
-                    <?php if (!empty($game['min_requirements'])): ?>
-                        <div style="margin-bottom: 15px;">
-                            <strong style="color: #333; display: block; margin-bottom: 5px;">Minimum:</strong>
-                            <?php echo htmlspecialchars($game['min_requirements']); ?>
-                        </div>
-                    <?php endif; ?>
-                    
-                    <?php if (!empty($game['recommended_requirements'])): ?>
-                        <div>
-                            <strong style="color: #333; display: block; margin-bottom: 5px;">Recommended:</strong>
-                            <?php echo htmlspecialchars($game['recommended_requirements']); ?>
-                        </div>
-                    <?php endif; ?>
-
-                    <?php if (empty($game['min_requirements']) && empty($game['recommended_requirements'])): ?>
-                        <p>System requirements are not available for this game.</p>
-                    <?php endif; ?>
-                </div>
+            
+                <?php if (!empty($game['min_requirements'])): ?>
+                    <div class="requirements-box">
+                        <?php
+                        $req = $game['min_requirements'];
+            
+                        $labels = [
+                            'OS',
+                            'Processor',
+                            'Memory',
+                            'Graphics',
+                            'DirectX',
+                            'Storage',
+                            'Sound Card',
+                            'Network',
+                            'Additional Notes'
+                        ];
+            
+                        foreach ($labels as $label) {
+                            $req = str_replace($label . ':', "\n" . $label . ':', $req);
+                        }
+            
+                        $lines = array_filter(array_map('trim', explode("\n", $req)));
+            
+                        foreach ($lines as $line):
+                            if (strpos($line, ':') !== false):
+            
+                                [$key, $val] = explode(':', $line, 2);
+                        ?>
+                                <div class="req-row">
+                                    <span class="req-key">
+                                        <?= htmlspecialchars(trim($key)) ?>
+                                    </span>
+            
+                                    <span class="req-val">
+                                        <?= htmlspecialchars(trim($val)) ?>
+                                    </span>
+                                </div>
+            
+                        <?php
+                            endif;
+                        endforeach;
+                        ?>
+                    </div>
+            
+                <?php else: ?>
+                    <p class="description-text">
+                        System requirements are not available for this game.
+                    </p>
+                <?php endif; ?>
             </div>
         </div>
     </div>
