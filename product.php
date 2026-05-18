@@ -203,63 +203,60 @@ $other_sellers = $stmt_others->fetchAll();
                 <div class="description-title">Description</div>
                 <p class="description-text" style="white-space: pre-wrap; margin-top: 10px;"><?php echo htmlspecialchars($game['description'] ? $game['description'] : 'No description available for this game.'); ?></p>
             </div>
-            <div>
-                <div class="description-title">System Requirements</div>
-            
-                <?php if (!empty($game['min_requirements'])): ?>
-            
-                    <div class="requirements-box">
-            
+            <div class="requirements-box">
+
                         <?php
-                        $requirements = preg_split('/\r\n|\r|\n/', $game['min_requirements']);
-            
+                        // 1. Split by newlines or <br> tags to handle different formats
+                        $requirements = preg_split('/<br[^>]*>|\r\n|\r|\n/i', $game['min_requirements']);
+                        
+                        // 2. Regex to identify common hardware keys even if the colon is missing
+                        $pattern = '/^(OS|Processor|Memory|Graphics|Video Card|DirectX|Storage|Hard Drive|Network|Sound Card|Minimum|Recommended)\b[:\s]*(.*)$/i';
+
                         foreach ($requirements as $req):
-            
-                            $req = trim($req);
-            
+                            // Decode HTML entities (like &reg; into ®) and strip stray tags
+                            $req = trim(strip_tags(html_entity_decode($req, ENT_QUOTES | ENT_HTML5, 'UTF-8')));
+                            
                             if (empty($req)) continue;
-            
+
+                            $key = '';
+                            $val = $req;
+
+                            // First, check if it explicitly contains a colon
                             if (strpos($req, ':') !== false) {
-            
                                 [$key, $val] = explode(':', $req, 2);
+                            } 
+                            // Fallback to regex pattern matching for missing colons
+                            elseif (preg_match($pattern, $req, $matches)) {
+                                $key = $matches[1];
+                                $val = $matches[2];
+                            }
+
+                            if (!empty($key)):
                         ?>
-            
+
                                 <div class="req-row">
                                     <span class="req-key">
-                                        <?= htmlspecialchars(trim($key)) ?>
+                                        <?= htmlspecialchars(trim(ucfirst($key))) ?>
                                     </span>
-            
                                     <span class="req-val">
                                         <?= htmlspecialchars(trim($val)) ?>
                                     </span>
                                 </div>
-            
-                        <?php
-                            } else {
-                        ?>
-            
+
+                        <?php else: ?>
+
                                 <div class="req-row single-line">
                                     <span class="req-val-full">
                                         <?= htmlspecialchars($req) ?>
                                     </span>
                                 </div>
-            
-                        <?php
-                            }
-            
-                        endforeach;
+
+                        <?php 
+                            endif;
+                        endforeach; 
                         ?>
-            
+
                     </div>
-            
-                <?php else: ?>
-            
-                    <p class="description-text">
-                        System requirements are not available for this game.
-                    </p>
-            
-                <?php endif; ?>
-            </div>
         </div>
     </div>
     <div class="footer">© 2026 GameHub Online Store. All rights reserved.</div>
