@@ -8,15 +8,16 @@ $cart_count   = 0;
 require_once 'php/db_connect.php';
 
 if ($is_logged_in) {
-    $stmt_cart = $pdo->prepare("SELECT SUM(quantity) FROM Cart WHERE user_id = ?");
+    $stmt_cart = $pdo->prepare("SELECT SUM(c.quantity) AS count, SUM(c.quantity * g.price) AS total FROM Cart c JOIN Games g ON c.game_id = g.id WHERE c.user_id = ?");
     $stmt_cart->execute([$_SESSION['user_id']]);
-    $cart_count = (int)$stmt_cart->fetchColumn();
 } else {
     $session_id = session_id();
-    $stmt_cart = $pdo->prepare("SELECT SUM(quantity) FROM Cart WHERE session_id = ?");
+    $stmt_cart = $pdo->prepare("SELECT SUM(c.quantity) AS count, SUM(c.quantity * g.price) AS total FROM Cart c JOIN Games g ON c.game_id = g.id WHERE c.session_id = ?");
     $stmt_cart->execute([$session_id]);
-    $cart_count = (int)$stmt_cart->fetchColumn();
 }
+$cart_data = $stmt_cart->fetch();
+$cart_count = (int)($cart_data['count'] ?? 0);
+$cart_total = (float)($cart_data['total'] ?? 0);
 ?>
 
 <nav class="navbar">
@@ -84,6 +85,7 @@ if ($is_logged_in) {
         <a href="cart.php" class="cart-link" onclick="closeNav()">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:4px;"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
             Cart
+            <span class="price-display" data-usd="<?= $cart_total ?>" style="font-weight:bold; margin-left:4px;">$<?= number_format($cart_total, 2) ?></span>
             <span class="cart-badge"><?= $cart_count ?></span>
         </a>
 
