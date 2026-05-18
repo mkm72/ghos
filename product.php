@@ -203,11 +203,15 @@ $other_sellers = $stmt_others->fetchAll();
                 <div class="description-title">Description</div>
                 <p class="description-text" style="white-space: pre-wrap; margin-top: 10px;"><?php echo htmlspecialchars($game['description'] ? $game['description'] : 'No description available for this game.'); ?></p>
             </div>
-            <div class="requirements-box">
-                        <div class="description-title">System Requirements</div>
+            <div>
+                <div class="description-title">System Requirements</div>
+                
+                <?php if (!empty(trim($game['min_requirements'] ?? ''))): ?>
+                    
+                    <div class="requirements-box">
                         <?php
                         // 1. Clean the raw string to establish a baseline
-                        $raw_reqs = html_entity_decode($game['min_requirements'] ?? '', ENT_QUOTES | ENT_HTML5, 'UTF-8');
+                        $raw_reqs = html_entity_decode($game['min_requirements'], ENT_QUOTES | ENT_HTML5, 'UTF-8');
                         $raw_reqs = str_ireplace(['<br>', '<br/>', '<br />'], "\n", $raw_reqs);
                         $raw_reqs = strip_tags($raw_reqs);
 
@@ -244,11 +248,11 @@ $other_sellers = $stmt_others->fetchAll();
                             $key = '';
                             $val = $req;
 
-                            // If there is a colon early in the string, split by it (handles Image 1 & 3)
+                            // If there is a colon early in the string, split by it
                             if (strpos($req, ':') !== false && strpos($req, ':') < 40) {
                                 [$key, $val] = explode(':', $req, 2);
                             } 
-                            // Fallback: rely on regex for space-separated keywords without colons (handles Image 2)
+                            // Fallback: rely on regex for space-separated keywords without colons
                             elseif (preg_match($key_pattern, $req, $matches)) {
                                 $key = $matches[1];
                                 $val = $matches[2];
@@ -286,8 +290,14 @@ $other_sellers = $stmt_others->fetchAll();
                             endif;
                         endforeach; 
                         ?>
-
                     </div>
+
+                <?php else: ?>
+                    
+                    <p class="description-text" style="margin-top: 10px;">System requirements are not available for this game.</p>
+                
+                <?php endif; ?>
+            </div>
         </div>
     </div>
     <div class="footer">© 2026 GameHub Online Store. All rights reserved.</div>
