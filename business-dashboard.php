@@ -336,7 +336,7 @@ $total_games     = (int)($stats['total_games'] ?? 0);
     <a href="business-dashboard.php" class="sidebar-link active">Dashboard</a>
     <hr class="sidebar-divider">
     <a href="index.php" class="sidebar-back">Back to Store</a>
-    <a href="auth.php?logout=1" class="sidebar-back" style="color:#ef4444;margin-top:8px;">Logout</a>
+    <a href="logout.php" class="sidebar-back" style="color:#ef4444;margin-top:8px;">Logout</a>
 </aside>
 
 <main class="main-content">

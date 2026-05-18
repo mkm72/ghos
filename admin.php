@@ -4,8 +4,6 @@ ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 session_start();
 
-if (isset($_GET['logout'])) { session_unset(); session_destroy(); header('Location: index.php'); exit; }
-
 if (!isset($_SESSION['user_id']) || ($_SESSION['role'] ?? '') !== 'admin') {
     http_response_code(403);
     echo '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Access Denied</title><link rel="icon" type="image/png" href="images/logo/logo2.png"><link rel="stylesheet" href="css/navbar.css?v=2026.05.17.v2"></head><body>';
@@ -444,7 +442,7 @@ function roleBadge(string $r): string {
     <a href="#" class="sidebar-link" data-section="section-business-apps">🏢 Business Apps</a>
     <hr class="sidebar-divider">
     <a href="index.php" class="sidebar-back">← Back to Store</a>
-    <a href="?logout=1" class="sidebar-back" style="color:#ef4444;margin-top:8px;">🚪 Logout</a>
+    <a href="logout.php" class="sidebar-back" style="color:#ef4444;margin-top:8px;">🚪 Logout</a>
 </aside>
 
 <main class="main-content">

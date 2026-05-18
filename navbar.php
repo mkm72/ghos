@@ -1,11 +1,6 @@
 <?php
 if (session_status() === PHP_SESSION_NONE) session_start();
 
-if (isset($_GET['logout'])) {
-    session_unset(); session_destroy();
-    header('Location: index.php'); exit;
-}
-
 $is_logged_in = isset($_SESSION['user_id']);
 $user_role    = $_SESSION['role'] ?? '';
 $cart_count   = 0;
@@ -79,7 +74,7 @@ if ($is_logged_in) {
                 <div class="dropdown-content" id="profileMenu">
                     <a href="orders.php" onclick="closeNav()">My Orders</a>
                     <a href="settings.php" onclick="closeNav()">Settings</a>
-                    <a href="?logout=1">Logout</a>
+                    <a href="logout.php">Logout</a>
                 </div>
             </div>
         <?php else: ?>
