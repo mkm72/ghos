@@ -19,8 +19,7 @@ $user_role    = $_SESSION['role'] ?? 'guest';
         .section-box { background: white; border: 1px solid #e0e0e0; border-radius: 12px; padding: 30px; margin-bottom: 24px; }
         .section-box h2 { font-size: 20px; color: #1a1a1a; margin-bottom: 16px; border-bottom: 2px solid #2563eb; display: inline-block; padding-bottom: 4px; }
         .points-list { list-style: none; }
-        .points-list li { margin-bottom: 16px; display: flex; gap: 12px; font-size: 15px; color: #444; line-height: 1.6; }
-        .points-list .icon { font-size: 20px; flex-shrink: 0; }
+        .points-list li { margin-bottom: 16px; font-size: 15px; color: #444; line-height: 1.6; }
         .map-section { margin-top: 20px; }
         .map-section iframe { width: 100%; height: 350px; border: none; border-radius: 10px; }
     </style>
@@ -31,7 +30,7 @@ $user_role    = $_SESSION['role'] ?? 'guest';
 
 <div class="business-product">
     <h1>About Our Platform</h1>
-    <p>Mission, vision, and the technological foundation of the GameHub Online Store.</p>
+    <p>Mission, vision, and the technological foundation of the GameHub Online Store platform.</p>
 </div>
 
 <div class="about-wrap">
@@ -39,10 +38,10 @@ $user_role    = $_SESSION['role'] ?? 'guest';
     <!-- Contact Us & Location (Task 11) -->
     <div class="section-box" id="contact">
         <h2>Find Us</h2>
-        <p><strong>Address:</strong> Prince Faisal Bin Fahd Road, Al Khobar, Saudi Arabia</p>
+        <p><strong>Address:</strong> Imam Abdulrahman Bin Faisal University, Dammam, Saudi Arabia</p>
         <p><strong>Support Email:</strong> support@ghos.shop</p>
         <div class="map-section">
-            <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d114406.49503378542!2d50.11942472656249!3d26.271318499999998!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3e49e89798ca7091%3A0xc47e337190530b!2sPrince%20Faisal%20Bin%20Fahd%20Rd%2C%20Al%20Khobar!5e0!3m2!1sen!2ssa!4v1715891234567!5m2!1sen!2ssa" allowfullscreen="" loading="lazy"></iframe>
+            <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d1754.1487865674999!2d50.194878487615526!3d26.39430784899561!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3e49ef811304efab%3A0xe664343a49ebbf2b!2sCollege%20of%20Computer%20Science%20and%20Information%20Technology!5e0!3m2!1sen!2ssa!4v1776965850652!5m2!1sen!2ssa" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
         </div>
     </div>
 
@@ -51,25 +50,16 @@ $user_role    = $_SESSION['role'] ?? 'guest';
         <h2>Solutions for Modern Gaming</h2>
         <ul class="points-list">
             <li>
-                <span class="icon">🏢</span>
-                <div>
-                    <strong>Efficiency:</strong> Traditional retail faces massive overhead. 
-                    GameHub optimizes this by providing a digital-first marketplace with zero physical storage costs.
-                </div>
+                <strong>Operational Efficiency:</strong> Traditional retail faces massive overhead. 
+                GameHub optimizes this by providing a digital-first marketplace with zero physical storage costs.
             </li>
             <li>
-                <span class="icon">🌎</span>
-                <div>
-                    <strong>Global Marketplace:</strong> We bridge the gap between regional sellers and global buyers, 
-                    enabling instant distribution regardless of location.
-                </div>
+                <strong>Global Marketplace:</strong> We bridge the gap between regional sellers and global buyers, 
+                enabling instant distribution regardless of location.
             </li>
             <li>
-                <span class="icon">⚡</span>
-                <div>
-                    <strong>Instant Access:</strong> Eliminating waiting times. Our platform delivers activation 
-                    codes the moment a transaction is verified.
-                </div>
+                <strong>Instant Access:</strong> Eliminating waiting times. Our platform delivers activation 
+                codes the moment a transaction is verified.
             </li>
         </ul>
     </div>
@@ -79,25 +69,16 @@ $user_role    = $_SESSION['role'] ?? 'guest';
         <h2>Core Technological Features</h2>
         <ul class="points-list">
             <li>
-                <span class="icon">💸</span>
-                <div>
-                    <strong>Adaptive Pricing:</strong> Real-time currency conversion (SAR/USD) built on a 
-                    robust JavaScript engine for seamless international shopping.
-                </div>
+                <strong>Adaptive Pricing:</strong> Real-time currency conversion (SAR/USD) built on a 
+                robust JavaScript engine for seamless international shopping.
             </li>
             <li>
-                <span class="icon">🛡️</span>
-                <div>
-                    <strong>Account Security:</strong> Multi-layered protection including Two-Factor Authentication (2FA) 
-                    and encrypted credential management.
-                </div>
+                <strong>Account Security:</strong> Multi-layered protection including Two-Factor Authentication (2FA) 
+                and encrypted credential management.
             </li>
             <li>
-                <span class="icon">📊</span>
-                <div>
-                    <strong>Intelligent Management:</strong> A centralized dashboard for inventory control, sales analytics, 
-                    and user moderation powered by PHP and MySQL.
-                </div>
+                <strong>Intelligent Management:</strong> A centralized dashboard for inventory control, sales analytics, 
+                and user moderation powered by PHP and MySQL.
             </li>
         </ul>
     </div>
@@ -107,18 +88,12 @@ $user_role    = $_SESSION['role'] ?? 'guest';
         <h2>Future Challenges</h2>
         <ul class="points-list">
             <li>
-                <span class="icon">🔒</span>
-                <div>
-                    <strong>Cybersecurity:</strong> As a digital asset platform, we prioritize evolving our defense 
-                    systems against sophisticated emerging threats.
-                </div>
+                <strong>Cybersecurity:</strong> As a digital asset platform, we prioritize evolving our defense 
+                systems against sophisticated emerging threats.
             </li>
             <li>
-                <span class="icon">🚀</span>
-                <div>
-                    <strong>Scalability:</strong> Handling rapid growth while maintaining 100% server uptime 
-                    requires continuous infrastructure optimization.
-                </div>
+                <strong>Scalability:</strong> Handling rapid growth while maintaining 100% server uptime 
+                requires continuous infrastructure optimization.
             </li>
         </ul>
     </div>
@@ -128,8 +103,8 @@ $user_role    = $_SESSION['role'] ?? 'guest';
         <h2>Development Stack</h2>
         <ul class="points-list">
             <li>
-                <span class="icon">💻</span>
-                <div><strong>Stack:</strong> Built with PHP, MySQL, JavaScript, and CSS for a fast, responsive, and secure experience.</div>
+                <strong>Technologies:</strong> The platform is built using a modern stack including PHP for server-side logic, 
+                MySQL for normalized data storage, and JavaScript/CSS for a dynamic user interface.
             </li>
         </ul>
     </div>
