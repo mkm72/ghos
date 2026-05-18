@@ -21,8 +21,16 @@ if ($method === 'card') {
     $card_expiry = preg_replace('/[\s\/]+/', '', $_POST['card_expiry'] ?? '');
     $card_cvv    = trim($_POST['card_cvv']    ?? '');
 
+    // Basic format validation
     if (!$card_name || !preg_match('/^\d{16}$/', $card_number) || !preg_match('/^\d{4}$/', $card_expiry) || !preg_match('/^\d{3,4}$/', $card_cvv)) {
         $_SESSION['pay_error'] = 'Please check your card details and try again.';
+        header('Location: checkout.php'); exit;
+    }
+
+    // Month validation (MM should be 01-12)
+    $month = (int)substr($card_expiry, 0, 2);
+    if ($month < 1 || $month > 12) {
+        $_SESSION['pay_error'] = 'Invalid expiration month.';
         header('Location: checkout.php'); exit;
     }
 }

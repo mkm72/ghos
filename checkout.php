@@ -275,7 +275,11 @@ unset($_SESSION['pay_error']);
         // 1. Validate frontend fields
         if (!name) return shakeField('cardName');
         if (number.length < 16) return shakeField('cardNumber');
+        
         if (expiry.length < 4) return shakeField('cardExpiry');
+        const month = parseInt(expiry.substring(0, 2), 10);
+        if (month < 1 || month > 12) return shakeField('cardExpiry');
+
         if (cvv.length < 3) return shakeField('cardCvv');
         if (!email) return shakeField('checkoutEmail');
 
