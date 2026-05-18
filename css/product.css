@@ -267,3 +267,32 @@
     color: #555555;
     line-height: 1.7;
 }
+
+.requirements-box {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.req-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 12px 14px;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    background: #fafafa;
+}
+
+.req-key {
+    font-weight: 700;
+    color: #111827;
+    min-width: 120px;
+}
+
+.req-val {
+    color: #4b5563;
+    text-align: right;
+    flex: 1;
+}
