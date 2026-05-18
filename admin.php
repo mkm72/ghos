@@ -495,7 +495,7 @@ function roleBadge(string $r): string {
             <tr class="low-stock-row">
                 <td>
                     <div class="game-cell">
-                        <div class="mini-img <?= $bg_colors[$i%count($bg_colors)] ?>"><?php if($img):?><img src="<?=htmlspecialchars($img)?>" alt=""><?php endif;?></div>
+                        <div class="mini-img <?= $bg_colors[$i%count($bg_colors)] ?>"><?php if($img):?><img src="<?=htmlspecialchars($img)?>" alt="game-cell"><?php endif;?></div>
                         <span class="mini-name"><?= htmlspecialchars($g['name']) ?></span>
                     </div>
                 </td>
@@ -594,7 +594,7 @@ function roleBadge(string $r): string {
                 <td data-col="name" data-val="<?= htmlspecialchars($game['name']) ?>">
                     <a href="product.php?id=<?=$game['id']?>" target="_blank" style="text-decoration:none; color:inherit;">
                         <div class="game-cell">
-                            <div class="mini-img <?=$clr?>"><?php if($img):?><img src="<?=htmlspecialchars($img)?>" alt=""><?php endif;?></div>
+                            <div class="mini-img <?=$clr?>"><?php if($img):?><img src="<?=htmlspecialchars($img)?>" alt="game cell"><?php endif;?></div>
                             <span class="mini-name"><?= htmlspecialchars($game['name']) ?></span>
                         </div>
                     </a>
@@ -703,7 +703,7 @@ function roleBadge(string $r): string {
                         <input type="file" name="cover_image" id="coverInput" accept="image/*" onchange="previewImg(this,'img-preview','upload-zone-text','upload-zone-icon')">
                         <div class="upload-zone-icon" id="upload-zone-icon">🖼️</div>
                         <div class="upload-zone-text" id="upload-zone-text">Click to upload or drag & drop<br><span style="font-size:11px;">JPG, PNG, WEBP — max 5MB</span></div>
-                        <img id="img-preview" src="" alt="">
+                        <img id="img-preview" src="" alt="cover image">
                     </div>
                 </div>
             </div>
@@ -843,7 +843,7 @@ function roleBadge(string $r): string {
                     <div class="upload-zone">
                         <input type="file" name="cover_image" accept="image/*" onchange="previewImg(this,'edit-img-preview',null,null)">
                         <div style="font-size:12px;color:#aaa;">Click or drag to replace cover</div>
-                        <img id="edit-img-preview" src="" alt="">
+                        <img id="edit-img-preview" src="" alt="edit image">
                     </div>
                 </div>
             </div>
