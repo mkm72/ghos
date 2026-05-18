@@ -27,10 +27,18 @@ if ($method === 'card') {
         header('Location: checkout.php'); exit;
     }
 
-    // Month validation (MM should be 01-12)
+    // Expiry validation (MMYY)
     $month = (int)substr($card_expiry, 0, 2);
+    $year  = (int)substr($card_expiry, 2, 2);
+    $curMonth = (int)date('m');
+    $curYear  = (int)date('y');
+
     if ($month < 1 || $month > 12) {
         $_SESSION['pay_error'] = 'Invalid expiration month.';
+        header('Location: checkout.php'); exit;
+    }
+    if ($year < $curYear || ($year === $curYear && $month < $curMonth)) {
+        $_SESSION['pay_error'] = 'The card has expired.';
         header('Location: checkout.php'); exit;
     }
 }

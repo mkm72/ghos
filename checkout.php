@@ -278,7 +278,13 @@ unset($_SESSION['pay_error']);
         
         if (expiry.length < 4) return shakeField('cardExpiry');
         const month = parseInt(expiry.substring(0, 2), 10);
+        const year = parseInt(expiry.substring(2, 4), 10);
+        const now = new Date();
+        const curYear = now.getFullYear() % 100; // e.g., 26
+        const curMonth = now.getMonth() + 1; // 1-12
+
         if (month < 1 || month > 12) return shakeField('cardExpiry');
+        if (year < curYear || (year === curYear && month < curMonth)) return shakeField('cardExpiry');
 
         if (cvv.length < 3) return shakeField('cardCvv');
         if (!email) return shakeField('checkoutEmail');
