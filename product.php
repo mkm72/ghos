@@ -207,33 +207,23 @@ $other_sellers = $stmt_others->fetchAll();
                 <div class="description-title">System Requirements</div>
             
                 <?php if (!empty($game['min_requirements'])): ?>
+            
                     <div class="requirements-box">
+            
                         <?php
-                        $req = $game['min_requirements'];
+                        $requirements = preg_split('/\r\n|\r|\n/', $game['min_requirements']);
             
-                        $labels = [
-                            'OS',
-                            'Processor',
-                            'Memory',
-                            'Graphics',
-                            'DirectX',
-                            'Storage',
-                            'Sound Card',
-                            'Network',
-                            'Additional Notes'
-                        ];
+                        foreach ($requirements as $req):
             
-                        foreach ($labels as $label) {
-                            $req = str_replace($label . ':', "\n" . $label . ':', $req);
-                        }
+                            $req = trim($req);
             
-                        $lines = array_filter(array_map('trim', explode("\n", $req)));
+                            if (empty($req)) continue;
             
-                        foreach ($lines as $line):
-                            if (strpos($line, ':') !== false):
+                            if (strpos($req, ':') !== false) {
             
-                                [$key, $val] = explode(':', $line, 2);
+                                [$key, $val] = explode(':', $req, 2);
                         ?>
+            
                                 <div class="req-row">
                                     <span class="req-key">
                                         <?= htmlspecialchars(trim($key)) ?>
@@ -245,15 +235,29 @@ $other_sellers = $stmt_others->fetchAll();
                                 </div>
             
                         <?php
-                            endif;
+                            } else {
+                        ?>
+            
+                                <div class="req-row single-line">
+                                    <span class="req-val-full">
+                                        <?= htmlspecialchars($req) ?>
+                                    </span>
+                                </div>
+            
+                        <?php
+                            }
+            
                         endforeach;
                         ?>
+            
                     </div>
             
                 <?php else: ?>
+            
                     <p class="description-text">
                         System requirements are not available for this game.
                     </p>
+            
                 <?php endif; ?>
             </div>
         </div>
