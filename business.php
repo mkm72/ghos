@@ -364,7 +364,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $is_logged_in && !$already_business
 <div class="footer">
     © 2026 GameHub Online Store. All rights reserved. ·
     <a href="index.php" style="color:#888888;">Store</a> ·
-    <a href="business.php" style="color:#888888;">Register Business</a>
+    <a href="business.php" style="color:#888888;">Register Business</a> ·
+    <a href="about.php" style="color:#888888;">About Us</a>
 </div>
 
 <script src="js/navbar.js"></script>

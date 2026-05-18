@@ -256,7 +256,8 @@ $current_sort_label = $sort_options[$current_sort] ?? 'Top Rated';
     </div>
 
     <div class="footer">
-        © 2026 GameHub Online Store. All rights reserved.
+        © 2026 GameHub Online Store. All rights reserved. ·
+        <a href="about.php" style="color:#888888;">About Us</a>
     </div>
 
     <script src="js/index.js?v=2026.05.15.v2"></script>
