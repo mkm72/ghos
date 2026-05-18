@@ -206,48 +206,79 @@ $other_sellers = $stmt_others->fetchAll();
             <div class="requirements-box">
 
                         <?php
-                        // 1. Split by newlines or <br> tags to handle different formats
-                        $requirements = preg_split('/<br[^>]*>|\r\n|\r|\n/i', $game['min_requirements']);
+                        // 1. Clean the raw string to establish a baseline
+                        $raw_reqs = html_entity_decode($game['min_requirements'] ?? '', ENT_QUOTES | ENT_HTML5, 'UTF-8');
+                        $raw_reqs = str_ireplace(['<br>', '<br/>', '<br />'], "\n", $raw_reqs);
+                        $raw_reqs = strip_tags($raw_reqs);
+
+                        // 2. Handle "mashed" database text (e.g., "RAMGraphics:" or "1GB)Storage:")
+                        $split_keywords = 'OS|Processor|Memory|Graphics|Video Card|DirectX|Storage|Hard Drive|Network|Sound Card|Additional Notes|Other requirements';
                         
-                        // 2. Regex to identify common hardware keys even if the colon is missing
-                        $pattern = '/^(OS|Processor|Memory|Graphics|Video Card|DirectX|Storage|Hard Drive|Network|Sound Card|Minimum|Recommended)\b[:\s]*(.*)$/i';
+                        // Split by actual newlines first
+                        $lines = preg_split('/[\r\n]+/', $raw_reqs);
+                        $final_reqs = [];
 
-                        foreach ($requirements as $req):
-                            // Decode HTML entities (like &reg; into ®) and strip stray tags
-                            $req = trim(strip_tags(html_entity_decode($req, ENT_QUOTES | ENT_HTML5, 'UTF-8')));
+                        // Positive lookahead regex: forces a split right BEFORE a known keyword that is followed by a colon
+                        $inline_split_pattern = '/(?=(?:' . $split_keywords . ')\s*:)/i';
+
+                        foreach ($lines as $line) {
+                            $line = trim($line);
+                            if (empty($line)) continue;
+
+                            // Break apart the wall of text using our lookahead pattern
+                            $chunks = preg_split($inline_split_pattern, $line, -1, PREG_SPLIT_NO_EMPTY);
                             
-                            if (empty($req)) continue;
+                            foreach ($chunks as $chunk) {
+                                $chunk = trim($chunk);
+                                if (!empty($chunk)) {
+                                    $final_reqs[] = $chunk;
+                                }
+                            }
+                        }
 
+                        // 3. Extract the clean Keys and Values
+                        $key_pattern_keywords = 'Minimum|Recommended|' . $split_keywords;
+                        $key_pattern = '/^(' . $key_pattern_keywords . ')\b[:\s]*(.*)$/i';
+
+                        foreach ($final_reqs as $req):
                             $key = '';
                             $val = $req;
 
-                            // First, check if it explicitly contains a colon
-                            if (strpos($req, ':') !== false) {
+                            // If there is a colon early in the string, split by it (handles Image 1 & 3)
+                            if (strpos($req, ':') !== false && strpos($req, ':') < 40) {
                                 [$key, $val] = explode(':', $req, 2);
                             } 
-                            // Fallback to regex pattern matching for missing colons
-                            elseif (preg_match($pattern, $req, $matches)) {
+                            // Fallback: rely on regex for space-separated keywords without colons (handles Image 2)
+                            elseif (preg_match($key_pattern, $req, $matches)) {
                                 $key = $matches[1];
                                 $val = $matches[2];
                             }
 
-                            if (!empty($key)):
+                            $key = trim($key);
+                            $val = trim($val);
+
+                            // Skip empty modifier lines like a standalone "Minimum:" tag
+                            if ((strtolower($key) === 'minimum' || strtolower($key) === 'recommended') && empty($val)) {
+                                continue;
+                            }
+
+                            if (!empty($key) && !empty($val)):
                         ?>
 
                                 <div class="req-row">
                                     <span class="req-key">
-                                        <?= htmlspecialchars(trim(ucfirst($key))) ?>
+                                        <?= htmlspecialchars(ucwords($key)) ?>
                                     </span>
                                     <span class="req-val">
-                                        <?= htmlspecialchars(trim($val)) ?>
+                                        <?= htmlspecialchars($val) ?>
                                     </span>
                                 </div>
 
-                        <?php else: ?>
+                        <?php elseif (!empty($val)): ?>
 
                                 <div class="req-row single-line">
                                     <span class="req-val-full">
-                                        <?= htmlspecialchars($req) ?>
+                                        <?= htmlspecialchars($val) ?>
                                     </span>
                                 </div>
 
