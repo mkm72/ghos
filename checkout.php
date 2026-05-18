@@ -272,6 +272,10 @@ unset($_SESSION['pay_error']);
         const cvv = document.getElementById('cardCvv').value.trim();
         const email = document.getElementById('checkoutEmail').value.trim();
 
+        // Clear any previous JS error
+        const existingErr = document.getElementById('jsError');
+        if (existingErr) existingErr.style.display = 'none';
+
         // 1. Validate frontend fields
         if (!name) return shakeField('cardName');
         if (number.length < 16) return shakeField('cardNumber');
@@ -280,11 +284,17 @@ unset($_SESSION['pay_error']);
         const month = parseInt(expiry.substring(0, 2), 10);
         const year = parseInt(expiry.substring(2, 4), 10);
         const now = new Date();
-        const curYear = now.getFullYear() % 100; // e.g., 26
-        const curMonth = now.getMonth() + 1; // 1-12
+        const curYear = now.getFullYear() % 100;
+        const curMonth = now.getMonth() + 1;
 
-        if (month < 1 || month > 12) return shakeField('cardExpiry');
-        if (year < curYear || (year === curYear && month < curMonth)) return shakeField('cardExpiry');
+        if (month < 1 || month > 12) {
+            showError("Invalid expiration month. Please use 01-12.");
+            return shakeField('cardExpiry');
+        }
+        if (year < curYear || (year === curYear && month < curMonth)) {
+            showError("The card has expired. Please use a valid card.");
+            return shakeField('cardExpiry');
+        }
 
         if (cvv.length < 3) return shakeField('cardCvv');
         if (!email) return shakeField('checkoutEmail');
@@ -299,6 +309,21 @@ unset($_SESSION['pay_error']);
         document.getElementById('payForm').submit();
     }
     
+    function showError(msg) {
+        let errDiv = document.getElementById('jsError');
+        if (!errDiv) {
+            errDiv = document.createElement('div');
+            errDiv.id = 'jsError';
+            errDiv.className = 'alert-error';
+            // Insert it after the breadcrumb bar
+            const breadcrumb = document.querySelector('.breadcrumb-bar');
+            breadcrumb.parentNode.insertBefore(errDiv, breadcrumb.nextSibling);
+        }
+        errDiv.textContent = msg;
+        errDiv.style.display = 'block';
+        errDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
     function shakeField(id) {
         const el = document.getElementById(id);
         el.classList.add('field-error'); 
