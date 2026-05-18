@@ -296,3 +296,41 @@
     text-align: right;
     flex: 1;
 }
+
+.requirements-box {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 12px;
+}
+
+.req-row {
+    display: flex;
+    gap: 18px;
+    padding: 14px;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    background: #fafafa;
+    align-items: flex-start;
+}
+
+.req-key {
+    min-width: 120px;
+    font-weight: 700;
+    color: #111827;
+}
+
+.req-val {
+    color: #4b5563;
+    flex: 1;
+    line-height: 1.5;
+}
+
+.req-val-full {
+    color: #4b5563;
+    line-height: 1.6;
+}
+
+.single-line {
+    display: block;
+}
