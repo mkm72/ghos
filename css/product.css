@@ -271,51 +271,23 @@
 .requirements-box {
     display: flex;
     flex-direction: column;
-    gap: 10px;
-    margin-top: 12px;
+    gap: 8px;           
+    margin-top: 8px;   
 }
 
 .req-row {
     display: flex;
-    justify-content: space-between;
-    gap: 20px;
-    padding: 12px 14px;
+    gap: 12px;          
+    padding: 8px 12px; 
     border: 1px solid #e5e7eb;
-    border-radius: 10px;
-    background: #fafafa;
-}
-
-.req-key {
-    font-weight: 700;
-    color: #111827;
-    min-width: 120px;
-}
-
-.req-val {
-    color: #4b5563;
-    text-align: right;
-    flex: 1;
-}
-
-.requirements-box {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    margin-top: 12px;
-}
-
-.req-row {
-    display: flex;
-    gap: 18px;
-    padding: 14px;
-    border: 1px solid #e5e7eb;
-    border-radius: 12px;
+    border-radius: 8px; 
     background: #fafafa;
     align-items: flex-start;
+    font-size: 13px;   
 }
 
 .req-key {
-    min-width: 120px;
+    min-width: 90px;  
     font-weight: 700;
     color: #111827;
 }
@@ -323,12 +295,12 @@
 .req-val {
     color: #4b5563;
     flex: 1;
-    line-height: 1.5;
+    line-height: 1.4; 
 }
 
 .req-val-full {
     color: #4b5563;
-    line-height: 1.6;
+    line-height: 1.4;   
 }
 
 .single-line {
