@@ -6,18 +6,12 @@ error_reporting(E_ALL);
 session_start();
 require_once 'php/db_connect.php';
 
-// --- GUEST CHECKOUT LOGIC ---
 $user_id = $_SESSION['user_id'] ?? null;
 $session_id = session_id();
 
-// Dynamic query builder: use user_id if logged in, otherwise use session_id
 $where_clause = $user_id ? "user_id = :identifier" : "session_id = :identifier";
 $identifier   = $user_id ?: $session_id;
-// ----------------------------
 
-// ------------------------------------------------------------------
-// 2. HANDLE ALL FORM SUBMISSIONS (Add, Update, Delete)
-// ------------------------------------------------------------------
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Action: EMPTY CART

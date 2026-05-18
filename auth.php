@@ -16,7 +16,6 @@ $error   = '';
 $success = '';
 $mode = 'login';
 
-// Determine initial mode based on session state
 if (isset($_SESSION['pending_register']) && $_SESSION['pending_register']) {
     $mode = 'verify';
 } elseif (isset($_SESSION['2fa_user']) && $_SESSION['2fa_user']) {

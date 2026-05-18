@@ -35,7 +35,6 @@ $user_role    = $_SESSION['role'] ?? 'guest';
 
 <div class="about-wrap">
 
-    <!-- Contact Us & Location (Task 11) -->
     <div class="section-box" id="contact">
         <h2>Find Us</h2>
         <p><strong>Address:</strong> Imam Abdulrahman Bin Faisal University, Dammam, Saudi Arabia</p>
@@ -45,7 +44,6 @@ $user_role    = $_SESSION['role'] ?? 'guest';
         </div>
     </div>
 
-    <!-- Issues Solved (Task 17-1) -->
     <div class="section-box">
         <h2>Solutions for Modern Gaming</h2>
         <ul class="points-list">
@@ -64,7 +62,6 @@ $user_role    = $_SESSION['role'] ?? 'guest';
         </ul>
     </div>
 
-    <!-- Tech Features (Task 17-2) -->
     <div class="section-box">
         <h2>Core Technological Features</h2>
         <ul class="points-list">
@@ -83,7 +80,6 @@ $user_role    = $_SESSION['role'] ?? 'guest';
         </ul>
     </div>
 
-    <!-- Challenges (Task 17-3) -->
     <div class="section-box">
         <h2>Future Challenges</h2>
         <ul class="points-list">
@@ -98,7 +94,6 @@ $user_role    = $_SESSION['role'] ?? 'guest';
         </ul>
     </div>
 
-    <!-- Tools Used (Task 17-4) -->
     <div class="section-box">
         <h2>Development Stack</h2>
         <ul class="points-list">

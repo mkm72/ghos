@@ -239,11 +239,10 @@ unset($_SESSION['pay_error']);
 
     </div>
 
-    <div class="footer">© 2026 Ghos. All rights reserved.</div>
+<div class="footer">© 2026 Ghos. All rights reserved.</div>
 
 </div>
 
-<!-- Processing overlay (Replacing the fake success overlay) -->
 <div class="success-overlay" id="processingOverlay">
     <div class="success-card">
         <div class="success-title">Processing Payment...</div>

@@ -112,7 +112,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $is_logged_in && !$already_business
 
 <?php include 'navbar.php'; ?>
 
-<!-- HERO -->
 <div class="business-product">
     <h1>🚀 Become a Verified Seller</h1>
     <p>Join GameHub Online Store to reach millions of gamers worldwide. Register your business today to start selling game keys with industry-low fees and powerful tools.</p>
